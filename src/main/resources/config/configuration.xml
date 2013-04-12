@@ -1,0 +1,6 @@
+<configuration>
+    <scheduler username="admin" password="admin"
+               url="http://localhost:8080/rest/rest"/>
+    <catalog path="config/catalog/"/>
+    <rules path="config/rules/"/>
+</configuration>

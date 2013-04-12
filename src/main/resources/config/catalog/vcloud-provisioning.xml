@@ -1,0 +1,101 @@
+<job xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:proactive:jobdescriptor:dev"
+	xsi:schemaLocation="urn:proactive:jobdescriptor:dev http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/dev/schedulerjob.xsd"
+	name="VMWare - Provision VM" projectName="UnivCloud">
+	<variables>
+		<variable name="occi.core.id" value="0" />
+		<variable name="occi.compute.architecture" value="x86" />
+		<variable name="occi.compute.cores" value="1" />
+		<variable name="occi.compute.hostname" value="hostname" />
+		<variable name="occi.compute.memory" value="1" />
+		<variable name="occi.compute.state" value="active" />
+
+		<variable name="occi.compute.localstorage" value="20" />
+		<variable name="occi.compute.os" value="linux-debian-6.0-en" />
+
+		<variable name="occi.compute.vendor.location" value="" />
+		<variable name="occi.compute.vendor.name" value="VCLOUD" />
+	</variables>
+	<genericInformation>
+        <info name="action" value="create" />
+		<info name="sla" value="gold,silver" />
+	</genericInformation>
+	<taskFlow>
+		<task name="create">
+			<javaExecutable class="org.ow2.proactive.iaas.vcloud.tasks.Create">
+				<parameters>
+					<parameter name="providerName" value="VCLOUD" />
+
+					<parameter name="apiurl" value="${endpoint}" />
+					<parameter name="username" value="${login}" />
+					<parameter name="password" value="${password}" />
+					<parameter name="organizationName" value="UNCL-PARIS1" />
+
+					<parameter name="vdcName" value="${occi.compute.vendor.location}" />
+					<parameter name="instanceName" value="${occi.compute.hostname}" />
+					<parameter name="templateName" value="Brian_Build_Template" />
+					<parameter name="occi.core.id" value="${occi.core.id}" />
+				</parameters>
+			</javaExecutable>
+		</task>
+		<task name="configure">
+			<depends>
+				<task ref="create" />
+			</depends>
+			<javaExecutable class="org.ow2.proactive.iaas.vcloud.tasks.Configure">
+				<parameters>
+					<parameter name="providerName" value="VCLOUD" />
+
+					<parameter name="apiurl" value="${endpoint}" />
+					<parameter name="username" value="${login}" />
+					<parameter name="password" value="${password}" />
+					<parameter name="organizationName" value="UNCL-PARIS1" />
+
+					<parameter name="vdcName" value="${occi.compute.vendor.location}" />
+					<parameter name="instanceName" value="${occi.compute.hostname}" />
+					<parameter name="templateName" value="${occi.compute.os}" />
+					<parameter name="occi.core.id" value="${occi.core.id}" />
+				</parameters>
+			</javaExecutable>
+		</task>
+		<task name="deploy">
+			<depends>
+				<task ref="configure" />
+			</depends>
+			<javaExecutable class="org.ow2.proactive.iaas.vcloud.tasks.Deploy">
+				<parameters>
+					<parameter name="providerName" value="VCLOUD" />
+
+					<parameter name="apiurl" value="${endpoint}" />
+					<parameter name="username" value="${login}" />
+					<parameter name="password" value="${password}" />
+					<parameter name="organizationName" value="UNCL-PARIS1" />
+
+					<parameter name="vdcName" value="${occi.compute.vendor.location}" />
+					<parameter name="instanceName" value="${occi.compute.hostname}" />
+					<parameter name="templateName" value="${occi.compute.os}" />
+					<parameter name="occi.core.id" value="${occi.core.id}" />
+				</parameters>
+			</javaExecutable>
+		</task>
+ 		<task name="occi_update">
+			<depends>
+				<task ref="deploy" />
+			</depends>
+			<javaExecutable class="org.ow2.proactive.iaas.vcloud.tasks.OcciUpdate">
+				<parameters>
+					<parameter name="vdcName" value="${occi.compute.vendor.location}" />
+					<parameter name="occi.core.id" value="${occi.core.id}" />
+				</parameters>
+			</javaExecutable>
+		</task>
+<!--		<task name="notification">
+			<depends>
+				<task ref="occi_update" />
+			</depends>
+			<javaExecutable class="org.ow2.proactive.brokering.tasks.Notification">
+				<parameters>
+				</parameters>
+			</javaExecutable>
+		</task> -->
+	</taskFlow>
+</job>
