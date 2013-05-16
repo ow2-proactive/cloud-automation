@@ -1,7 +1,8 @@
 package org.ow2.proactive.brokering;
 
-import groovy.lang.GroovyClassLoader;
+import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -17,9 +18,9 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class Workflow {
@@ -30,7 +31,6 @@ public class Workflow {
     private Map<String, String> variables;
 
     public Workflow(File job) {
-        logger.setLevel(Level.ALL);
         this.job = job;
         lastModification = job.lastModified();
         genericInfo = new HashMap<String, String>();
@@ -38,14 +38,22 @@ public class Workflow {
     }
 
     public static void fillElements(Document doc, String tagName, Map<String, String> elements) {
-        NodeList vars = doc.getElementsByTagName(tagName).item(0).getChildNodes();
-        for (int n = 0; n < vars.getLength(); n++) {
-            Node var = vars.item(n);
-            if (var.getNodeType() == 1) {
-                String key = var.getAttributes().getNamedItem("name").getNodeValue();
-                String value = var.getAttributes().getNamedItem("value").getNodeValue();
-                elements.put(key, value);
+        try {
+            NodeList vars = doc.getElementsByTagName(tagName).item(0).getChildNodes();
+            for (int n = 0; n < vars.getLength(); n++) {
+                Node var = vars.item(n);
+                if (var.getNodeType() == 1) {
+                    String key = var.getAttributes().getNamedItem("name").getNodeValue();
+                    Node valueNode = var.getAttributes().getNamedItem("value");
+                    String value = null;
+                    if (valueNode != null) {
+                        value = valueNode.getNodeValue();
+                    }
+                    elements.put(key, value);
+                }
             }
+        } catch (Throwable e) {
+            e.printStackTrace();
         }
     }
 
@@ -77,97 +85,92 @@ public class Workflow {
         return job.lastModified() != lastModification;
     }
 
-    public boolean isValid(Attributes attributes) {
-        logger.fine("Testing " + job.getName());
-        Set<String> allKeys = new HashSet<String>();
-        allKeys.addAll(genericInfo.keySet());
-        allKeys.addAll(variables.keySet());
-
-        logger.fine("workflow -> " + Arrays.toString(allKeys.toArray()));
-        logger.fine("request  -> " + attributes);
-
-        // First, check if keys matches
-        if (allKeys.containsAll(attributes.keySet())) {
-            // Then, check if generic information values matches
-            for (String key : genericInfo.keySet()) {
-                String value = genericInfo.get(key);
-                logger.finer("GenericInfo:" + key + " = " + value + " contains? " + attributes.get(key));
-
-                // Check that generic information contains corresponding value in the given map
-                String[] values = value.split(",");
-                Arrays.sort(values);
-                if (Arrays.binarySearch(values, attributes.get(key).toLowerCase()) < 0) {
-                    logger.fine("Failed: " + attributes.get(key) + " not in " + Arrays.toString(values));
-                    return false;
-                }
-            }
-
-            logger.fine("Success !");
-            return true;
-        }
-
-        logger.fine("No match found");
-
-        return false;
-    }
-
     /**
-     * Replaces variables and generic informations with given attributes
+     * Only checks compliance with the generic informations.
      *
+     * @param category
+     * @param operation
      * @param attributes
      * @return
      */
-    public File configure(Attributes attributes, Rules rules) throws ParserConfigurationException, IOException, SAXException, TransformerException {
-
-        // Apply proper rules
-        List<File> ruleFiles = rules.getMatchingRules(attributes);
-        GroovyClassLoader gcl = new GroovyClassLoader();
-        for (File file : ruleFiles) {
-            try {
-                Class clazz = gcl.parseClass(file);
-                Rule rule = (Rule) clazz.newInstance();
-                rule.apply(attributes);
-
-            } catch (Throwable e) {
-                logger.fine("Error when loading a rules file : " + file.getName());
-            }
+    public boolean isCompliant(String category, String operation, String action, Map<String, String> attributes) {
+        // Generic Informations 'category' and 'operation' must contains given 'category' and 'operation' values
+        if (!contains(category, genericInfo.get("category")) || !contains(operation, genericInfo.get("operation"))) {
+            logger.debug(job.getName() + " : Wrong category or operation");
+            return false;
         }
 
-        // Create output Job file
-        File jobFile = File.createTempFile("broker_job_edit", ".xml");
-        //jobFile.deleteOnExit(); // TODO Remove comment after debugging
-        logger.fine("Temp File : " + jobFile.getAbsolutePath());
+        // If an action is given, it must be present in the Generic information
+        if (action != null && !contains(action, genericInfo.get("action"))) {
+            logger.debug(job.getName() + " : Wrong action (" + action + "/" + genericInfo.get("action") + ")");
+            return false;
+        }
 
-        // Modify the job variables
+        // Request attributes which are in Generic Informations must matches (contains) their values
+        for (String attributeKey : attributes.keySet()) {
+            if (genericInfo.containsKey(attributeKey)
+                    && !contains(attributes.get(attributeKey), genericInfo.get(attributeKey))) {
+                logger.debug(job.getName() + " : Wrong value for " + attributeKey);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean isDeepCompliant(Map<String, String> attributes) {
+        // Check that empty template variables (variables without 'value' attribute) are in the request attributes
+        for (String variableName : variables.keySet()) {
+            if (variables.get(variableName) == null && !attributes.containsKey(variableName)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean contains(String value, String set) {
+        // Coma separated values, case and spaces are ignored
+        String[] values = set.replaceAll(" ", "").toLowerCase().split(",");
+        Arrays.sort(values);
+        if (value == null || Arrays.binarySearch(values, value.toLowerCase()) < 0) {
+            return false;
+        }
+        return true;
+    }
+
+    public File configure(Map<String, String> attributes)
+            throws IOException, ParserConfigurationException, SAXException, TransformerException {
+        // Load the job template
         DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
         Document doc = docBuilder.parse(job);
 
-        // Set Variable values
+        // Set job variables from attributes
         NodeList vars = doc.getElementsByTagName("variables").item(0).getChildNodes();
         for (int n = 0; n < vars.getLength(); n++) {
-            Node var = vars.item(n);
-            if (var.getNodeType() == 1) {
+            if (vars.item(n).getNodeType() == Node.ELEMENT_NODE) {
+                Element var = (Element) vars.item(n);
                 String varName = var.getAttributes().getNamedItem("name").getNodeValue();
-                if (variables.containsKey(varName)) {
-                    var.getAttributes().getNamedItem("value").setNodeValue(attributes.get(varName));
+                if (attributes.get(varName) != null) {
+                    var.setAttribute("value", attributes.get(varName));
                 }
             }
         }
 
-        // Set Generic information values
-        vars = doc.getElementsByTagName("genericInformation").item(0).getChildNodes();
-        for (int n = 0; n < vars.getLength(); n++) {
-            Node var = vars.item(n);
-            if (var.getNodeType() == 1) {
-                String varName = var.getAttributes().getNamedItem("name").getNodeValue();
-                if (genericInfo.containsKey(varName)) {
-                    var.getAttributes().getNamedItem("value").setNodeValue(attributes.get(varName));
+        // Set proper Generic informations from attributes
+        NodeList gis = doc.getElementsByTagName("genericInformation").item(0).getChildNodes();
+        for (int n = 0; n < gis.getLength(); n++) {
+            if (gis.item(n).getNodeType() == Node.ELEMENT_NODE) {
+                Element gi = (Element) gis.item(n);
+                String giName = gi.getAttributes().getNamedItem("name").getNodeValue();
+                if (attributes.get(giName) != null) {
+                    gi.setAttribute("value", attributes.get(giName));
                 }
             }
         }
 
-
+        // Create output Job file
+        File jobFile = File.createTempFile("broker_tempjob_", ".xml");
+        //jobFile.deleteOnExit(); // TODO Remove comment after debugging
         Transformer transformer = TransformerFactory.newInstance().newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
         StreamResult result = new StreamResult(jobFile);

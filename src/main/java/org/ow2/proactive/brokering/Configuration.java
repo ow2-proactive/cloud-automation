@@ -39,10 +39,16 @@ public class Configuration {
     static class Catalog {
         @XmlAttribute
         String path;
+
+        @XmlAttribute
+        long refresh;
     }
 
     static class Rules {
         @XmlAttribute
         String path;
+
+        @XmlAttribute
+        long refresh;
     }
 }

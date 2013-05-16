@@ -2,8 +2,7 @@ package org.ow2.proactive.brokering;
 
 import java.io.File;
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 
 
 public class Catalog {
@@ -11,38 +10,20 @@ public class Catalog {
     private final Map<File, Workflow> workflows;
     private final Timer timer;
 
-    public Catalog(File path) {
-        logger.setLevel(Level.ALL);
+    /**
+     * @param path
+     * @param refresh in seconds
+     */
+    public Catalog(File path, long refresh) {
         timer = new Timer();
         UpdateTask task = new UpdateTask(path);
-        timer.schedule(task, 60 * 1000); // 1 minute
+        timer.schedule(task, 0, refresh);
         workflows = new HashMap<File, Workflow>();
         task.run();
     }
 
-    // Return a workflow for which all variables specified in 'map' are present (maybe there is more)
-
-    /**
-     * Select and configure the workflow corresponding to the given action and attributes.
-     * To be selected, these criterias must be satisfied :
-     * - workflow has a generic information named 'action' with corresponding value
-     * - all generic informations specified in workflow must exist in attributes, including values
-     * - all variables specified in workflow must exist in attributes
-     * If multiple workflows matches, the first one is returned.
-     *
-     * @param attributes
-     * @return
-     * @throws Exception
-     */
-    public File getWorkflow(Attributes attributes, Rules rules) throws Exception {
-        for (Workflow workflow : workflows.values()) {
-            if (workflow.isValid(attributes)) {
-                // Variable and Generic informations values are replaced with given attributes
-                return workflow.configure(attributes, rules);
-            }
-        }
-
-        return null;
+    public Collection<Workflow> getWorkflows() {
+        return workflows.values();
     }
 
     private void show(String s, Map<String, String> map) {
@@ -73,21 +54,22 @@ public class Catalog {
                     File file = iterator.next();
                     if (!file.isFile()) {
                         workflows.remove(file); // This workflow does not exist anymore
-                        logger.fine("Removed rule : " + file.getName());
+                        logger.info("Removed workflow : " + file.getName());
                     }
                 }
 
                 // Add new rules and update existing ones if needed
                 for (File f : path.listFiles()) {
                     Workflow workflow = workflows.get(f);
-                    if (workflow != null && workflow.hasChanged()) {
+                    if (workflow != null && workflow.hasChanged()) { // Known & modified
                         workflow.update();
-                        logger.fine("Update a workflow : " + f.getName());
-                    } else {
+                        logger.info("Updated workflow : " + f.getName());
+
+                    } else if (workflow == null) { // Unknown
                         workflow = new Workflow(f);
                         workflow.update();
                         workflows.put(f, workflow);
-                        logger.fine("Added in catalog : " + f.getName());
+                        logger.info("Added in catalog : " + f.getName());
                     }
                 }
             }
