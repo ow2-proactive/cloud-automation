@@ -1,0 +1,162 @@
+<job xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:proactive:jobdescriptor:dev"
+	 xsi:schemaLocation="urn:proactive:jobdescriptor:dev http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/dev/schedulerjob.xsd"
+	 name="VMWareNuxeo" projectName="UnivCloud">
+	<variables>
+		<variable name="occi.compute.vendor.location" value="PARIS1-Gold"/>
+		<variable name="occi.compute.vendor.name" value="VCLOUD"/>
+
+		<variable name="endpoint" value=""/>
+		<variable name="login" value=""/>
+		<variable name="password" value=""/>
+
+		<variable name="nuxeo.vapp.template" value="urn:vcloud:vapp:a96d140f-9c3d-4529-8dcc-d950ae4804be"/>
+		<!--Default cluster size is 1, set it to 1 to add 1 node, 2 to add 2 nodes-->
+		<variable name="nbOfSlaves" value="1"/>
+		<variable name="vappName" value="Nuxeo-FromWorkflow-${nbOfSlaves}"/>
+	</variables>
+	<taskFlow>
+		<task name="CreateNuxeoVapp">
+			<javaExecutable class="org.ow2.proactive.iaas.vcloud.tasks.ComposeVapp">
+				<parameters>
+					<parameter name="providerName" value="VCLOUD"/>
+
+					<parameter name="apiurl" value="${endpoint}"/>
+					<parameter name="username" value="${login}"/>
+					<parameter name="password" value="${password}"/>
+					<parameter name="organizationName" value="UNCL-PARIS1"/>
+
+					<parameter name="vdcName" value="${occi.compute.vendor.location}"/>
+					<parameter name="instanceID" value="${nuxeo.vapp.template}"/>
+					<parameter name="instanceName" value="${vappName}"/>
+				</parameters>
+			</javaExecutable>
+		</task>
+		<task name="ExportProperty">
+			<depends>
+				<task ref="CreateNuxeoVapp"/>
+			</depends>
+			<javaExecutable class="org.ow2.proactive.iaas.vcloud.tasks.ExportProperty">
+				<parameters>
+					<parameter name="name" value="nbOfSlaves"/>
+					<parameter name="value" value="${nbOfSlaves}"/>
+				</parameters>
+			</javaExecutable>
+			<controlFlow block="start" />
+		</task>
+		<task name="AddNuxeoSlaves">
+			<depends>
+				<task ref="ExportProperty"/>
+			</depends>
+			<javaExecutable class="org.ow2.proactive.iaas.vcloud.tasks.Copy">
+				<parameters>
+					<parameter name="providerName" value="VCLOUD"/>
+
+					<parameter name="apiurl" value="${endpoint}"/>
+					<parameter name="username" value="${login}"/>
+					<parameter name="password" value="${password}"/>
+					<parameter name="organizationName" value="UNCL-PARIS1"/>
+
+					<parameter name="vdcName" value="${occi.compute.vendor.location}"/>
+					<parameter name="instanceName" value="${vappName}"/>
+					<parameter name="templateName" value="VM-Master"/>
+					<parameter name="newInstanceName" value="VM-Slave"/>
+				</parameters>
+			</javaExecutable>
+			<controlFlow block="end">
+				<loop target="ExportProperty">
+					<script>
+						<code language="javascript">
+							<![CDATA[
+							it = java.lang.System.getProperty("pas.task.iteration");
+							nbSlaves = java.lang.System.getProperty("nbOfSlaves");
+							loop = ( it < nbSlaves-1)
+							]]>
+						</code>
+					</script>
+				</loop>
+			</controlFlow>
+		</task>
+		<task name="ExportPropertyForCustomization">
+			<javaExecutable class="org.ow2.proactive.iaas.vcloud.tasks.ExportProperty">
+				<parameters>
+					<parameter name="name" value="nbOfSlaves"/>
+					<parameter name="value" value="${nbOfSlaves}"/>
+				</parameters>
+			</javaExecutable>
+		</task>
+		<task name="Customize">
+			<depends>
+				<task ref="CreateNuxeoVapp"/>
+				<task ref="AddNuxeoSlaves"/>
+				<task ref="ExportPropertyForCustomization"/>
+			</depends>
+			<pre>
+				<script>
+					<code language="javascript">
+						<![CDATA[
+						importPackage(java.lang);
+
+						script = "";
+						ips = "";
+						for (i = 1; i <= Integer.parseInt(java.lang.System.getProperty("nbOfSlaves")); i++) {
+						ips += "BalancerMember ajp://192.168.2." + (100 + i) + ":8009 route=slave" + i + "\n";
+						}
+						script = "#!/bin/sh\n" +
+						"if ip addr show dev eth0 | grep \"192.168.2.100\" \n" +
+						"then echo \"<IfModule mod_proxy_balancer.c>\n" +
+						"<Proxy balancer://cluster>\n" +
+						ips +
+						"ProxySet lbmethod=bytraffic\n" +
+						"</Proxy>\n" +
+						"ProxyPass /nuxeo balancer://cluster/nuxeo stickysession=JSESSIONID\n" +
+						"</IfModule>\" > /etc/apache2/mods-enabled/proxy_balancer.conf \n" +
+						"service apache2 start\n" +
+						"rcconf --on apache2\n" +
+						"service postgresql start\n" +
+						"rcconf --on postgresql\n" +
+						"else\n" +
+						"echo \"nuxeo.server.jvmRoute=" +
+						"slave$(( $(hostname -i | grep -o \"[0-9]*$\") - 100 ))\n\" >> /etc/nuxeo/nuxeo.conf \n" +
+						"rcconf --on nuxeo \n" +
+						"echo \"/usr/sbin/service nuxeo status || /usr/sbin/service nuxeo start\">/root/start.sh \n" +
+						"chmod u+x /root/start.sh \n" +
+						"echo \"*/1 * * * *     /root/start.sh\" | crontab \n" +
+						"fi ";
+
+						System.setProperty("script", script);
+						org.ow2.proactive.scripting.PropertyUtils.exportProperty("script");
+					]]>
+					</code>
+				</script>
+			</pre>
+			<javaExecutable class="org.ow2.proactive.iaas.vcloud.tasks.Customize">
+				<parameters>
+					<parameter name="providerName" value="VCLOUD"/>
+
+					<parameter name="apiurl" value="${endpoint}"/>
+					<parameter name="username" value="${login}"/>
+					<parameter name="password" value="${password}"/>
+					<parameter name="organizationName" value="UNCL-PARIS1"/>
+				</parameters>
+			</javaExecutable>
+		</task>
+		<task name="Start">
+			<depends>
+				<task ref="CreateNuxeoVapp"/>
+				<task ref="Customize"/>
+			</depends>
+			<javaExecutable class="org.ow2.proactive.iaas.vcloud.tasks.Deploy">
+				<parameters>
+					<parameter name="providerName" value="VCLOUD"/>
+
+					<parameter name="apiurl" value="${endpoint}"/>
+					<parameter name="username" value="${login}"/>
+					<parameter name="password" value="${password}"/>
+					<parameter name="organizationName" value="UNCL-PARIS1"/>
+
+					<parameter name="vdcName" value="${occi.compute.vendor.location}"/>
+				</parameters>
+			</javaExecutable>
+		</task>
+	</taskFlow>
+</job>
