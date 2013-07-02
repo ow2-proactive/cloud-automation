@@ -2,7 +2,6 @@
 	xsi:schemaLocation="urn:proactive:jobdescriptor:dev http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/dev/schedulerjob.xsd"
 	name="VMWare - Remove disk from VM" projectName="UnivCloud">
     <variables>
-        <variable name="organization" value="UNCL-PARIS1"/>
         <variable name="providerName" value="VCLOUD"/>
 
         <!-- Filled by the rules -->
@@ -16,6 +15,7 @@
         <!-- Filled by the request -->
         <variable name="occi.core.source" value="" />
         <variable name="occi.core.target" value="" />
+        <variable name="occi.compute.organization.name"/>
     </variables>
     <genericInformation>
         <info name="category" value="storagelink" />

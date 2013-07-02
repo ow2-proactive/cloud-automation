@@ -1,10 +1,7 @@
 <job xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:proactive:jobdescriptor:dev"
      xsi:schemaLocation="urn:proactive:jobdescriptor:dev http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/dev/schedulerjob.xsd"
-     name="VMWare - Create Storage" projectName="UnivCloud">
+     name="OCCI - Create Storage" projectName="UnivCloud">
     <variables>
-        <variable name="organization" value="UNCL-PARIS1"/>
-        <variable name="providerName" value="VCLOUD"/>
-
         <!-- Filled by the rules -->
         <variable name="endpoint"/>
         <variable name="login"/>

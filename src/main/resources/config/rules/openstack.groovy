@@ -4,7 +4,7 @@ import org.ow2.proactive.brokering.Rule
 
 public class OpenStack implements Rule {
     boolean match(Map<String, String> attributes) {
-        return false; //(attributes.get("sla").equalsIgnoreCase("bronze"));
+        return false; //attributes.get("sla").equalsIgnoreCase("bronze");
     }
 
     Map<String, String> apply(Map<String, String> attributes) {
@@ -12,7 +12,7 @@ public class OpenStack implements Rule {
         attributes.put("endpoint", "***REMOVED***");
         attributes.put("login", "admin");
         attributes.put("password", "activeeon");
-        attributes.put("occi_endpoint", "http://127.0.0.1:8183/brokering/api/occi/");
+        attributes.put("occi_endpoint", "***REMOVED***");
 
         if (attributes.get("sla") != null && attributes.get("occi.core.location") != null) {
             String sla = attributes.get("sla").capitalize();

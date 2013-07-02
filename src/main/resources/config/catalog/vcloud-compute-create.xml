@@ -2,7 +2,6 @@
      xsi:schemaLocation="urn:proactive:jobdescriptor:dev http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/dev/schedulerjob.xsd"
      name="VMWare - Create VM" projectName="UnivCloud">
     <variables>
-        <variable name="organization" value="UNCL-PARIS1"/>
         <variable name="providerName" value="VCLOUD"/>
 
         <!-- Filled by the rules -->
@@ -16,10 +15,12 @@
         <!-- Filled by the request -->
         <variable name="occi.core.id"/>
         <variable name="occi.core.location"/>
+        <variable name="occi.compute.organization.name"/>
         <variable name="occi.compute.architecture"/>
         <variable name="occi.compute.cores"/>
         <variable name="occi.compute.hostname"/>
         <variable name="occi.compute.memory"/>
+        <variable name="occi.compute.password"/>
         <variable name="occi.compute.localstorage"/>
         <variable name="occi.compute.template_name"/>
         <variable name="occi.compute.lease.delete"/>
@@ -41,7 +42,7 @@
                     <parameter name="username" value="${login}"/>
                     <parameter name="password" value="${password}"/>
                     <parameter name="providerName" value="${providerName}"/>
-                    <parameter name="organizationName" value="${organization}"/>
+                    <parameter name="organizationName" value="${occi.compute.organization.name}"/>
 
                     <parameter name="vdcName" value="${occi.compute.vendor.location}"/>
                     <parameter name="instanceName" value="${occi.compute.hostname}"/>
@@ -61,7 +62,7 @@
                     <parameter name="username" value="${login}"/>
                     <parameter name="password" value="${password}"/>
                     <parameter name="providerName" value="${providerName}"/>
-                    <parameter name="organizationName" value="${organization}"/>
+                    <parameter name="organizationName" value="${occi.compute.organization.name}"/>
 
                     <parameter name="vdcName" value="${occi.compute.vendor.location}"/>
                 </parameters>
@@ -78,7 +79,7 @@
                     <parameter name="username" value="${login}"/>
                     <parameter name="password" value="${password}"/>
                     <parameter name="providerName" value="${providerName}"/>
-                    <parameter name="organizationName" value="${organization}"/>
+                    <parameter name="organizationName" value="${occi.compute.organization.name}"/>
 
                     <parameter name="cores" value="${occi.compute.cores}"/>
                     <parameter name="memory" value="${occi.compute.memory}"/>
@@ -86,9 +87,25 @@
                 </parameters>
             </javaExecutable>
         </task>
-        <task name="deploy">
+        <task name="configurePassword">
             <depends>
                 <task ref="configureVM"/>
+            </depends>
+            <javaExecutable class="org.ow2.proactive.iaas.vcloud.tasks.ConfigurePassword">
+                <forkEnvironment></forkEnvironment>
+                <parameters>
+                    <parameter name="apiurl" value="${endpoint}"/>
+                    <parameter name="username" value="${login}"/>
+                    <parameter name="password" value="${password}"/>
+                    <parameter name="providerName" value="${providerName}"/>
+                    <parameter name="organizationName" value="${occi.compute.organization.name}"/>
+                    <parameter name="vm.password" value="${occi.compute.password}" />
+                </parameters>
+            </javaExecutable>
+        </task>
+        <task name="deploy">
+            <depends>
+                <task ref="configurePassword"/>
             </depends>
             <javaExecutable class="org.ow2.proactive.iaas.vcloud.tasks.Deploy">
                 <forkEnvironment></forkEnvironment>
@@ -97,8 +114,9 @@
                     <parameter name="username" value="${login}"/>
                     <parameter name="password" value="${password}"/>
                     <parameter name="providerName" value="${providerName}"/>
-                    <parameter name="organizationName" value="${organization}"/>
+                    <parameter name="organizationName" value="${occi.compute.organization.name}"/>
                     <parameter name="vdcName" value="${occi.compute.vendor.location}"/>
+                    <parameter name="vm.password" value="${occi.compute.password}" />
                 </parameters>
             </javaExecutable>
         </task>

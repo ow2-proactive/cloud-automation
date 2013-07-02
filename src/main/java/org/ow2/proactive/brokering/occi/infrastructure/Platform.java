@@ -5,9 +5,9 @@ import org.ow2.proactive.brokering.occi.Attribute;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Compute {
+public class Platform {
 
-    public Compute() {
+    public Platform() {
 
     }
 

@@ -2,7 +2,6 @@
 	xsi:schemaLocation="urn:proactive:jobdescriptor:dev http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/dev/schedulerjob.xsd"
 	name="VMWare - Update VM Hardware" projectName="UnivCloud">
 	<variables>
-        <variable name="organization" value="UNCL-PARIS1"/>
         <variable name="providerName" value="VCLOUD"/>
 
         <!-- Filled by the rules -->
@@ -16,6 +15,7 @@
 
         <!-- Filled by the request -->
         <variable name="occi.core.id" value="" />
+        <variable name="occi.compute.organization.name"/>
         <variable name="occi.compute.cores" value=""/>
         <variable name="occi.compute.hostname" value=""/>
         <variable name="occi.compute.memory" value=""/>
@@ -35,7 +35,7 @@
                     <parameter name="username" value="${login}"/>
                     <parameter name="password" value="${password}"/>
                     <parameter name="providerName" value="${providerName}"/>
-                    <parameter name="organizationName" value="${organization}"/>
+                    <parameter name="organizationName" value="${occi.compute.organization.name}"/>
                     <parameter name="vappid" value="${occi.compute.vendor.vmpath}"/>
                 </parameters>
             </javaExecutable>
@@ -51,7 +51,7 @@
                     <parameter name="username" value="${login}"/>
                     <parameter name="password" value="${password}"/>
                     <parameter name="providerName" value="${providerName}"/>
-                    <parameter name="organizationName" value="${organization}"/>
+                    <parameter name="organizationName" value="${occi.compute.organization.name}"/>
                     <parameter name="vappid" value="${occi.compute.vendor.vmpath}"/>
                     <parameter name="cores" value="${occi.compute.cores}"/>
                     <parameter name="memory" value="${occi.compute.memory}"/>
@@ -70,7 +70,7 @@
                     <parameter name="username" value="${login}"/>
                     <parameter name="password" value="${password}"/>
                     <parameter name="providerName" value="${providerName}"/>
-                    <parameter name="organizationName" value="${organization}"/>
+                    <parameter name="organizationName" value="${occi.compute.organization.name}"/>
                     <parameter name="vappid" value="${occi.compute.vendor.vmpath}"/>
                 </parameters>
             </javaExecutable>

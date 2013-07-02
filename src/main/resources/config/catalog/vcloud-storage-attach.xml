@@ -2,7 +2,6 @@
 	xsi:schemaLocation="urn:proactive:jobdescriptor:dev http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/dev/schedulerjob.xsd"
 	name="VMWare - Add new disk to VM" projectName="UnivCloud">
 	<variables>
-        <variable name="organization" value="UNCL-PARIS1"/>
         <variable name="providerName" value="VCLOUD"/>
 
         <!-- Filled by the rules -->
@@ -32,6 +31,17 @@
                 </parameters>
             </javaExecutable>
         </task>
+        <task name="occiGetOrganization">
+            <javaExecutable class="org.ow2.proactive.iaas.vcloud.tasks.OcciGet">
+                <forkEnvironment></forkEnvironment>
+                <parameters>
+                    <parameter name="occi_endpoint" value="${occi_endpoint}"/>
+                    <parameter name="occi.core.id" value="${occi.core.id}"/>
+                    <parameter name="category" value="compute"/>
+                    <parameter name="attribute" value="occi.compute.organization.name"/>
+                </parameters>
+            </javaExecutable>
+        </task>
         <task name="occiGetStorageSize">
             <javaExecutable class="org.ow2.proactive.iaas.vcloud.tasks.OcciGet">
                 <forkEnvironment></forkEnvironment>
@@ -46,6 +56,7 @@
         <task name="undeploy">
             <depends>
                 <task ref="occiGetVmPath"/>
+                <task ref="occiGetOrganization"/>
             </depends>
             <javaExecutable class="org.ow2.proactive.iaas.vcloud.tasks.Undeploy">
                 <forkEnvironment></forkEnvironment>
@@ -54,7 +65,6 @@
                     <parameter name="username" value="${login}"/>
                     <parameter name="password" value="${password}"/>
                     <parameter name="providerName" value="${providerName}"/>
-                    <parameter name="organizationName" value="${organization}"/>
                 </parameters>
             </javaExecutable>
         </task>
@@ -70,7 +80,6 @@
                     <parameter name="username" value="${login}"/>
                     <parameter name="password" value="${password}"/>
                     <parameter name="providerName" value="${providerName}"/>
-                    <parameter name="organizationName" value="${organization}"/>
                 </parameters>
             </javaExecutable>
         </task>
@@ -85,7 +94,6 @@
                     <parameter name="username" value="${login}"/>
                     <parameter name="password" value="${password}"/>
                     <parameter name="providerName" value="${providerName}"/>
-                    <parameter name="organizationName" value="${organization}"/>
                 </parameters>
             </javaExecutable>
         </task>

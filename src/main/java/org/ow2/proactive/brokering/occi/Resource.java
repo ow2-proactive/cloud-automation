@@ -3,6 +3,7 @@ package org.ow2.proactive.brokering.occi;
 import org.apache.log4j.Logger;
 import org.ow2.proactive.brokering.Broker;
 import org.ow2.proactive.brokering.occi.infrastructure.Compute;
+import org.ow2.proactive.brokering.occi.infrastructure.Platform;
 import org.ow2.proactive.brokering.occi.infrastructure.Storage;
 import org.ow2.proactive.brokering.occi.infrastructure.StorageLink;
 
@@ -66,6 +67,8 @@ public class Resource {
             return new Storage().getSpecificAttributeList();
         } else if (category.equalsIgnoreCase("storagelink")) {
             return new StorageLink().getSpecificAttributeList();
+        } else if (category.equalsIgnoreCase("platform")) {
+            return new Platform().getSpecificAttributeList();
         }
         return null;
     }

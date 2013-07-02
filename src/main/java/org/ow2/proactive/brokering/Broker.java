@@ -124,7 +124,7 @@ public class Broker {
                 }
             } catch (Throwable e) {
                 e.printStackTrace();
-                logger.debug("Error when loading a rules file : " + file.getName());
+                logger.debug("Error when loading a rules file : " + file.getName(), e);
             }
         }
         return count;
