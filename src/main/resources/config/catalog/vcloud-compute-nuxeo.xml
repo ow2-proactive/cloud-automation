@@ -5,13 +5,18 @@
 		<variable name="occi.compute.vendor.location" value="PARIS1-Gold"/>
 		<variable name="occi.compute.vendor.name" value="VCLOUD"/>
 
-		<variable name="endpoint" value=""/>
-		<variable name="login" value=""/>
-		<variable name="password" value=""/>
+		<variable name="endpoint" value="https://10.1.244.15"/>
+		<variable name="login" value="***REMOVED***"/>
+		<variable name="password" value="***REMOVED***"/>
 
-		<variable name="nuxeo.vapp.template" value="urn:vcloud:vapp:a96d140f-9c3d-4529-8dcc-d950ae4804be"/>
+		<!--Required for events to determine end of customization-->
+		<variable name="vim.service.url" value="https://10.1.244.13/sdk/"/>
+		<variable name="vim.service.username" value="administrator"/>
+		<variable name="vim.service.password" value="***REMOVED***"/>
+
+		<variable name="nuxeo.vapp.template" value="NuxeoBase"/>
 		<!--Default cluster size is 1, set it to 1 to add 1 node, 2 to add 2 nodes-->
-		<variable name="nbOfSlaves" value="1"/>
+		<variable name="nbOfSlaves" value="3"/>
 		<variable name="vappName" value="Nuxeo-FromWorkflow-${nbOfSlaves}"/>
 	</variables>
 	<taskFlow>
@@ -26,7 +31,7 @@
 					<parameter name="organizationName" value="UNCL-PARIS1"/>
 
 					<parameter name="vdcName" value="${occi.compute.vendor.location}"/>
-					<parameter name="instanceID" value="${nuxeo.vapp.template}"/>
+					<parameter name="templateName" value="${nuxeo.vapp.template}"/>
 					<parameter name="instanceName" value="${vappName}"/>
 				</parameters>
 			</javaExecutable>
@@ -54,12 +59,14 @@
 					<parameter name="apiurl" value="${endpoint}"/>
 					<parameter name="username" value="${login}"/>
 					<parameter name="password" value="${password}"/>
+
 					<parameter name="organizationName" value="UNCL-PARIS1"/>
 
 					<parameter name="vdcName" value="${occi.compute.vendor.location}"/>
-					<parameter name="instanceName" value="${vappName}"/>
+					<parameter name="instanceName" value="${nuxeo.vapp.template}"/>
+					<parameter name="toVappName" value="${vappName}"/>
 					<parameter name="templateName" value="VM-Master"/>
-					<parameter name="newInstanceName" value="VM-Slave"/>
+					<parameter name="newInstanceName" value="VM-Slave"/> <!-- index added by task -->
 				</parameters>
 			</javaExecutable>
 			<controlFlow block="end">
@@ -129,13 +136,19 @@
 					</code>
 				</script>
 			</pre>
-			<javaExecutable class="org.ow2.proactive.iaas.vcloud.tasks.Customize">
+			<javaExecutable class="org.ow2.proactive.iaas.vcloud.tasks.CustomizeVapp">
 				<parameters>
 					<parameter name="providerName" value="VCLOUD"/>
+
+					<!--Required for events to determine end of customization-->
+					<parameter name="vim.service.url" value="${vim.service.url}"/>
+					<parameter name="vim.service.username" value="${vim.service.username}"/>
+					<parameter name="vim.service.password" value="${vim.service.password}"/>
 
 					<parameter name="apiurl" value="${endpoint}"/>
 					<parameter name="username" value="${login}"/>
 					<parameter name="password" value="${password}"/>
+
 					<parameter name="organizationName" value="UNCL-PARIS1"/>
 				</parameters>
 			</javaExecutable>
@@ -152,6 +165,7 @@
 					<parameter name="apiurl" value="${endpoint}"/>
 					<parameter name="username" value="${login}"/>
 					<parameter name="password" value="${password}"/>
+
 					<parameter name="organizationName" value="UNCL-PARIS1"/>
 
 					<parameter name="vdcName" value="${occi.compute.vendor.location}"/>

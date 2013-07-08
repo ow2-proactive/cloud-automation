@@ -1,0 +1,30 @@
+# Ansible playbook to build a Nuxeo template
+---
+- hosts: all
+  vars:
+    version: 'precise'
+  user: ubuntu
+  sudo: yes
+  tasks:
+  - apt_repository: repo='deb http://apt.postgresql.org/pub/repos/apt/ $version-pgdg main'
+  - apt_repository: repo='deb http://apt.nuxeo.org/ $version snapshots'
+  - apt: update_cache=yes
+  - apt: pkg=openjdk-7-jdk
+  - apt: pkg=postgresql-9.2
+  - service: name=postgresql state=stopped enabled=no
+  - apt: pkg=apache2
+  - service: name=apache2 state=stopped enabled=no
+  - command: a2enmod proxy
+  - command: a2enmod proxy_ajp
+  - command: a2enmod proxy_balancer
+  - command: a2enmod proxy_http
+  - apt: pkg=rcconf
+  - apt: pkg=nuxeo force=yes
+  - service: name=nuxeo state=stopped enabled=no
+  # otherwise when copying images if a fsck is ran we get errors
+  - ini_file: dest=/etc/e2fsck.conf section=options option=broken_system_clock value=true
+  # disable grub (to avoid hanging when booting VM)
+    - lineinfile: dest=/etc/default/grub regexp=GRUB_HIDDEN_TIMEOUT line=GRUB_HIDDEN_TIMEOUT=0
+    - lineinfile: dest=/etc/default/grub regexp=GRUB_TIMEOUT line=GRUB_TIMEOUT=0
+    - command: update-grub
+
