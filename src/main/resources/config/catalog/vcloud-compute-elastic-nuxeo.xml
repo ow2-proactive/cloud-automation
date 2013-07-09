@@ -49,7 +49,7 @@
 						jobId = System.getProperty('pas.job.id');
 						script = "#!/bin/sh\n" +
 						"export NODE_TOKEN=LB_" + jobId + "\n" +
-						"hostname lb" + "\n" +
+						"hostname lb.vapp" + "\n" +
 						"wget -q -O - http://10.1.244.17:9393/node.sh | bash \n";
 
 						System.setProperty("script", script);
@@ -232,7 +232,7 @@
 						jobId = System.getProperty('pas.job.id');
 						script = "#!/bin/sh\n" +
 						"export NODE_TOKEN=" + jobId + "_SLAVE" + it + " \n" +
-						"hostname slave" + it + "\n" +
+						"hostname slave" + it + ".vapp\n" +
 						"wget -q -O - http://10.1.244.17:9393/node.sh | bash \n";
 
 						System.setProperty("script", script);
