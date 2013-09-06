@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:proactive:jobdescriptor:3.1"
+	 xsi:schemaLocation="urn:proactive:jobdescriptor:3.1 http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/3.1/schedulerjob.xsd"
+	 name="ProactiveJob">
+    <variables>
+
+        <variable name="iaas.provider.name" value="NOVA"/>
+        <variable name="iaas.provider.api.url" value="http://node4.cloud.sophia.inria.fr:5000/v2.0"/>
+        <variable name="iaas.provider.api.user" value="admin"/>
+        <variable name="iaas.provider.api.password" value="***REMOVED***"/>
+        <variable name="iaas.provider.api.tenant" value="Admin"/>
+
+        <variable name="iaas.provider.newvm.name" value="vmnamev002"/>
+        <variable name="iaas.provider.newvm.image" value="fd5c12dc-10e4-4a7f-b984-f221d848af07"/>
+        <variable name="iaas.provider.newvm.flavor" value="2"/>
+        <variable name="iaas.provider.newvm.java.home.dir" value="/home/ubuntu/opt/jdk/"/>
+        <variable name="iaas.provider.newvm.proactive.home.dir" value="/home/ubuntu/opt/proactive/latest/scheduling/"/>
+        <variable name="iaas.provider.newvm.token" value="${iaas.provider.newvm.name}"/>
+
+        <variable name="proactive.rm.url" value="pamr://0/"/>
+        <variable name="proactive.rm.credentials" value="***REMOVED***"/>
+        <variable name="proactive.rm.nodesource.name" value="OPENSTACK_TEST"/>
+        <variable name="utils.scripts.server.address" value="http://10.0.0.2:8000"/>
+        <variable name="utils.scripts.rscripts.path" value="/home/ubuntu/utils/rscript.sh"/>
+
+    </variables>
+    <genericInformation>
+        <info name="category" value="compute"/>
+        <info name="operation" value="update" />
+        <info name="action" value="instruct" />
+        <info name="rule" value="cloudwatt" />
+    </genericInformation>
+
+	<taskFlow>
+		<task name="Task">
+			<javaExecutable class="org.ow2.proactive.iaas.IaasDeployExecutable">
+				<parameters>
+					<parameter name="providerName" value="${iaas.provider.name}"/>
+                    <parameter name="apiurl" value="${iaas.provider.api.url}"/>
+                    <parameter name="username" value="${iaas.provider.api.user}"/>
+                    <parameter name="password" value="${iaas.provider.api.password}"/>
+                    <parameter name="tenantName" value="${iaas.provider.api.tenant}"/>
+
+                    <parameter name="name" value="${iaas.provider.newvm.name}"/>
+                    <parameter name="imageRef" value="${iaas.provider.newvm.image}"/>
+                    <parameter name="flavorRef" value="${iaas.provider.newvm.flavor}"/>
+
+                    <parameter name="user_data" value="#!/bin/bash &#10;
+set -x&#10;
+export JAVA_HOME=${iaas.provider.newvm.java.home.dir}&#10;
+export SCHEDULING_HOME=$PREFIX/opt/proactive/latest/scheduling/&#10;
+cd ${iaas.provider.newvm.proactive.home.dir}&#10;
+./bin/unix/rm-start-node -r ${proactive.rm.url} -v ${proactive.rm.credentials} -s ${proactive.rm.nodesource.name} -n ${iaas.provider.newvm.name} -Dproactive.useIPaddress=true -Dproactive.net.nolocal=true -Dproactive.node.access.token=${iaas.provider.newvm.token} &amp;&#10;
+"/>
+				</parameters>
+			</javaExecutable>
+		</task>
+
+		<task name="Run">
+            <genericInformation>
+                <info name="NODE_ACCESS_TOKEN" value="${iaas.provider.newvm.token}"/>
+            </genericInformation>
+			<depends>
+				<task ref="Deploy"/>
+			</depends>
+			<nativeExecutable>
+				<staticCommand
+						value="${utils.scripts.rscripts.path}">
+					<arguments>
+                        <argument value=" ${utils.scripts.server.address}/general/show-info.sh"/>
+					</arguments>
+				</staticCommand>
+			</nativeExecutable>
+		</task>
+		<task name="Undeploy">
+			<depends>
+				<task ref="Deploy"/>
+				<task ref="Run"/>
+			</depends>
+			<javaExecutable class="org.ow2.proactive.iaas.IaasUndeployExecutable">
+				<parameters>
+                    <parameter name="providerName" value="${iaas.provider.name}"/>
+                    <parameter name="apiurl" value="${iaas.provider.api.url}"/>
+                    <parameter name="username" value="${iaas.provider.api.user}"/>
+                    <parameter name="password" value="${iaas.provider.api.password}"/>
+                    <parameter name="tenantName" value="${iaas.provider.api.tenant}"/>
+				</parameters>
+			</javaExecutable>
+		</task>
+	</taskFlow>
+</job>

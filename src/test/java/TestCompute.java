@@ -44,7 +44,7 @@ public class TestCompute {
         Response result = server.getAllResources("compute");
         String[] urlTab = result.getEntity().toString().trim().split("/");
         String uuid = urlTab[urlTab.length - 1];
-        result = server.getResource("compute", uuid);
+        //result = server.getResource("compute", uuid);
         System.out.println("GetResource: result =  " + result.getEntity());
     }
 

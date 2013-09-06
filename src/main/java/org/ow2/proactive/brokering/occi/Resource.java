@@ -108,19 +108,19 @@ public class Resource {
     }
 
     public boolean create() throws Exception {
-        return Broker.getInstance().request(category, "create", getAttributes());
+        return Broker.getInstance().request(category, "create", getAttributes()).isSubmitted();
     }
 
     public boolean read() throws Exception {
-        return Broker.getInstance().request(category, "read", getAttributes());
+        return Broker.getInstance().request(category, "read", getAttributes()).isSubmitted();
     }
 
     public boolean update(String action) throws Exception {
-        return Broker.getInstance().request(category, "update", action, getAttributes());
+        return Broker.getInstance().request(category, "update", action, getAttributes()).isSubmitted();
     }
 
     public boolean delete() throws Exception {
-        return Broker.getInstance().request(category, "delete", getAttributes());
+        return Broker.getInstance().request(category, "delete", getAttributes()).isSubmitted();
     }
 
     public List<Resource> getLinkedResources() {

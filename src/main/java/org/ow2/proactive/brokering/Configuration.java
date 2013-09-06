@@ -16,13 +16,22 @@ public class Configuration {
     @XmlElement
     Rules rules;
 
+    @XmlElement
+    Security security;
+
     @Override
     public String toString() {
         String result = "Scheduler : " + scheduler.url + " (" + scheduler.username + " / " + scheduler.password + ")\n";
         result += "Catalog : " + catalog.path + "\n";
         result += "Rules : " + rules.path;
+        result += "Security : " + security.insecuremode;
 
         return result;
+    }
+
+    static class Security {
+        @XmlAttribute
+        Boolean insecuremode;
     }
 
     static class Scheduler {

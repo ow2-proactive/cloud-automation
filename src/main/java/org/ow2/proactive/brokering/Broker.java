@@ -4,6 +4,7 @@ import groovy.lang.GroovyClassLoader;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntity;
@@ -11,12 +12,16 @@ import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
+import org.ow2.proactive.brokering.utils.HttpUtility;
 
+import javax.json.Json;
+import javax.json.JsonObject;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -43,7 +48,12 @@ public class Broker {
             schedulerUsername = config.scheduler.username;
             schedulerPassword = config.scheduler.password;
 
+            schedulerUrl = config.scheduler.url;
+
             httpClient = new DefaultHttpClient();
+
+            if (config.security.insecuremode)
+                HttpUtility.setInsecureAccess(httpClient);
 
             File catalogPath = new File(config.catalog.path);
             if (!catalogPath.isDirectory()) {
@@ -71,11 +81,26 @@ public class Broker {
         return instance;
     }
 
-    public boolean request(String category, String operation, Map<String, String> attributes) throws Exception {
+    public RequestReference request(String category, String operation, Map<String, String> attributes) throws Exception {
         return request(category, operation, null, attributes);
     }
 
-    public boolean request(String category, String operation, String action, Map<String, String> attributes) throws Exception {
+    public String getRequestResult(int jobId) throws AuthenticationException, IOException {
+        return getRequestResult(jobId, "Task");
+    }
+
+    public String getRequestResult(int jobId, String task) throws AuthenticationException, IOException {
+        String sessid = connectToScheduler(schedulerUrl, schedulerUsername, schedulerPassword);
+        String endpoint = schedulerUrl + "/scheduler/jobs/" + jobId + "/result/value";
+        HttpGet get = new HttpGet(endpoint);
+        get.addHeader("sessionid", sessid);
+        HttpResponse response = httpClient.execute(get);
+        String result = EntityUtils.toString(response.getEntity());
+        JsonObject ob = Json.createReader(new StringReader(result)).readObject();
+        return ob.getString(task);
+    }
+
+    public RequestReference request(String category, String operation, String action, Map<String, String> attributes) throws Exception {
         logger.debug("Request       : category=" + category + ", operation=" + operation + " action=" + action);
         logger.debug("   attributes : " + showSorted(attributes));
 
@@ -85,13 +110,18 @@ public class Broker {
 //              if (workflow.isDeepCompliant(attributes))
                 File jobFile = workflow.configure(attributes);
                 logger.debug("Generated job file : " + jobFile.getAbsolutePath());
-                logger.info("Workflow '" + workflow + "' configured (" + appliedRules + " rules applied) and submitted (Job ID=" + 1234 + ")");
-                submitToScheduler(jobFile);
-                return true; // TODO: This can be configured to allow multiple workflows submissions
+                String output = submitToScheduler(jobFile);
+                RequestReference ref = new RequestReference(true, output);
+                logger.info("Workflow '" + workflow + "' configured (" + appliedRules + " rules applied) and submitted (Job ID=" + ref.getId() + ")");
+                // TODO: This can be configured to allow multiple workflows submissions
+                return ref;
             }
         }
         logger.info("No matching workflow");
-        return false;
+        return new RequestReference(false, null);
+    }
+
+    public void follow(RequestReference ref) throws Exception {
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -145,6 +175,7 @@ public class Broker {
 
         return result;
     }
+
 
     private String connectToScheduler(String restapi, String username, String password) throws AuthenticationException {
         // Authenticate to the Scheduler

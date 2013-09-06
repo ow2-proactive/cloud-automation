@@ -34,6 +34,13 @@ public class InfrastructureMonitoring {
         return getMBeanAttributeAsStringArray("VMs");
     }
 
+    public String getVMSuchThat(String property, String value) throws MonitoringException {
+        for (String vmid: getVMs())
+            if (getVMProperties(vmid).get(property).equals(value))
+                return vmid;
+        return null;
+    }
+
     private String[] getMBeanAttributeAsStringArray(String attribute) throws MonitoringException {
         String json = proxy.getAttribute(attribute);
         JsonArray array = extractArrayValueOfFirstElement(json);
