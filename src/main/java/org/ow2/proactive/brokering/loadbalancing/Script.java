@@ -23,8 +23,8 @@ public class Script {
         Broker broker = Broker.getInstance();
 
         Map<String, String> map = new HashMap<String, String>();
-        map.put("rule","cloudwatt");
-        map.put("utils.scripts.server.address","http://10.0.0.2:8000");
+        map.put("rule", "cloudwatt");
+        map.put("utils.scripts.server.address", "http://10.0.0.2:8000");
         // Monitoring initialization
         ////////////////////////////////
         //MonitoringProxy proxy = new MonitoringProxy.Builder()
@@ -41,14 +41,34 @@ public class Script {
         // create a central VM (vm-image=central, nodetoken=ntcentral) (new Action)
         // initialize using a sort of script=central-init.sh  through a workflow
 
-        RequestReference result = broker.request("compute", "create", map);
-        if (result.isSubmitted())
-            System.out.println("Job submitted: " + result);
+        RequestReference result;
+
+        map.put("iaas.provider.newvm.token", "thisistherealtoken");
+        result = broker.request("compute", "create", map);
 
         while (true) {
-            broker.getRequestResult(result.getId());
+            try {
+                String vmid = broker.getRequestResult(result.getId());
+                map.put("iaas.provider.vm.id", vmid);
+                break;
+            } catch (Exception e) {
+                e.printStackTrace();
+                Thread.sleep(1000);
+            }
         }
 
+        result = broker.request("compute", "update", "instruct", map);
+        while (true) {
+            try {
+                broker.getRequestResult(result.getId());
+                break;
+            } catch (Exception e) {
+                e.printStackTrace();
+                Thread.sleep(1000);
+            }
+        }
+
+        result = broker.request("compute", "stop", map);
 
         // check that there is a central vm started with nodetoken=ntcentral (new Condition)
         // then continue

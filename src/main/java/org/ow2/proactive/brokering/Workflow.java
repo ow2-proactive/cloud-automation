@@ -129,11 +129,12 @@ public class Workflow {
 
     private boolean contains(String value, String set) {
         // Coma separated values, case and spaces are ignored
+        if (value == null || set == null)
+            return false;
         String[] values = set.replaceAll(" ", "").toLowerCase().split(",");
         Arrays.sort(values);
-        if (value == null || Arrays.binarySearch(values, value.toLowerCase()) < 0) {
+        if (value == null || Arrays.binarySearch(values, value.toLowerCase()) < 0)
             return false;
-        }
         return true;
     }
 

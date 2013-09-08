@@ -55,37 +55,5 @@ cd ${iaas.provider.newvm.proactive.home.dir}&#10;
 				</parameters>
 			</javaExecutable>
 		</task>
-
-		<task name="Run">
-            <genericInformation>
-                <info name="NODE_ACCESS_TOKEN" value="${iaas.provider.newvm.token}"/>
-            </genericInformation>
-			<depends>
-				<task ref="Deploy"/>
-			</depends>
-			<nativeExecutable>
-				<staticCommand
-						value="${utils.scripts.rscripts.path}">
-					<arguments>
-                        <argument value=" ${utils.scripts.server.address}/general/show-info.sh"/>
-					</arguments>
-				</staticCommand>
-			</nativeExecutable>
-		</task>
-		<task name="Undeploy">
-			<depends>
-				<task ref="Deploy"/>
-				<task ref="Run"/>
-			</depends>
-			<javaExecutable class="org.ow2.proactive.iaas.IaasUndeployExecutable">
-				<parameters>
-                    <parameter name="providerName" value="${iaas.provider.name}"/>
-                    <parameter name="apiurl" value="${iaas.provider.api.url}"/>
-                    <parameter name="username" value="${iaas.provider.api.user}"/>
-                    <parameter name="password" value="${iaas.provider.api.password}"/>
-                    <parameter name="tenantName" value="${iaas.provider.api.tenant}"/>
-				</parameters>
-			</javaExecutable>
-		</task>
 	</taskFlow>
 </job>

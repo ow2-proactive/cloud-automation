@@ -95,6 +95,8 @@ public class Broker {
         HttpGet get = new HttpGet(endpoint);
         get.addHeader("sessionid", sessid);
         HttpResponse response = httpClient.execute(get);
+        if (response.getEntity() == null)
+            throw new IOException("No result for JobId=" + jobId + ", Task=" + task + " available yet.");
         String result = EntityUtils.toString(response.getEntity());
         JsonObject ob = Json.createReader(new StringReader(result)).readObject();
         return ob.getString(task);
