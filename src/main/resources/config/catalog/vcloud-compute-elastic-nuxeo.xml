@@ -49,7 +49,9 @@
 						jobId = System.getProperty('pas.job.id');
 						script = "#!/bin/sh\n" +
 						"export NODE_TOKEN=LB_" + jobId + "\n" +
-						"hostname lb.vapp" + "\n" +
+						"hostname lb" + "\n" +
+						"ntpdate -s 91.189.89.199\n" +
+						"echo 127.0.1.1 lb >> /etc/hosts\n" +
 						"wget -q -O - http://10.1.244.17:9393/node.sh | bash \n";
 
 						System.setProperty("script", script);
@@ -232,7 +234,9 @@
 						jobId = System.getProperty('pas.job.id');
 						script = "#!/bin/sh\n" +
 						"export NODE_TOKEN=" + jobId + "_SLAVE" + it + " \n" +
-						"hostname slave" + it + ".vapp\n" +
+						"hostname slave" + it + "\n" +
+						"echo 127.0.1.1 slave" + it + " >> /etc/hosts\n" +
+						"ntpdate -s 91.189.89.199\n" +
 						"wget -q -O - http://10.1.244.17:9393/node.sh | bash \n";
 
 						System.setProperty("script", script);
@@ -286,7 +290,6 @@ it = java.lang.System.getProperty("pas.task.iteration");
 job_id = java.lang.System.getProperty("pas.job.id");
 cfg_file = open("/etc/nuxeo/nuxeo.conf","a")
 cfg_file.write("nuxeo.server.jvmRoute=slave%s\n" % it)
-cfg_file.write("metrics.prefix=servers.%s_slave_%s\n" % (job_id,it))
 cfg_file.write("metrics.graphite.enabled=true\n")
 cfg_file.write("metrics.graphite.host=193.52.46.22\n")
 cfg_file.write("metrics.graphite.port=2030\n")
