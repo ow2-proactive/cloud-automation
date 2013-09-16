@@ -2,6 +2,9 @@ package org.ow2.proactive.brokering.occi;
 
 import org.apache.log4j.Logger;
 import org.ow2.proactive.brokering.Broker;
+import org.ow2.proactive.brokering.Reference;
+import org.ow2.proactive.brokering.References;
+import org.ow2.proactive.brokering.occi.infrastructure.ActionTrigger;
 import org.ow2.proactive.brokering.occi.infrastructure.Compute;
 import org.ow2.proactive.brokering.occi.infrastructure.Platform;
 import org.ow2.proactive.brokering.occi.infrastructure.Storage;
@@ -11,6 +14,12 @@ import java.net.URL;
 import java.util.*;
 
 public class Resource {
+
+    public static final String COMPUTE_CATEGORY_NAME = "compute";
+    public static final String STORAGE_CATEGORY_NAME = "storage";
+    public static final String STORAGE_LINK_CATEGORY_NAME = "storagelink";
+    public static final String PLATFORM_CATEGORY_NAME = "platform";
+    public static final String ACTION_TRIGGER_CATEGORY_NAME = "actiontrigger";
 
     private static Logger logger = Logger.getLogger(Resource.class.getName());
     private static Map<UUID, Resource> resources = new HashMap<UUID, Resource>();
@@ -61,14 +70,16 @@ public class Resource {
     }
 
     private static List<Attribute> getSpecificAttributeList(String category) {
-        if (category.equalsIgnoreCase("compute")) {
+        if (category.equalsIgnoreCase(COMPUTE_CATEGORY_NAME)) {
             return new Compute().getSpecificAttributeList();
-        } else if (category.equalsIgnoreCase("storage")) {
+        } else if (category.equalsIgnoreCase(STORAGE_CATEGORY_NAME)) {
             return new Storage().getSpecificAttributeList();
-        } else if (category.equalsIgnoreCase("storagelink")) {
+        } else if (category.equalsIgnoreCase(STORAGE_LINK_CATEGORY_NAME)) {
             return new StorageLink().getSpecificAttributeList();
-        } else if (category.equalsIgnoreCase("platform")) {
+        } else if (category.equalsIgnoreCase(PLATFORM_CATEGORY_NAME)) {
             return new Platform().getSpecificAttributeList();
+        } else if (category.equalsIgnoreCase(ACTION_TRIGGER_CATEGORY_NAME)) {
+            return ActionTrigger.getInstance().getSpecificAttributeList();
         }
         return null;
     }
@@ -108,19 +119,23 @@ public class Resource {
     }
 
     public boolean create() throws Exception {
-        return Broker.getInstance().request(category, "create", getAttributes()).isSubmitted();
+        References references = Broker.getInstance().request(category, "create", getAttributes());
+        return references.areAllSubmitted();
     }
 
     public boolean read() throws Exception {
-        return Broker.getInstance().request(category, "read", getAttributes()).isSubmitted();
+        References references = Broker.getInstance().request(category, "read", getAttributes());
+        return references.areAllSubmitted();
     }
 
     public boolean update(String action) throws Exception {
-        return Broker.getInstance().request(category, "update", action, getAttributes()).isSubmitted();
+        References references = Broker.getInstance().request(category, "update", action, getAttributes());
+        return references.areAllSubmitted();
     }
 
     public boolean delete() throws Exception {
-        return Broker.getInstance().request(category, "delete", getAttributes()).isSubmitted();
+        References references = Broker.getInstance().request(category, "delete", getAttributes());
+        return references.areAllSubmitted();
     }
 
     public List<Resource> getLinkedResources() {
@@ -137,4 +152,10 @@ public class Resource {
         }
         return result;
     }
+
+
+    private void addResourceToTheUpdateQueue(Reference jobReference, Resource resource) {
+        //
+    }
+
 }

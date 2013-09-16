@@ -23,8 +23,8 @@ public class Configuration {
     public String toString() {
         String result = "Scheduler : " + scheduler.url + " (" + scheduler.username + " / " + scheduler.password + ")\n";
         result += "Catalog : " + catalog.path + "\n";
-        result += "Rules : " + rules.path;
-        result += "Security : " + security.insecuremode;
+        result += "Rules : " + rules.path + "\n";
+        result += "Security : " + security.insecuremode + "\n";
 
         return result;
     }

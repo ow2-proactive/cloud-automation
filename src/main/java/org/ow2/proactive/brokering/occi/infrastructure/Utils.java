@@ -3,12 +3,33 @@ package org.ow2.proactive.brokering.occi.infrastructure;
 import org.apache.log4j.Logger;
 import org.ow2.proactive.brokering.occi.Attribute;
 
+import javax.json.Json;
+import javax.json.JsonObject;
+import java.io.StringReader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class Utils {
     private static Logger logger = Logger.getLogger(Utils.class.getName());
+
+    /**
+     * @param attributes map with the attributes
+     * @return a String formatted like this : "a=3,b=4,c=5"
+     */
+    public static String buildString(Map<String, String> attributes) {
+        StringBuffer sb = new StringBuffer();
+        for (Map.Entry<String, String> entry : attributes.entrySet()) {
+            sb.append(entry.getKey().replaceAll("\"","") + "=" + entry.getValue().replaceAll("\"","") + ",");
+        }
+
+        String output = sb.toString();
+
+        if (output.endsWith(","))
+            return output.substring(0, output.length()-1);
+        else
+            return output;
+    }
 
     /**
      * @param attributes a String formatted like this : "a=3,b=4,c=5", if null, returned map is empty
@@ -61,4 +82,24 @@ public class Utils {
 
         return resultMap;
     }
+
+    /**
+     * @param str a json formatted string
+     * @return the json object
+     */
+    public static JsonObject convertToJson(String str) {
+        return Json.createReader(new StringReader(str)).readObject();
+    }
+
+    /**
+     * @param json json to be converted to a map
+     * @return resulting map
+     */
+    public static Map<String, String> convertToMap(JsonObject json) {
+        Map<String, String> o = new HashMap<String, String>();
+        for (String key : json.keySet())
+            o.put(key, json.getString(key));
+        return o;
+    }
+
 }

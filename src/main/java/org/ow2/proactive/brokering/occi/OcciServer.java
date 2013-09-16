@@ -10,8 +10,9 @@ import java.util.Map;
 import java.util.UUID;
 
 public class OcciServer implements Occi {
+    private static OcciServer instance;
     private static Logger logger = Logger.getLogger(OcciServer.class);
-    private static Database db = Database.getInstance();
+    private static Database db;
 
     // ************* OCCI SERVER MANAGEMENT **************
 
@@ -134,7 +135,7 @@ public class OcciServer implements Occi {
                 }
                 resource.getAttributes().put(key, newAttributes.get(key));
             }
-            Database.getInstance().store(resource);
+            db.store(resource);
 
             if (action == null && attributes != null && !attributes.contains(".state")) {
                 action = "hw_update";
@@ -193,5 +194,27 @@ public class OcciServer implements Occi {
             logger.info("------------------------------------------------------------------------");
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
+    }
+
+
+    public OcciServer() {
+        if (db == null)
+            db = Database.getInstance();
+
+        if (instance == null)
+            instance = this;
+        else
+            throw new IllegalStateException("Cannot instantiate twice.");
+    }
+
+    public static OcciServer getInstance() {
+        if (instance == null)
+            throw new IllegalStateException("This class has not been instantiated yet.");
+
+        return instance;
+    }
+
+    public static void setDatabase(Database db) {
+        OcciServer.db = db;
     }
 }

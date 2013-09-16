@@ -12,12 +12,15 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
+import org.ow2.proactive.brokering.utils.HttpUtility;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
 public class MonitoringProxy {
+
+    private static final boolean INSECURE_ACCESS = true;
 
     private static final Logger logger = Logger.getLogger(MonitoringProxy.class.getName());
 
@@ -26,7 +29,6 @@ public class MonitoringProxy {
     private String restPassword;
     private String nodeSourceName;
     private String jmxUrl;
-
     private HttpClient httpClient;
 
     public String getAttribute(String attributes) throws MonitoringException {
@@ -112,8 +114,18 @@ public class MonitoringProxy {
         return EntityUtils.toString(response.getEntity());
     }
 
+    public void setJmxUrl(String jmxUrl) {
+        this.jmxUrl = jmxUrl;
+    }
+
+    public void setNodeSourceName(String nodeSourceName) {
+        this.nodeSourceName = nodeSourceName;
+    }
+
     private MonitoringProxy(Builder builder) {
         httpClient = new DefaultHttpClient();
+        if (INSECURE_ACCESS)
+            HttpUtility.setInsecureAccess(httpClient);
         restUrl = builder.restUrl;
         restUsername = builder.restUsername;
         restPassword = builder.restPassword;

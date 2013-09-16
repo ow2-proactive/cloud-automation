@@ -4,31 +4,31 @@
 	 name="ProactiveJob">
     <variables>
 
-        <variable name="iaas.provider.name" value="NOVA"/>
-        <variable name="iaas.provider.api.url" value="http://node4.cloud.sophia.inria.fr:5000/v2.0"/>
-        <variable name="iaas.provider.api.user" value="admin"/>
-        <variable name="iaas.provider.api.password" value="***REMOVED***"/>
-        <variable name="iaas.provider.api.tenant" value="Admin"/>
+        <variable name="iaas.provider.name"/>
+        <variable name="iaas.provider.api.url"/>
+        <variable name="iaas.provider.api.user"/>
+        <variable name="iaas.provider.api.password"/>
+        <variable name="iaas.provider.api.tenant"/>
 
-        <variable name="iaas.provider.newvm.name" value="vmnamev002"/>
-        <variable name="iaas.provider.newvm.image" value="fd5c12dc-10e4-4a7f-b984-f221d848af07"/>
-        <variable name="iaas.provider.newvm.flavor" value="2"/>
-        <variable name="iaas.provider.newvm.java.home.dir" value="/home/ubuntu/opt/jdk/"/>
-        <variable name="iaas.provider.newvm.proactive.home.dir" value="/home/ubuntu/opt/proactive/latest/scheduling/"/>
+        <variable name="iaas.provider.newvm.name"/>
+        <variable name="iaas.provider.newvm.image"/>
+        <variable name="iaas.provider.newvm.flavor"/>
+        <variable name="iaas.provider.newvm.java.home.dir"/>
+        <variable name="iaas.provider.newvm.proactive.home.dir"/>
         <variable name="iaas.provider.newvm.token" value="${iaas.provider.newvm.name}"/>
 
         <variable name="proactive.rm.url" value="pamr://0/"/>
-        <variable name="proactive.rm.credentials" value="***REMOVED***"/>
-        <variable name="proactive.rm.nodesource.name" value="OPENSTACK_TEST"/>
-        <variable name="utils.scripts.server.address" value="http://10.0.0.2:8000"/>
-        <variable name="utils.scripts.rscripts.path" value="/home/ubuntu/utils/rscript.sh"/>
+
+        <variable name="proactive.rm.credentials"/>
+        <variable name="proactive.rm.nodesource.name"/>
+        <variable name="utils.scripts.server.address"/>
+        <variable name="utils.scripts.rscripts.path"/>
 
     </variables>
     <genericInformation>
         <info name="category" value="compute"/>
         <info name="operation" value="create" />
         <info name="action" value="start" />
-        <info name="rule" value="cloudwatt" />
     </genericInformation>
 
 	<taskFlow>

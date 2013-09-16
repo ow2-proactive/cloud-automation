@@ -44,4 +44,8 @@ public class HttpUtility {
             return true;
         }
     }
+
+    public static boolean isSuccessStatusCode(int statusCode){
+        return ((statusCode >= 200) && (statusCode <= 299));
+    }
 }

@@ -60,6 +60,7 @@ public class Catalog {
 
                 // Add new rules and update existing ones if needed
                 for (File f : path.listFiles()) {
+                    System.out.println(f);
                     Workflow workflow = workflows.get(f);
                     if (workflow != null && workflow.hasChanged()) { // Known & modified
                         workflow.update();

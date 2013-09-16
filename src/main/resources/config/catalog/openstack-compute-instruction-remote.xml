@@ -5,7 +5,9 @@
     <variables>
 
         <variable name="iaas.provider.newvm.token"/>
-        <variable name="utils.script.path"/>
+        <variable name="utils.scripts.server.address"/>
+        <variable name="utils.scripts.rscripts.path"/>
+        <variable name="utils.script.relativepath"/>
         <variable name="utils.script.arg1" value=""/>
         <variable name="utils.script.arg2" value=""/>
         <variable name="utils.script.arg3" value=""/>
@@ -15,7 +17,7 @@
     <genericInformation>
         <info name="category" value="compute"/>
         <info name="operation" value="update" />
-        <info name="action" value="instruct" />
+        <info name="action" value="instructremote" />
     </genericInformation>
 
 	<taskFlow>
@@ -26,10 +28,13 @@
 
 			<nativeExecutable>
 				<staticCommand
-						value="/bin/bash">
+						value="${utils.scripts.rscripts.path}">
 					<arguments>
-                        <argument value="-c"/>
-                        <argument value="${utils.script.path} ${utils.script.arg1} ${utils.script.arg2} ${utils.script.arg3} ${utils.script.arg4}"/>
+                        <argument value="${utils.scripts.server.address}/${utils.script.relativepath}"/>
+                        <argument value="${utils.script.arg1}"/>
+                        <argument value="${utils.script.arg2}"/>
+                        <argument value="${utils.script.arg3}"/>
+                        <argument value="${utils.script.arg4}"/>
 					</arguments>
 				</staticCommand>
 			</nativeExecutable>

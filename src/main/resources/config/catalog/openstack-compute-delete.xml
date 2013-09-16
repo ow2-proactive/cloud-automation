@@ -4,11 +4,11 @@
 	 name="ProactiveJob">
     <variables>
 
-        <variable name="iaas.provider.name" value="NOVA"/>
-        <variable name="iaas.provider.api.url" value="http://node4.cloud.sophia.inria.fr:5000/v2.0"/>
-        <variable name="iaas.provider.api.user" value="admin"/>
-        <variable name="iaas.provider.api.password" value="***REMOVED***"/>
-        <variable name="iaas.provider.api.tenant" value="Admin"/>
+        <variable name="iaas.provider.name"/>
+        <variable name="iaas.provider.api.url"/>
+        <variable name="iaas.provider.api.user"/>
+        <variable name="iaas.provider.api.password"/>
+        <variable name="iaas.provider.api.tenant"/>
 
         <variable name="iaas.provider.vm.id"/>
 
@@ -16,7 +16,6 @@
     <genericInformation>
         <info name="category" value="compute"/>
         <info name="operation" value="stop" />
-        <info name="rule" value="cloudwatt" />
     </genericInformation>
 
 	<taskFlow>
