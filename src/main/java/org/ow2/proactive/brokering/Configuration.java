@@ -19,13 +19,15 @@ public class Configuration {
     @XmlElement
     Security security;
 
+    @XmlElement
+    OcciUpdater updater;
+
     @Override
     public String toString() {
         String result = "Scheduler : " + scheduler.url + " (" + scheduler.username + " / " + scheduler.password + ")\n";
         result += "Catalog : " + catalog.path + "\n";
         result += "Rules : " + rules.path + "\n";
         result += "Security : " + security.insecuremode + "\n";
-
         return result;
     }
 
@@ -57,6 +59,11 @@ public class Configuration {
         @XmlAttribute
         String path;
 
+        @XmlAttribute
+        long refresh;
+    }
+
+    static class OcciUpdater {
         @XmlAttribute
         long refresh;
     }

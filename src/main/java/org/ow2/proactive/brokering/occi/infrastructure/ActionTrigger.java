@@ -165,10 +165,14 @@ public class ActionTrigger {
         private Class getActionAsClass(Map<String, String> args, String key) {
             GroovyClassLoader gcl = new GroovyClassLoader();
             String encodedScript = args.get(key);
-            if (encodedScript != null)
+            if (encodedScriptIsValid(encodedScript))
                 return gcl.parseClass(decodeBase64(encodedScript));
             else
                 return null;
+        }
+
+        private boolean encodedScriptIsValid(String encodedScript) {
+            return (encodedScript != null && !encodedScript.isEmpty());
         }
 
         @Override

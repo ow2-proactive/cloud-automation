@@ -57,9 +57,7 @@ public class Broker {
 
             catalog = new Catalog(catalogPath, config.catalog.refresh * 1000);
             rules = new Rules(rulesPath, config.rules.refresh * 1000);
-
-            SchedulerProxy scheduler2 = new SchedulerProxy(loginData);
-            updater = new Updater(scheduler2, 1000L); // TODO add option in configuration file and remove second scheduler added for concurrency problems.
+            updater = new Updater(new SchedulerProxy(loginData), config.updater.refresh * 1000);
 
 
         } catch (JAXBException e) {
@@ -82,10 +80,6 @@ public class Broker {
     public References request(String category, String operation, String action, Map<String, String> attributes) throws Exception {
         logger.debug("Request       : category=" + category + ", operation=" + operation + " action=" + action);
         logger.debug("   attributes : " + showSorted(attributes));
-
-        if (operation.equalsIgnoreCase("update"))
-            System.out.println("Remove this");
-        // TODO REMOVE THIS
 
         References refNonWorkflow = processNonWorkflowRequest(category, operation, action, attributes);
         References refWorkflow = processWorkflowRequest(category, operation, action, attributes);
