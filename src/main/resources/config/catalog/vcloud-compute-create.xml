@@ -10,7 +10,7 @@
         <variable name="password"/>
         <variable name="occi.compute.vendor.name"/>
         <variable name="occi.compute.vendor.location"/>
-        <variable name="occi_endpoint" />
+        <variable name="occi_endpoint"/>
 
         <!-- Filled by the request -->
         <variable name="occi.core.id"/>
@@ -32,6 +32,7 @@
         <info name="category" value="compute"/>
         <info name="operation" value="create"/>
         <info name="sla" value="gold,silver"/>
+        <info name="provider" value="vmware"/>
     </genericInformation>
     <taskFlow>
         <task name="create">
@@ -99,7 +100,7 @@
                     <parameter name="password" value="${password}"/>
                     <parameter name="providerName" value="${providerName}"/>
                     <parameter name="organizationName" value="${occi.compute.organization.name}"/>
-                    <parameter name="vm.password" value="${occi.compute.password}" />
+                    <parameter name="vm.password" value="${occi.compute.password}"/>
                 </parameters>
             </javaExecutable>
         </task>
@@ -116,7 +117,7 @@
                     <parameter name="providerName" value="${providerName}"/>
                     <parameter name="organizationName" value="${occi.compute.organization.name}"/>
                     <parameter name="vdcName" value="${occi.compute.vendor.location}"/>
-                    <parameter name="vm.password" value="${occi.compute.password}" />
+                    <parameter name="vm.password" value="${occi.compute.password}"/>
                 </parameters>
             </javaExecutable>
         </task>

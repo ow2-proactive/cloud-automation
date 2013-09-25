@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <job xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:proactive:jobdescriptor:3.1"
-	 xsi:schemaLocation="urn:proactive:jobdescriptor:3.1 http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/3.1/schedulerjob.xsd"
-	 name="ProactiveJob">
+     xsi:schemaLocation="urn:proactive:jobdescriptor:3.1 http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/3.1/schedulerjob.xsd"
+     name="openstack-compute-instruction">
     <variables>
 
-        <variable name="iaas.provider.newvm.token"/>
-        <variable name="utils.script.path"/>
+        <variable name="occi.compute.proactive.node.token"/>
+        <variable name="occi.compute.instruction"/>
         <variable name="utils.script.arg1" value=""/>
         <variable name="utils.script.arg2" value=""/>
         <variable name="utils.script.arg3" value=""/>
@@ -14,25 +14,27 @@
     </variables>
     <genericInformation>
         <info name="category" value="compute"/>
-        <info name="operation" value="update" />
-        <info name="action" value="instruct" />
+        <info name="operation" value="update"/>
+        <info name="action" value="instruct"/>
+        <info name="provider" value="openstack"/>
     </genericInformation>
 
-	<taskFlow>
-		<task name="Task">
+    <taskFlow>
+        <task name="instruction-task">
             <genericInformation>
-                <info name="NODE_ACCESS_TOKEN" value="${iaas.provider.newvm.token}"/>
+                <info name="NODE_ACCESS_TOKEN" value="${occi.compute.proactive.node.token}"/>
             </genericInformation>
 
-			<nativeExecutable>
-				<staticCommand
-						value="/bin/bash">
-					<arguments>
+            <nativeExecutable>
+                <staticCommand
+                        value="/bin/bash">
+                    <arguments>
                         <argument value="-c"/>
-                        <argument value="${utils.script.path} ${utils.script.arg1} ${utils.script.arg2} ${utils.script.arg3} ${utils.script.arg4}"/>
-					</arguments>
-				</staticCommand>
-			</nativeExecutable>
-		</task>
-	</taskFlow>
+                        <argument
+                                value="${occi.compute.instruction} ${utils.script.arg1} ${utils.script.arg2} ${utils.script.arg3} ${utils.script.arg4}"/>
+                    </arguments>
+                </staticCommand>
+            </nativeExecutable>
+        </task>
+    </taskFlow>
 </job>

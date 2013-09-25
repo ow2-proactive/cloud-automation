@@ -3,7 +3,6 @@ package org.ow2.proactive.brokering.occi.infrastructure;
 import groovy.lang.GroovyClassLoader;
 import org.apache.log4j.Logger;
 import org.ow2.proactive.brokering.Reference;
-
 import org.ow2.proactive.brokering.References;
 import org.ow2.proactive.brokering.occi.Attribute;
 import org.ow2.proactive.brokering.triggering.Action;
@@ -48,22 +47,35 @@ public class ActionTrigger {
         return attributeList;
     }
 
-    public References request(String category, String operation, String action, Map<String, String> attributes) throws Exception {
+    public References request(
+            String category,
+            String operation,
+            String action,
+            Map<String, String> attributes) {
+
         References references = new References();
-        if ("create".equalsIgnoreCase(operation) && "schedule".equalsIgnoreCase(action)) {
-            ConditionChecker conditionChecker = new ConditionChecker(attributes);
-            Timer timer = new Timer();
-            timer.schedule(conditionChecker, 0, getDelay(attributes));
-            timers.put(getUuid(attributes), timer);
-            references.add(Reference.buildActionTriggerReference(true, "Timer created", getUuid(attributes)));
-        } else if ("create".equalsIgnoreCase(operation) && "scheduleonce".equalsIgnoreCase(action)) {
-            ActionExecutor actionExecutor = new ActionExecutor(attributes);
-            actionExecutor.start();
-            references.add(Reference.buildActionTriggerReference(true, "Action executor created", getUuid(attributes)));
+        if ("create".equalsIgnoreCase(operation)) {
+            if ("schedule".equalsIgnoreCase(action)) {
+                ConditionChecker conditionChecker = new ConditionChecker(attributes);
+                Timer timer = new Timer();
+                timer.schedule(conditionChecker, 0, getDelay(attributes));
+                timers.put(getUuid(attributes), timer);
+                references.add(
+                        Reference.buildActionTriggerReference(
+                                "Timer created", getUuid(attributes)));
+            } else if ("scheduleonce".equalsIgnoreCase(action)) {
+                ActionExecutor actionExecutor = new ActionExecutor(attributes);
+                actionExecutor.start();
+                references.add(
+                        Reference.buildActionTriggerReference(
+                                "Action executor created", getUuid(attributes)));
+            }
         } else if ("delete".equalsIgnoreCase(operation)) {
             Timer timer = timers.remove(getUuid(attributes));
             timer.cancel();
-            references.add(Reference.buildActionTriggerReference(true, "Timer removed", getUuid(attributes)));
+            references.add(
+                    Reference.buildActionTriggerReference(
+                            "Timer removed", getUuid(attributes)));
         }
         return references;
     }
@@ -73,36 +85,32 @@ public class ActionTrigger {
     }
 
     private long getDelay(Map<String, String> atts) {
-        return Long.parseLong(atts.get(ActionTrigger.OCCI_MONITORING_PERIODMS));
+        return Long.parseLong(atts.get(OCCI_MONITORING_PERIODMS));
     }
 
     public static Map<String, Timer> getTimers() {
         return timers;
     }
 
+    // INNER CLASSES
+
     class ActionExecutor extends Thread {
+
         private Class action;
         private Map<String, String> args;
 
         public ActionExecutor(Map<String, String> args) {
             this.args = args;
-            this.action = getActionAsClass(args, ActionTrigger.OCCI_MONITORING_ACTION);
-
-        }
-
-        public void run() {
-            executeAction(action);
+            this.action = getActionAsClass(args, OCCI_MONITORING_ACTION);
         }
 
         private Class getActionAsClass(Map<String, String> args, String key) {
             GroovyClassLoader gcl = new GroovyClassLoader();
             String script = args.get(key);
-            if (script != null) {
-                Class clazz = gcl.parseClass(script);
-                return clazz;
-            } else {
+            if (script != null)
+                return gcl.parseClass(script);
+            else
                 return null;
-            }
         }
 
         private void executeAction(Class script) {
@@ -113,12 +121,19 @@ public class ActionTrigger {
                 Action action = (Action) script.newInstance();
                 action.execute(args);
             } catch (Throwable e) {
-                logger.warn("Error when executing action: " + script, e);
+                logger.warn("Error executing action: " + script, e);
             }
         }
+
+        @Override
+        public void run() {
+            executeAction(action);
+        }
+
     }
 
     class ConditionChecker extends TimerTask {
+
         private Map<String, String> args;
         private Class conditionScript;
         private Class actionCaseTrue;
@@ -126,14 +141,14 @@ public class ActionTrigger {
 
         public ConditionChecker(Map<String, String> args) {
             this.conditionScript = getConditionScript(args);
-            this.actionCaseTrue = getActionAsClass(args, ActionTrigger.OCCI_MONITORING_TRUEACTION);
-            this.actionCaseFalse = getActionAsClass(args, ActionTrigger.OCCI_MONITORING_FALSEACTION);
+            this.actionCaseTrue = getActionAsClass(args, OCCI_MONITORING_TRUEACTION);
+            this.actionCaseFalse = getActionAsClass(args, OCCI_MONITORING_FALSEACTION);
             this.args = args;
         }
 
         private Class getConditionScript(Map<String, String> args) {
             GroovyClassLoader gcl = new GroovyClassLoader();
-            String script = args.get(ActionTrigger.OCCI_CONDITION_SCRIPT);
+            String script = args.get(OCCI_CONDITION_SCRIPT);
             Class clazz = gcl.parseClass(script);
             return clazz;
         }
@@ -141,12 +156,10 @@ public class ActionTrigger {
         private Class getActionAsClass(Map<String, String> args, String key) {
             GroovyClassLoader gcl = new GroovyClassLoader();
             String script = args.get(key);
-            if (script != null) {
-                Class clazz = gcl.parseClass(script);
-                return clazz;
-            } else {
+            if (script != null)
+                return gcl.parseClass(script);
+            else
                 return null;
-            }
         }
 
         @Override
@@ -157,7 +170,7 @@ public class ActionTrigger {
                 executeAction(actionCaseFalse);
         }
 
-        private boolean checkCondition(Class script) {
+        private Boolean checkCondition(Class script) {
             try {
                 Condition cond = (Condition) script.newInstance();
                 return cond.evaluate(args);

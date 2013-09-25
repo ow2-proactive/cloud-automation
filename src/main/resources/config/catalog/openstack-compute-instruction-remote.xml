@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <job xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:proactive:jobdescriptor:3.1"
-	 xsi:schemaLocation="urn:proactive:jobdescriptor:3.1 http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/3.1/schedulerjob.xsd"
-	 name="ProactiveJob">
+     xsi:schemaLocation="urn:proactive:jobdescriptor:3.1 http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/3.1/schedulerjob.xsd"
+     name="ProactiveJob">
     <variables>
 
         <variable name="iaas.provider.newvm.token"/>
@@ -16,28 +16,30 @@
     </variables>
     <genericInformation>
         <info name="category" value="compute"/>
-        <info name="operation" value="update" />
-        <info name="action" value="instructremote" />
+        <info name="operation" value="update"/>
+        <info name="action" value="instructremote"/>
+        <info name="provider" value="openstack"/>
     </genericInformation>
 
-	<taskFlow>
-		<task name="Task">
+    <taskFlow>
+        <task name="Task">
             <genericInformation>
                 <info name="NODE_ACCESS_TOKEN" value="${iaas.provider.newvm.token}"/>
             </genericInformation>
 
-			<nativeExecutable>
-				<staticCommand
-						value="${utils.scripts.rscripts.path}">
-					<arguments>
-                        <argument value="${utils.scripts.server.address}/${utils.script.relativepath}"/>
+            <nativeExecutable>
+                <staticCommand
+                        value="${utils.scripts.rscripts.path}">
+                    <arguments>
+                        <argument
+                                value="${utils.scripts.server.address}/${utils.script.relativepath}"/>
                         <argument value="${utils.script.arg1}"/>
                         <argument value="${utils.script.arg2}"/>
                         <argument value="${utils.script.arg3}"/>
                         <argument value="${utils.script.arg4}"/>
-					</arguments>
-				</staticCommand>
-			</nativeExecutable>
-		</task>
-	</taskFlow>
+                    </arguments>
+                </staticCommand>
+            </nativeExecutable>
+        </task>
+    </taskFlow>
 </job>

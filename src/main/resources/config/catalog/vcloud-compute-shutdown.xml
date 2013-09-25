@@ -11,16 +11,17 @@
         <variable name="occi.compute.vendor.name"/>
         <variable name="occi.compute.vendor.location"/>
         <variable name="occi.compute.vendor.vmpath"/>
-        <variable name="occi_endpoint" />
+        <variable name="occi_endpoint"/>
 
         <!-- Filled by the request -->
-        <variable name="occi.core.id" value="" />
+        <variable name="occi.core.id" value=""/>
         <variable name="occi.compute.organization.name"/>
     </variables>
     <genericInformation>
         <info name="category" value="compute"/>
-        <info name="operation" value="update" />
-        <info name="action" value="stop" />
+        <info name="operation" value="update"/>
+        <info name="action" value="stop"/>
+        <info name="provider" value="vmware"/>
     </genericInformation>
     <taskFlow>
         <task name="stop">

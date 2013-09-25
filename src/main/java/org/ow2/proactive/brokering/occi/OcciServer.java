@@ -37,7 +37,7 @@ public class OcciServer implements Occi {
         try {
             UUID uuid = UUID.randomUUID();
             attributes += ",action.state=pending,occi.core.id=" + uuid;
-//            attributes += ",action.state=\"pending\", occi.core.id=\"" + uuid + "\"";
+            //            attributes += ",action.state=\"pending\", occi.core.id=\"" + uuid + "\"";
             Resource resource = Resource.factory(uuid, host, category, Utils.buildMap(attributes));
             db.store(resource);
 
@@ -88,7 +88,7 @@ public class OcciServer implements Occi {
     @Override
     public Response getResource(String category, String uuid, String attribute) {
         logger.info("------------------------------------------------------------------------");
-        logger.info("Get : category = [" + category + "], uuid = [" + uuid + "], attribute = [" + attribute +"]");
+        logger.info("Get : category = [" + category + "], uuid = [" + uuid + "], attribute = [" + attribute + "]");
         try {
             Resource resource = Resource.getResources().get(UUID.fromString(uuid));
             if (resource == null || !resource.getCategory().equalsIgnoreCase(category)) {
@@ -96,8 +96,8 @@ public class OcciServer implements Occi {
             }
             Response.ResponseBuilder response = Response.status(Response.Status.OK);
             response.type(MediaType.TEXT_PLAIN_TYPE);
-            if(attribute == null) {
-            response.entity(resource);
+            if (attribute == null) {
+                response.entity(resource);
             } else {
                 System.out.println("Returning an attribute value : " + attribute);
                 logger.info("Returning an attribute value : " + attribute);
@@ -136,10 +136,6 @@ public class OcciServer implements Occi {
                 resource.getAttributes().put(key, newAttributes.get(key));
             }
             db.store(resource);
-
-            if (action == null && attributes != null && !attributes.contains(".state")) {
-                action = "hw_update";
-            }
 
             if (action != null) {
                 resource.getAttributes().put("action.state", "pending");

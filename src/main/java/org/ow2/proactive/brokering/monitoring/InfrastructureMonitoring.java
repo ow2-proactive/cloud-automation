@@ -6,24 +6,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class InfrastructureMonitoring {
+
     private MonitoringProxy proxy;
 
     public InfrastructureMonitoring(MonitoringProxy proxy) {
         this.proxy = proxy;
     }
 
-    public Map<String, String> getHostProperties(String hostid) throws MonitoringException {
-        return getMBeanAttributeAsMap("Host." + hostid);
+    public Map<String, String> getHostProperties(String hostId) throws MonitoringException {
+        return getMBeanAttributeAsMap("Host." + hostId);
     }
 
-    public Map<String, String> getVMProperties(String vmid) throws MonitoringException {
-        return getMBeanAttributeAsMap("VM." + vmid);
-    }
-
-    private Map<String, String> getMBeanAttributeAsMap(String attribute) throws MonitoringException {
-        String json = proxy.getAttribute(attribute);
-        JsonObject obj = extractObjectValueOfFirstElement(json);
-        return transformToStringsMap(obj);
+    public Map<String, String> getVMProperties(String vmId) throws MonitoringException {
+        return getMBeanAttributeAsMap("VM." + vmId);
     }
 
     public String[] getHosts() throws MonitoringException {
@@ -35,10 +30,18 @@ public class InfrastructureMonitoring {
     }
 
     public String getVMSuchThat(String property, String value) throws MonitoringException {
-        for (String vmid: getVMs())
+        for (String vmid : getVMs())
             if (getVMProperties(vmid).get(property).equals(value))
                 return vmid;
         return null;
+    }
+
+    // PRIVATE METHODS
+
+    private Map<String, String> getMBeanAttributeAsMap(String attribute) throws MonitoringException {
+        String json = proxy.getAttribute(attribute);
+        JsonObject obj = extractObjectValueOfFirstElement(json);
+        return transformToStringsMap(obj);
     }
 
     private String[] getMBeanAttributeAsStringArray(String attribute) throws MonitoringException {
@@ -47,19 +50,15 @@ public class InfrastructureMonitoring {
         return transformToStringArray(array);
     }
 
-    // PRIVATE METHODS
-
     private JsonObject extractObjectValueOfFirstElement(String json) {
-        JsonReader reader = Json.createReader(new StringReader(json));
-        JsonArray array = reader.readArray();
-        JsonObject ob = array.getJsonObject(0);
+        JsonArray array = getJsonReader(json).readArray();
+        JsonObject ob = getFirstJsonObject(array);
         return ob.getJsonObject("value");
     }
 
     private JsonArray extractArrayValueOfFirstElement(String json) {
-        JsonReader reader = Json.createReader(new StringReader(json));
-        JsonArray array = reader.readArray();
-        JsonObject ob = array.getJsonObject(0);
+        JsonArray array = getJsonReader(json).readArray();
+        JsonObject ob = getFirstJsonObject(array);
         return ob.getJsonArray("value");
     }
 
@@ -77,6 +76,14 @@ public class InfrastructureMonitoring {
             output.put(entry.getKey(), ((JsonString) entry.getValue()).getString());
         }
         return output;
+    }
+
+    private JsonObject getFirstJsonObject(JsonArray array) {
+        return array.getJsonObject(0);
+    }
+
+    private JsonReader getJsonReader(String json) {
+        return Json.createReader(new StringReader(json));
     }
 
 }

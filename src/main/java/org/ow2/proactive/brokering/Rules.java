@@ -1,8 +1,9 @@
 package org.ow2.proactive.brokering;
 
+import org.apache.log4j.Logger;
+
 import java.io.File;
 import java.util.*;
-import org.apache.log4j.Logger;
 
 public class Rules {
     private static final Logger logger = Logger.getLogger(Rules.class.getName());
@@ -10,14 +11,13 @@ public class Rules {
     private final Timer timer;
 
     /**
-     *
      * @param path
      * @param refresh in seconds
      */
     public Rules(File path, long refresh) {
         timer = new Timer();
-        timer.schedule(new UpdateTask(path), 0, refresh);
         rules = new LinkedList<File>();
+        timer.schedule(new UpdateTask(path), 0, refresh);
     }
 
     public List<File> getRules() {
@@ -47,12 +47,16 @@ public class Rules {
 
                 // Add new rules
                 for (File f : path.listFiles()) {
-                    if (!rules.contains(f)) {
+                    if (!rules.contains(f) && isValidRuleFile(f)) {
                         rules.add(f);
                         logger.info("Added rule : " + f.getName());
                     }
                 }
             }
+        }
+
+        private Boolean isValidRuleFile(File f) {
+            return (f.getName().endsWith("groovy"));
         }
     }
 }

@@ -3,8 +3,8 @@ package org.ow2.proactive.brokering;
 import groovy.lang.GroovyClassLoader;
 import org.apache.log4j.Logger;
 import org.ow2.proactive.brokering.monitoring.SingletonMonitoring;
-import org.ow2.proactive.brokering.occi.infrastructure.ActionTrigger;
 import org.ow2.proactive.brokering.occi.Resource;
+import org.ow2.proactive.brokering.occi.infrastructure.ActionTrigger;
 import org.ow2.proactive.brokering.utils.scheduling.SchedulerLoginData;
 import org.ow2.proactive.brokering.utils.scheduling.SchedulerProxy;
 
@@ -15,6 +15,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.UUID;
 
 
 public class Broker {
@@ -25,6 +26,7 @@ public class Broker {
 
     private SchedulerLoginData loginData;
     private SchedulerProxy scheduler;
+    private Updater updater;
     private Catalog catalog;
     private Rules rules;
 
@@ -36,11 +38,12 @@ public class Broker {
             Configuration config = (Configuration) jaxbUnmarshaller.unmarshal(configFile);
 
             loginData = new SchedulerLoginData(
-                    config.scheduler.url, config.scheduler.username, config.scheduler.password );
-            SchedulerProxy.initializeSchedulerUtility(config.security.insecuremode);
-            scheduler = new SchedulerProxy(loginData);
-            SingletonMonitoring.configure(loginData);
+                    config.scheduler.url, config.scheduler.username,
+                    config.scheduler.password, config.security.insecuremode);
 
+            scheduler = new SchedulerProxy(loginData);
+
+            SingletonMonitoring.configure(loginData);
 
             File catalogPath = new File(config.catalog.path);
             if (!catalogPath.isDirectory()) {
@@ -54,6 +57,10 @@ public class Broker {
 
             catalog = new Catalog(catalogPath, config.catalog.refresh * 1000);
             rules = new Rules(rulesPath, config.rules.refresh * 1000);
+
+            SchedulerProxy scheduler2 = new SchedulerProxy(loginData);
+            updater = new Updater(scheduler2, 1000L); // TODO add option in configuration file and remove second scheduler added for concurrency problems.
+
 
         } catch (JAXBException e) {
             e.printStackTrace();
@@ -76,26 +83,24 @@ public class Broker {
         logger.debug("Request       : category=" + category + ", operation=" + operation + " action=" + action);
         logger.debug("   attributes : " + showSorted(attributes));
 
-        References references = new References();
-        references.addAll(processNonWorkflowRequest(category, operation, action, attributes));
+        if (operation.equalsIgnoreCase("update"))
+            System.out.println("Remove this");
+        // TODO REMOVE THIS
 
-        for (Workflow workflow : catalog.getWorkflows()) {
-            if (workflow.isCompliant(category, operation, action, attributes)) {
-                int appliedRules = this.applyRules(attributes, rules);
-//              if (workflow.isDeepCompliant(attributes))
-                File jobFile = workflow.configure(attributes);
-                logger.debug("Generated job file : " + jobFile.getAbsolutePath());
-                String output = scheduler.submitJob(jobFile);
-                Reference ref = Reference.buildJobReference(true, output);
-                references.add(ref);
-                if (ref.isSuccessfullySubmitted()){
-                    logger.info("Workflow '" + workflow + "' configured (" + appliedRules + " rules applied) and submitted (Job ID=" + ref.getId() + ")");
-                }
-            }
+        References refNonWorkflow = processNonWorkflowRequest(category, operation, action, attributes);
+        References refWorkflow = processWorkflowRequest(category, operation, action, attributes);
+
+        References references = new References();
+        references.addAll(refNonWorkflow);
+        references.addAll(refWorkflow);
+
+        for (Reference ref : refWorkflow) {
+            updater.addResourceToTheUpdateQueue(ref, getUuid(attributes));
         }
-        logger.info("No matching workflow");
+
         return references;
     }
+
 
     ///////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////
@@ -104,6 +109,47 @@ public class Broker {
     //
     ///////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////
+
+    private UUID getUuid(Map<String, String> attributes) {
+        return UUID.fromString(attributes.get("occi.core.id"));
+    }
+
+    private References processWorkflowRequest(
+            String category,
+            String operation,
+            String action,
+            Map<String, String> attributes)
+            throws Exception {
+
+        References references = new References();
+        for (Workflow workflow : catalog.getWorkflows()) {
+            if (workflow.isCompliant(category, operation, action, attributes)) {
+                int appliedRules = this.applyRules(attributes, rules);
+                //              if (workflow.isDeepCompliant(attributes))
+                File jobFile = workflow.configure(attributes);
+                logger.debug("Generated job file : " + jobFile.getAbsolutePath());
+                String output = scheduler.submitJob(jobFile);
+                Reference ref = Reference.buildJobReference(output);
+                references.add(ref);
+                if (ref.isSuccessfullySubmitted())
+                    logger.info("Workflow '" + workflow + "' configured (" + appliedRules + " rules applied) and submitted (Job ID=" + ref.getId() + ")");
+            }
+        }
+
+        return references;
+    }
+
+    private References processNonWorkflowRequest(
+            String category,
+            String operation,
+            String action,
+            Map<String, String> attributes) {
+
+        if (Resource.ACTION_TRIGGER_CATEGORY_NAME.equalsIgnoreCase(category)) {
+            return ActionTrigger.getInstance().request(category, operation, action, attributes);
+        }
+        return new References();
+    }
 
     /**
      * Apply proper rules
@@ -135,13 +181,6 @@ public class Broker {
 
     private String showSorted(Map<String, String> map) {
         return new TreeMap<String, String>(map).toString();
-    }
-
-    private References processNonWorkflowRequest(String category, String operation, String action, Map<String, String> attributes) throws Exception {
-        if (Resource.ACTION_TRIGGER_CATEGORY_NAME.equalsIgnoreCase(category)) {
-            return ActionTrigger.getInstance().request(category, operation, action, attributes);
-        }
-        return new References();
     }
 
 }

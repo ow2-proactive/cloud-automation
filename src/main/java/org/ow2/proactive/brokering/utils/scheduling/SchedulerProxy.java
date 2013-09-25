@@ -1,6 +1,8 @@
 package org.ow2.proactive.brokering.utils.scheduling;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthenticationException;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -10,94 +12,142 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.ow2.proactive.brokering.Reference;
+import org.ow2.proactive.brokering.utils.HttpUtility;
 
-import org.apache.http.auth.AuthenticationException;
 import javax.json.Json;
 import javax.json.JsonObject;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
-import org.apache.http.client.HttpClient;
-import org.ow2.proactive.brokering.utils.HttpUtility;
 
 public class SchedulerProxy {
 
     private static final Logger logger = Logger.getLogger(SchedulerProxy.class.getName());
 
-    private static boolean insecureMode;
     private HttpClient httpClient;
     private SchedulerLoginData schedulerLoginData;
 
-
-    public static void initializeSchedulerUtility(boolean insecureMode) {
-        SchedulerProxy.insecureMode = insecureMode;
-    }
-
     public SchedulerProxy(SchedulerLoginData schedulerLoginData) {
-        httpClient = new DefaultHttpClient();
-        if (insecureMode)
-            HttpUtility.setInsecureAccess(httpClient);
+
         this.schedulerLoginData = schedulerLoginData;
+        this.httpClient = new DefaultHttpClient();
+        if (this.schedulerLoginData.insecureMode)
+            this.httpClient = HttpUtility.turnClientIntoInsecure(this.httpClient);
     }
 
-    public String getTaskResult(Reference r, String task) throws AuthenticationException, IOException {
+    public String getTaskResult(Reference r, String task)
+            throws AuthenticationException, JobNotFinishedException, JobStatusRetrievalException {
+
         String jr = getAllTaskResults(r);
         JsonObject ob = Json.createReader(new StringReader(jr)).readObject();
+        if (ob == null)
+            throw new JobStatusRetrievalException("Could not read json task result object: " + jr);
         return ob.getString(task);
     }
 
-    public JsonObject getAllTaskResultsAsJson(Reference r) throws AuthenticationException, IOException {
+    public JsonObject getAllTaskResultsAsJson(Reference r)
+            throws AuthenticationException, JobNotFinishedException, JobStatusRetrievalException {
+
         String result = getAllTaskResults(r);
         JsonObject ob = Json.createReader(new StringReader(result)).readObject();
+        if (ob == null)
+            throw new JobStatusRetrievalException(
+                    "Could not read json task result object: " + result);
         return ob;
     }
 
-    public String getAllTaskResults(Reference r) throws AuthenticationException, IOException {
+    public String getAllTaskResults(Reference r)
+            throws AuthenticationException, JobNotFinishedException, JobStatusRetrievalException {
+
         String sessid = connectToScheduler(schedulerLoginData);
-        String endpoint = schedulerLoginData.getSchedulerUrl() + "/scheduler/jobs/" + r.getId() + "/result/value";
+        String endpoint =
+                schedulerLoginData.schedulerUrl + "/scheduler/jobs/" + r.getId() + "/result/value";
         HttpGet get = new HttpGet(endpoint);
         get.addHeader("sessionid", sessid);
-        HttpResponse response = httpClient.execute(get);
-        if (!HttpUtility.isSuccessStatusCode(response.getStatusLine().getStatusCode()))
-            throw new IOException("Error getting result for JobId=" + r.getId() + " : " + response.getStatusLine());
-        if (response.getEntity() == null)
-            throw new IOException("No result for JobId=" + r.getId() + " available yet.");
-        return EntityUtils.toString(response.getEntity());
+
+        HttpResponse response = null;
+        try {
+            response = httpClient.execute(get);
+            if (!HttpUtility.isSuccessStatusCode(response.getStatusLine().getStatusCode()))
+                throw new JobStatusRetrievalException(
+                        "Error getting result for " +
+                                "JobId=" + r.getId() + " : " + response.getStatusLine());
+            if (response.getEntity() == null)
+                throw new JobNotFinishedException(
+                        "No result for JobId=" + r.getId() + " available yet.");
+            return EntityUtils.toString(response.getEntity());
+
+        } catch (IOException e) {
+            throw new JobStatusRetrievalException("Failed to retrieve status: " + r, e);
+        } finally {
+            consumeResponse(response);
+        }
     }
 
-    public String submitJob(File jobFile) throws AuthenticationException, IOException {
-        // Submit selected workflow to the Scheduler
-        String sessid = connectToScheduler(schedulerLoginData);
-        String endpoint = schedulerLoginData.getSchedulerUrl() + "/scheduler/submit";
+    public String submitJob(File jobFile) throws AuthenticationException, JobSubmissionException {
+        String endpoint = schedulerLoginData.schedulerUrl + "/scheduler/submit";
+        String sessionId = connectToScheduler(schedulerLoginData);
+        HttpPost post = buildPostForJobSubmission(sessionId, jobFile, endpoint);
+        return executePostForJobSubmission(post);
+    }
+
+    private String executePostForJobSubmission(HttpPost post) throws JobSubmissionException {
+        HttpResponse response = null;
+        try {
+            response = httpClient.execute(post);
+            String result = EntityUtils.toString(response.getEntity());
+            logger.info("Job submitted: " + result);
+            return result;
+        } catch (IOException e) {
+            throw new JobSubmissionException(e);
+        } finally {
+            consumeResponse(response);
+        }
+    }
+
+    private HttpPost buildPostForJobSubmission(String sessionId, File jobFile, String endpoint) {
         HttpPost post = new HttpPost(endpoint);
-        post.addHeader("sessionid", sessid);
+        post.addHeader("sessionid", sessionId);
         MultipartEntity me = new MultipartEntity();
         me.addPart("descriptor", new FileBody(jobFile, "application/xml"));
         post.setEntity(me);
-        HttpResponse response = httpClient.execute(post);
-        String result = EntityUtils.toString(response.getEntity());
-        logger.info("Job submitted: " + result);
-
-        return result;
+        return post;
     }
 
+    private String connectToScheduler(SchedulerLoginData schedulerLoginData)
+            throws AuthenticationException {
 
-    private String connectToScheduler(SchedulerLoginData schedulerLoginData) throws AuthenticationException {
-        // Authenticate to the Scheduler
+        HttpResponse response = null;
+
         try {
-            String endpoint = schedulerLoginData.getSchedulerUrl() + "/scheduler/login";
+            String endpoint = schedulerLoginData.schedulerUrl + "/scheduler/login";
             HttpPost post = new HttpPost(endpoint);
             post.addHeader("Content-type", "application/x-www-form-urlencoded");
-            post.setEntity(new StringEntity("username=" + schedulerLoginData.getSchedulerUsername() + "&password=" + schedulerLoginData.getSchedulerPassword(), "UTF-8"));
-            HttpResponse response = httpClient.execute(post);
-            String sessid = EntityUtils.toString(response.getEntity());
-            logger.debug("Scheduler Session ID: " + sessid);
+            post.setEntity(
+                    new StringEntity(
+                            "username=" + schedulerLoginData.schedulerUsername +
+                                    "&password=" + schedulerLoginData.schedulerPassword,
+                            "UTF-8"));
+            response = httpClient.execute(post);
 
-            return sessid;
+            String sessionId = EntityUtils.toString(response.getEntity());
+            logger.debug("Scheduler session ID: " + sessionId);
+            return sessionId;
 
-        } catch (Throwable e) {
+        } catch (IOException e) {
             throw new AuthenticationException("Failed authenticating to the Scheduler", e);
+        } finally {
+            consumeResponse(response);
         }
+    }
+
+    private void consumeResponse(HttpResponse response) {
+        if (response != null)
+            try {
+                EntityUtils.consume(response.getEntity());
+            } catch (IOException e) {
+                // Ignore it.
+            }
     }
 
 
