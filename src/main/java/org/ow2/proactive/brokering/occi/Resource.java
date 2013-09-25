@@ -4,11 +4,7 @@ import org.apache.log4j.Logger;
 import org.ow2.proactive.brokering.Broker;
 import org.ow2.proactive.brokering.Reference;
 import org.ow2.proactive.brokering.References;
-import org.ow2.proactive.brokering.occi.infrastructure.ActionTrigger;
-import org.ow2.proactive.brokering.occi.infrastructure.Compute;
-import org.ow2.proactive.brokering.occi.infrastructure.Platform;
-import org.ow2.proactive.brokering.occi.infrastructure.Storage;
-import org.ow2.proactive.brokering.occi.infrastructure.StorageLink;
+import org.ow2.proactive.brokering.occi.infrastructure.*;
 
 import java.net.URL;
 import java.util.*;
@@ -20,6 +16,7 @@ public class Resource {
     public static final String STORAGE_LINK_CATEGORY_NAME = "storagelink";
     public static final String PLATFORM_CATEGORY_NAME = "platform";
     public static final String ACTION_TRIGGER_CATEGORY_NAME = "actiontrigger";
+    public static final String INSTRUCTION_CATEGORY_NAME = "instruction";
 
     private static Logger logger = Logger.getLogger(Resource.class.getName());
     private static Map<UUID, Resource> resources = new HashMap<UUID, Resource>();
@@ -80,8 +77,10 @@ public class Resource {
             return new Platform().getSpecificAttributeList();
         } else if (category.equalsIgnoreCase(ACTION_TRIGGER_CATEGORY_NAME)) {
             return ActionTrigger.getInstance().getSpecificAttributeList();
+        } else if (category.equalsIgnoreCase(INSTRUCTION_CATEGORY_NAME)) {
+            return new Instruction().getSpecificAttributeList();
         }
-        return null;
+        throw new IllegalArgumentException("Invalid category name: " + category);
     }
 
     private static List<Attribute> getGenericAttributeList() {

@@ -1,6 +1,7 @@
 package org.ow2.proactive.brokering.occi.infrastructure;
 
 import groovy.lang.GroovyClassLoader;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 import org.ow2.proactive.brokering.Reference;
 import org.ow2.proactive.brokering.References;
@@ -55,7 +56,13 @@ public class ActionTrigger {
 
         References references = new References();
         if ("create".equalsIgnoreCase(operation)) {
-            if ("schedule".equalsIgnoreCase(action)) {
+            if ("scheduleonce".equalsIgnoreCase(action)) {
+                ActionExecutor actionExecutor = new ActionExecutor(attributes);
+                actionExecutor.start();
+                references.add(
+                        Reference.buildActionTriggerReference(
+                                "Action executor created", getUuid(attributes)));
+            } else {
                 ConditionChecker conditionChecker = new ConditionChecker(attributes);
                 Timer timer = new Timer();
                 timer.schedule(conditionChecker, 0, getDelay(attributes));
@@ -63,12 +70,6 @@ public class ActionTrigger {
                 references.add(
                         Reference.buildActionTriggerReference(
                                 "Timer created", getUuid(attributes)));
-            } else if ("scheduleonce".equalsIgnoreCase(action)) {
-                ActionExecutor actionExecutor = new ActionExecutor(attributes);
-                actionExecutor.start();
-                references.add(
-                        Reference.buildActionTriggerReference(
-                                "Action executor created", getUuid(attributes)));
             }
         } else if ("delete".equalsIgnoreCase(operation)) {
             Timer timer = timers.remove(getUuid(attributes));
@@ -92,6 +93,14 @@ public class ActionTrigger {
         return timers;
     }
 
+    public static String encodeBase64(String src) {
+        return new String(Base64.encodeBase64(src.getBytes()));
+    }
+
+    public static String decodeBase64(String src) {
+        return new String(Base64.decodeBase64(src.getBytes()));
+    }
+
     // INNER CLASSES
 
     class ActionExecutor extends Thread {
@@ -106,9 +115,9 @@ public class ActionTrigger {
 
         private Class getActionAsClass(Map<String, String> args, String key) {
             GroovyClassLoader gcl = new GroovyClassLoader();
-            String script = args.get(key);
-            if (script != null)
-                return gcl.parseClass(script);
+            String encodedScript = args.get(key);
+            if (encodedScript != null)
+                return gcl.parseClass(decodeBase64(encodedScript));
             else
                 return null;
         }
@@ -148,16 +157,16 @@ public class ActionTrigger {
 
         private Class getConditionScript(Map<String, String> args) {
             GroovyClassLoader gcl = new GroovyClassLoader();
-            String script = args.get(OCCI_CONDITION_SCRIPT);
-            Class clazz = gcl.parseClass(script);
+            String encodedScript = args.get(OCCI_CONDITION_SCRIPT);
+            Class clazz = gcl.parseClass(decodeBase64(encodedScript));
             return clazz;
         }
 
         private Class getActionAsClass(Map<String, String> args, String key) {
             GroovyClassLoader gcl = new GroovyClassLoader();
-            String script = args.get(key);
-            if (script != null)
-                return gcl.parseClass(script);
+            String encodedScript = args.get(key);
+            if (encodedScript != null)
+                return gcl.parseClass(decodeBase64(encodedScript));
             else
                 return null;
         }

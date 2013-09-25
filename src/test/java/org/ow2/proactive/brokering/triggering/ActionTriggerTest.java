@@ -84,7 +84,7 @@ public class ActionTriggerTest {
 
     private Map<String, String> getCreationScheduleOnceActionTriggerAttributes() throws IOException {
         Map<String, String> loadBalancerAttributes = new HashMap<String, String>();
-        loadBalancerAttributes.put(ActionTrigger.OCCI_MONITORING_ACTION, getScriptAsString("ActionTrueScript.groovy"));
+        loadBalancerAttributes.put(ActionTrigger.OCCI_MONITORING_ACTION, getScriptAsEncodedString("ActionTrueScript.groovy"));
         return loadBalancerAttributes;
     }
 
@@ -97,9 +97,9 @@ public class ActionTriggerTest {
     private Map<String, String> getCreationActionTriggerAttributes(String uuid) throws IOException {
         Map<String, String> loadBalancerAttributes = new HashMap<String, String>();
         loadBalancerAttributes.put(OCCI_CORE_ID, uuid);
-        loadBalancerAttributes.put(ActionTrigger.OCCI_CONDITION_SCRIPT, getScriptAsString("ConditionScript.groovy"));      // half times true, half times false
-        loadBalancerAttributes.put(ActionTrigger.OCCI_MONITORING_FALSEACTION, getScriptAsString("ActionFalseScript.groovy"));
-        loadBalancerAttributes.put(ActionTrigger.OCCI_MONITORING_TRUEACTION, getScriptAsString("ActionTrueScript.groovy"));
+        loadBalancerAttributes.put(ActionTrigger.OCCI_CONDITION_SCRIPT, getScriptAsEncodedString("ConditionScript.groovy"));      // half times true, half times false
+        loadBalancerAttributes.put(ActionTrigger.OCCI_MONITORING_FALSEACTION, getScriptAsEncodedString("ActionFalseScript.groovy"));
+        loadBalancerAttributes.put(ActionTrigger.OCCI_MONITORING_TRUEACTION, getScriptAsEncodedString("ActionTrueScript.groovy"));
         loadBalancerAttributes.put(ActionTrigger.OCCI_MONITORING_PERIODMS, PERIODMS.toString());
         return loadBalancerAttributes;
     }
@@ -109,9 +109,9 @@ public class ActionTriggerTest {
         falseActions = 0;
     }
 
-    private String getScriptAsString(String path) throws IOException {
+    private String getScriptAsEncodedString(String path) throws IOException {
         File f = new File(this.getClass().getResource(path).getFile());
-        return FileUtils.readFileToString(f);
+        return ActionTrigger.encodeBase64(FileUtils.readFileToString(f));
     }
 
     public static void addOneFalseActionExecuted() {
@@ -121,5 +121,6 @@ public class ActionTriggerTest {
     public static void addOneTrueActionExecuted() {
         trueActions++;
     }
+
 }
 

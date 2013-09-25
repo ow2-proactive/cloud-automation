@@ -35,6 +35,7 @@
     <taskFlow>
         <task name="create-task">
             <javaExecutable class="org.ow2.proactive.iaas.nova.tasks.Deploy">
+                <forkEnvironment></forkEnvironment>
                 <parameters>
                     <parameter name="providerName" value="${iaas.provider.name}"/>
                     <parameter name="apiurl" value="${iaas.provider.api.url}"/>

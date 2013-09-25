@@ -20,6 +20,7 @@
     <taskFlow>
         <task name="shutdown-task">
             <javaExecutable class="org.ow2.proactive.iaas.IaasUndeployExecutable">
+                <forkEnvironment></forkEnvironment>
                 <parameters>
                     <parameter name="instanceId" value="${occi.compute.vendor.uuid}"/>
                     <parameter name="providerName" value="${iaas.provider.name}"/>

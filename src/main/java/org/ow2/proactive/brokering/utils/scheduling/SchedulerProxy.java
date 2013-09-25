@@ -19,6 +19,7 @@ import javax.json.JsonObject;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
 
 public class SchedulerProxy {
 
@@ -59,11 +60,11 @@ public class SchedulerProxy {
     public String getAllTaskResults(Reference r)
             throws AuthenticationException, JobNotFinishedException, JobStatusRetrievalException {
 
-        String sessid = connectToScheduler(schedulerLoginData);
+        String sessionId = connectToScheduler(schedulerLoginData);
         String endpoint =
                 schedulerLoginData.schedulerUrl + "/scheduler/jobs/" + r.getId() + "/result/value";
         HttpGet get = new HttpGet(endpoint);
-        get.addHeader("sessionid", sessid);
+        get.addHeader("sessionid", sessionId);
 
         HttpResponse response = null;
         try {
@@ -81,6 +82,7 @@ public class SchedulerProxy {
             throw new JobStatusRetrievalException("Failed to retrieve status: " + r, e);
         } finally {
             consumeResponse(response);
+            disconnectFromScheduler(sessionId);
         }
     }
 
@@ -148,6 +150,32 @@ public class SchedulerProxy {
             } catch (IOException e) {
                 // Ignore it.
             }
+    }
+
+    public void disconnectFromScheduler(String sessionId) {
+        if (sessionId == null)
+            throw new IllegalArgumentException("sessionId cannot be null");
+
+        String endpoint = schedulerLoginData.schedulerUrl + "/rm/login";
+        HttpPost post = new HttpPost(endpoint);
+        post.addHeader("Content-type", "application/x-www-form-urlencoded");
+
+        try {
+            post.setEntity(new StringEntity(
+                    "username=" + schedulerLoginData.schedulerUsername +
+                            "&password=" + schedulerLoginData.schedulerPassword, "UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalArgumentException(
+                    schedulerLoginData.schedulerUsername + ":"
+                            + schedulerLoginData.schedulerPassword);
+        }
+
+        try {
+            HttpResponse response = httpClient.execute(post);
+            consumeResponse(response);
+        } catch (IOException e) {
+            // Best effort to disconnect.
+        }
     }
 
 
