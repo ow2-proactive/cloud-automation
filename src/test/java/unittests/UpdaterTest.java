@@ -1,8 +1,10 @@
-package org.ow2.proactive.brokering;
+package unittests;
 
 import junit.framework.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.ow2.proactive.brokering.Reference;
+import org.ow2.proactive.brokering.Updater;
 import org.ow2.proactive.brokering.occi.Database;
 import org.ow2.proactive.brokering.occi.OcciServer;
 import org.ow2.proactive.brokering.occi.Resource;
@@ -59,7 +61,8 @@ public class UpdaterTest {
     }
 
     @Test
-    public void verifyOuputJsonTaskOutputIsInsertedIntoResourcePropertiesIfTaskOutputIsNotJson_Test() throws Exception {
+    public void verifyOuputJsonTaskOutputIsInsertedIntoResourcePropertiesIfTaskOutputIsNotJson_Test()
+            throws Exception {
 
         Reference jobReference = getJobResultWithNonJsonTasksOutput();
         Resource resource = Resource.factory(
@@ -103,7 +106,7 @@ public class UpdaterTest {
         SchedulerProxy scheduler = mock(SchedulerProxy.class);
 
         Properties restResponses = new Properties();
-        restResponses.load(UpdaterTest.class.getResourceAsStream("updater.properties"));
+        restResponses.load(UpdaterTest.class.getResourceAsStream("/properties/updater.properties"));
 
         // The first tasks results response is a expected response, where tasks have results
         // that are json formatted.
@@ -111,7 +114,7 @@ public class UpdaterTest {
         // that are non-json formatted.
         for (int i = 1; i <= 2; i++) {
             Reference jobReference = Reference.buildJobReference(
-                    TestUtils.createSubmitResponse(i, "TestJob" + i));
+                    createSubmitResponse(i, "TestJob" + i));
             jobReferences.add(jobReference);
             JsonObject taskRes = Utils.convertToJson(restResponses.get(i + "").toString());
             when(scheduler.getAllTaskResultsAsJson(jobReference)).thenReturn(taskRes);
@@ -133,6 +136,10 @@ public class UpdaterTest {
         Assert.assertTrue(resource.getAttributes().get("occi.compute.cores").equalsIgnoreCase("1"));
         Assert.assertTrue(resource.getAttributes().get("occi.compute.memory").equalsIgnoreCase("1024"));
         Assert.assertTrue(resource.getAttributes().get("occi.compute.hostname").equalsIgnoreCase("pepa"));
+    }
+
+    public static String createSubmitResponse(int jobId, String readableName) {
+        return "{\"id\":" + jobId + ",\"readableName\":\"" + readableName + "\"}";
     }
 
 }

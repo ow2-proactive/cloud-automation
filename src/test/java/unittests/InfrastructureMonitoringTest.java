@@ -1,8 +1,11 @@
-package org.ow2.proactive.brokering.monitoring;
+package unittests;
 
 import junit.framework.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.ow2.proactive.brokering.monitoring.InfrastructureMonitoring;
+import org.ow2.proactive.brokering.monitoring.MonitoringException;
+import org.ow2.proactive.brokering.monitoring.MonitoringProxy;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -23,10 +26,12 @@ public class InfrastructureMonitoringTest {
 
     private static void initializeProxyMock() throws IOException, MonitoringException {
         Properties restResponses = new Properties();
-        restResponses.load(InfrastructureMonitoringTest.class.getResourceAsStream("test.properties"));
+        restResponses.load(InfrastructureMonitoringTest.class.getResourceAsStream(
+                "/properties/infrastructuremonitoring.properties"));
         proxyMock = mock(MonitoringProxy.class);
         for (Object attribute : restResponses.keySet())
-            when(proxyMock.getAttribute(attribute.toString())).thenReturn(restResponses.get(attribute.toString()).toString());
+            when(proxyMock.getAttribute(attribute.toString())).thenReturn(
+                    restResponses.get(attribute.toString()).toString());
     }
 
     @Test

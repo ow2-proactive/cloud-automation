@@ -1,4 +1,7 @@
-package org.ow2.proactive.brokering.triggering
+package triggering
+
+import org.ow2.proactive.brokering.triggering.Action
+import unittests.ActionTriggerTest
 
 public class ActionFalseScript implements Action {
 

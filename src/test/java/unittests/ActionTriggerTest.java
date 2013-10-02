@@ -1,4 +1,4 @@
-package org.ow2.proactive.brokering.triggering;
+package unittests;
 
 import junit.framework.Assert;
 import org.apache.commons.io.FileUtils;
@@ -8,6 +8,9 @@ import org.ow2.proactive.brokering.References;
 import org.ow2.proactive.brokering.occi.Resource;
 import org.ow2.proactive.brokering.occi.infrastructure.ActionTrigger;
 import org.ow2.proactive.brokering.utils.HttpUtility;
+import triggering.ActionFalseScript;
+import triggering.ActionTrueScript;
+import triggering.ConditionScript;
 
 import java.io.File;
 import java.io.IOException;
@@ -137,7 +140,7 @@ public class ActionTriggerTest {
 
         loadBalancerAttributes.put(
                 ActionTrigger.OCCI_MONITORING_ACTION,
-                getScriptAsString("ActionTrueScript.groovy")); // overwritten
+                getScriptAsString("/triggering/ActionTrueScript.groovy")); // overwritten
 
         References references = actionTrigger.request(
                 Resource.ACTION_TRIGGER_CATEGORY_NAME, "create",
@@ -162,7 +165,7 @@ public class ActionTriggerTest {
 
         atts.put(
                 ActionTrigger.OCCI_MONITORING_TRUEACTION,
-                getScriptAsString("ActionTrueScript.groovy")); // overwriten
+                getScriptAsString("/triggering/ActionTrueScript.groovy")); // overwriten
 
         References references = actionTrigger.request(
                 Resource.ACTION_TRIGGER_CATEGORY_NAME, "create",
@@ -205,7 +208,7 @@ public class ActionTriggerTest {
         Map<String, String> loadBalancerAttributes = new HashMap<String, String>();
         loadBalancerAttributes.put(
                 ActionTrigger.OCCI_MONITORING_ACTION,
-                getScriptAsEncodedString("ActionTrueScript.groovy"));
+                getScriptAsEncodedString("/triggering/ActionTrueScript.groovy"));
         loadBalancerAttributes.put(
                 ActionTrigger.OCCI_CORE_ID,
                 UUID.randomUUID().toString());
@@ -222,11 +225,11 @@ public class ActionTriggerTest {
         Map<String, String> loadBalancerAttributes = new HashMap<String, String>();
         loadBalancerAttributes.put(ActionTrigger.OCCI_CORE_ID, uuid);
         loadBalancerAttributes.put(ActionTrigger.OCCI_CONDITION_SCRIPT,
-                                   getScriptAsEncodedString("ConditionScript.groovy"));      // half times true, half times false
+                                   getScriptAsEncodedString("/triggering/ConditionScript.groovy"));      // half times true, half times false
         loadBalancerAttributes.put(ActionTrigger.OCCI_MONITORING_FALSEACTION,
-                                   getScriptAsEncodedString("ActionFalseScript.groovy"));
+                                   getScriptAsEncodedString("/triggering/ActionFalseScript.groovy"));
         loadBalancerAttributes.put(ActionTrigger.OCCI_MONITORING_TRUEACTION,
-                                   getScriptAsEncodedString("ActionTrueScript.groovy"));
+                                   getScriptAsEncodedString("/triggering/ActionTrueScript.groovy"));
         loadBalancerAttributes.put(ActionTrigger.OCCI_MONITORING_PERIODMS, PERIODMS.toString());
         return loadBalancerAttributes;
     }
