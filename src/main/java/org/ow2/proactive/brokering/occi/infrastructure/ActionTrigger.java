@@ -1,14 +1,11 @@
 package org.ow2.proactive.brokering.occi.infrastructure;
 
-import groovy.lang.GroovyClassLoader;
-import groovy.lang.GroovyRuntimeException;
-import org.apache.log4j.Logger;
 import org.ow2.proactive.brokering.Reference;
 import org.ow2.proactive.brokering.References;
 import org.ow2.proactive.brokering.occi.Attribute;
-import org.ow2.proactive.brokering.triggering.Action;
-import org.ow2.proactive.brokering.triggering.Condition;
-import org.ow2.proactive.brokering.utils.HttpUtility;
+import org.ow2.proactive.brokering.triggering.ActionExecutor;
+import org.ow2.proactive.brokering.triggering.ConditionChecker;
+import org.ow2.proactive.brokering.triggering.ScriptException;
 
 import java.util.*;
 
@@ -20,15 +17,7 @@ public class ActionTrigger {
     public static final String OCCI_MONITORING_FALSEACTION = "occi.monitoring.falseaction";
     public static final String OCCI_MONITORING_ACTION = "occi.monitoring.action";
 
-    private static final String CLASSNAME = ".classname";
-    public static final String OCCI_CONDITION_SCRIPT_CLASSNAME = OCCI_CONDITION_SCRIPT + CLASSNAME;
-    public static final String OCCI_MONITORING_TRUEACTION_CLASSNAME = OCCI_MONITORING_TRUEACTION + CLASSNAME;
-    public static final String OCCI_MONITORING_FALSEACTION_CLASSNAME = OCCI_MONITORING_FALSEACTION + CLASSNAME;
-    public static final String OCCI_MONITORING_ACTION_CLASSNAME = OCCI_MONITORING_ACTION + CLASSNAME;
-
     public static final String OCCI_CORE_ID = "occi.core.id";
-
-    private static final Logger logger = Logger.getLogger(ActionTrigger.class.getName());
 
     public static Map<String, Timer> timers;
 
@@ -56,11 +45,6 @@ public class ActionTrigger {
         attributeList.add(new Attribute(OCCI_MONITORING_ACTION, mutable, !required));
         attributeList.add(new Attribute(OCCI_MONITORING_FALSEACTION, mutable, !required));
         attributeList.add(new Attribute(OCCI_MONITORING_TRUEACTION, mutable, !required));
-
-        attributeList.add(new Attribute(OCCI_CONDITION_SCRIPT_CLASSNAME, mutable, required));
-        attributeList.add(new Attribute(OCCI_MONITORING_ACTION_CLASSNAME, mutable, !required));
-        attributeList.add(new Attribute(OCCI_MONITORING_FALSEACTION_CLASSNAME, mutable, !required));
-        attributeList.add(new Attribute(OCCI_MONITORING_TRUEACTION_CLASSNAME, mutable, !required));
 
         return attributeList;
     }
@@ -160,134 +144,4 @@ public class ActionTrigger {
         }
     }
 
-    // INNER CLASSES
-
-    class ActionExecutor extends Thread {
-
-        private Class action;
-        private Map<String, String> args;
-
-        public ActionExecutor(Map<String, String> args) throws ScriptException {
-            this.args = args;
-            this.action = ScriptUtils.getEncodedScriptAsClass(args, OCCI_MONITORING_ACTION);
-        }
-
-        private void executeAction(Class script) {
-            if (script == null)
-                return;
-
-            try {
-                Action action = (Action) script.newInstance();
-                action.execute(args);
-            } catch (Throwable e) {
-                logger.warn("Error executing action: " + script, e);
-            }
-        }
-
-        @Override
-        public void run() {
-            executeAction(action);
-        }
-
-    }
-
-    class ConditionChecker extends TimerTask {
-
-        private Map<String, String> args;
-        private Class conditionScript;
-        private Class actionCaseTrue;
-        private Class actionCaseFalse;
-
-        public ConditionChecker(Map<String, String> args) throws ScriptException {
-            conditionScript = ScriptUtils.getEncodedScriptAsClass(args, OCCI_CONDITION_SCRIPT);
-            actionCaseTrue = ScriptUtils.getEncodedScriptAsClass(args, OCCI_MONITORING_TRUEACTION);
-            actionCaseFalse = ScriptUtils.getEncodedScriptAsClass(args, OCCI_MONITORING_FALSEACTION);
-            this.args = args;
-            if (conditionScript == null || actionCaseTrue == null)
-                throw new ScriptException("Condition and True scripts must be provided");
-        }
-
-        @Override
-        public void run() {
-            if (checkCondition(conditionScript))
-                executeAction(actionCaseTrue);
-            else
-                executeAction(actionCaseFalse);
-        }
-
-        private Boolean checkCondition(Class script) {
-            try {
-                Condition cond = (Condition) script.newInstance();
-                return cond.evaluate(args);
-            } catch (Throwable e) {
-                logger.warn("Error when checking condition: " + script, e);
-                return false;
-            }
-        }
-
-        private void executeAction(Class script) {
-            if (script == null)
-                return;
-
-            try {
-                Action cond = (Action) script.newInstance();
-                cond.execute(args);
-            } catch (Throwable e) {
-                logger.warn("Error when executing action: " + script, e);
-            }
-        }
-
-    }
-
-    static class ScriptUtils {
-
-        public static Class getEncodedScriptAsClass(Map<String, String> args, String key)
-                throws ScriptException {
-
-            GroovyClassLoader gcl = new GroovyClassLoader();
-            String scriptClassname = args.get(key + CLASSNAME);
-            String scriptEncoded = args.get(key);
-
-            if (isClassName(scriptClassname)) {
-                try {
-                    return Class.forName(scriptClassname);
-                } catch (ClassNotFoundException e) {
-                    throw new ScriptException(e);
-                }
-            } else if (encodedScriptIsNotEmpty(scriptEncoded))
-                try {
-                    return gcl.parseClass(HttpUtility.decodeBase64(scriptEncoded));
-                } catch (GroovyRuntimeException e) {
-                    throw new ScriptException(e);
-                }
-            else
-                return null;
-
-        }
-
-        public static boolean encodedScriptIsNotEmpty(String encodedScript) {
-            return (encodedScript != null && !encodedScript.isEmpty());
-        }
-
-        public static boolean isClassName(String className) {
-            return (className != null && className.contains("."));
-        }
-
-    }
-
-    static class ScriptException extends Exception {
-
-        public ScriptException(String message) {
-            super(message);
-        }
-
-        public ScriptException(String message, Throwable throwable) {
-            super(message, throwable);
-        }
-
-        public ScriptException(Throwable throwable) {
-            super(throwable);
-        }
-
-    }
 }

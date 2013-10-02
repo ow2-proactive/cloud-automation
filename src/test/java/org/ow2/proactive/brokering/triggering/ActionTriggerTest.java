@@ -38,8 +38,7 @@ public class ActionTriggerTest {
         Map<String, String> loadBalancerAttributes =
                 getCreationScheduleOnceActionTriggerAttributes();
 
-        loadBalancerAttributes.remove(ActionTrigger.OCCI_MONITORING_ACTION);
-        loadBalancerAttributes.put(ActionTrigger.OCCI_MONITORING_ACTION_CLASSNAME, ActionTrueScript.class.getName());
+        loadBalancerAttributes.put(ActionTrigger.OCCI_MONITORING_ACTION, ActionTrueScript.class.getName());
 
         loadBalancerStartScheduleOnce(loadBalancerAttributes);
 
@@ -77,13 +76,9 @@ public class ActionTriggerTest {
         String uuid = UUID.randomUUID().toString();
         Map<String, String> atts = getCreationActionTriggerAttributes(uuid);
 
-        atts.remove(ActionTrigger.OCCI_CONDITION_SCRIPT);
-        atts.remove(ActionTrigger.OCCI_MONITORING_FALSEACTION);
-        atts.remove(ActionTrigger.OCCI_MONITORING_TRUEACTION);
-
-        atts.put(ActionTrigger.OCCI_CONDITION_SCRIPT_CLASSNAME, ConditionScript.class.getName());
-        atts.put(ActionTrigger.OCCI_MONITORING_FALSEACTION_CLASSNAME, ActionFalseScript.class.getName());
-        atts.put(ActionTrigger.OCCI_MONITORING_TRUEACTION_CLASSNAME, ActionTrueScript.class.getName());
+        atts.put(ActionTrigger.OCCI_CONDITION_SCRIPT, ConditionScript.class.getName());
+        atts.put(ActionTrigger.OCCI_MONITORING_FALSEACTION, ActionFalseScript.class.getName());
+        atts.put(ActionTrigger.OCCI_MONITORING_TRUEACTION, ActionTrueScript.class.getName());
 
         loadBalancerStart_Test(atts);
     }
@@ -152,7 +147,6 @@ public class ActionTriggerTest {
 
         Reference uniqueReference = references.get(0);
         Assert.assertTrue(uniqueReference.isSuccessfullySubmitted() == false);
-        Assert.assertTrue(uniqueReference.getSubmissionMessage().contains("MultipleCompilationErrors"));
 
     }
 
@@ -178,7 +172,6 @@ public class ActionTriggerTest {
 
         Reference uniqueReference = references.get(0);
         Assert.assertTrue(uniqueReference.isSuccessfullySubmitted() == false);
-        Assert.assertTrue(uniqueReference.getSubmissionMessage().contains("MultipleCompilationErrors"));
     }
 
     @Test
