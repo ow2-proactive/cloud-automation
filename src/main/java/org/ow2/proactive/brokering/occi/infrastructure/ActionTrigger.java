@@ -14,11 +14,17 @@ import java.util.*;
 
 public class ActionTrigger {
 
-    public static final String OCCI_CONDITION_SCRIPT = "occi.monitoring.condition";
     public static final String OCCI_MONITORING_PERIODMS = "occi.monitoring.periodms";
+    public static final String OCCI_CONDITION_SCRIPT = "occi.monitoring.condition";
     public static final String OCCI_MONITORING_TRUEACTION = "occi.monitoring.trueaction";
     public static final String OCCI_MONITORING_FALSEACTION = "occi.monitoring.falseaction";
     public static final String OCCI_MONITORING_ACTION = "occi.monitoring.action";
+
+    private static final String CLASSNAME = ".classname";
+    public static final String OCCI_CONDITION_SCRIPT_CLASSNAME = OCCI_CONDITION_SCRIPT + CLASSNAME;
+    public static final String OCCI_MONITORING_TRUEACTION_CLASSNAME = OCCI_MONITORING_TRUEACTION + CLASSNAME;
+    public static final String OCCI_MONITORING_FALSEACTION_CLASSNAME = OCCI_MONITORING_FALSEACTION + CLASSNAME;
+    public static final String OCCI_MONITORING_ACTION_CLASSNAME = OCCI_MONITORING_ACTION + CLASSNAME;
 
     public static final String OCCI_CORE_ID = "occi.core.id";
 
@@ -44,10 +50,18 @@ public class ActionTrigger {
         List<Attribute> attributeList = new ArrayList<Attribute>();
         boolean mutable = true;
         boolean required = true;
-        attributeList.add(new Attribute(OCCI_CONDITION_SCRIPT, mutable, required));
         attributeList.add(new Attribute(OCCI_MONITORING_PERIODMS, mutable, !required));
+
+        attributeList.add(new Attribute(OCCI_CONDITION_SCRIPT, mutable, required));
+        attributeList.add(new Attribute(OCCI_MONITORING_ACTION, mutable, !required));
         attributeList.add(new Attribute(OCCI_MONITORING_FALSEACTION, mutable, !required));
         attributeList.add(new Attribute(OCCI_MONITORING_TRUEACTION, mutable, !required));
+
+        attributeList.add(new Attribute(OCCI_CONDITION_SCRIPT_CLASSNAME, mutable, required));
+        attributeList.add(new Attribute(OCCI_MONITORING_ACTION_CLASSNAME, mutable, !required));
+        attributeList.add(new Attribute(OCCI_MONITORING_FALSEACTION_CLASSNAME, mutable, !required));
+        attributeList.add(new Attribute(OCCI_MONITORING_TRUEACTION_CLASSNAME, mutable, !required));
+
         return attributeList;
     }
 
@@ -231,10 +245,18 @@ public class ActionTrigger {
                 throws ScriptException {
 
             GroovyClassLoader gcl = new GroovyClassLoader();
-            String encodedScript = args.get(key);
-            if (encodedScriptIsNotEmpty(encodedScript))
+            String scriptClassname = args.get(key + CLASSNAME);
+            String scriptEncoded = args.get(key);
+
+            if (isClassName(scriptClassname)) {
                 try {
-                    return gcl.parseClass(HttpUtility.decodeBase64(encodedScript));
+                    return Class.forName(scriptClassname);
+                } catch (ClassNotFoundException e) {
+                    throw new ScriptException(e);
+                }
+            } else if (encodedScriptIsNotEmpty(scriptEncoded))
+                try {
+                    return gcl.parseClass(HttpUtility.decodeBase64(scriptEncoded));
                 } catch (GroovyRuntimeException e) {
                     throw new ScriptException(e);
                 }
@@ -245,6 +267,10 @@ public class ActionTrigger {
 
         public static boolean encodedScriptIsNotEmpty(String encodedScript) {
             return (encodedScript != null && !encodedScript.isEmpty());
+        }
+
+        public static boolean isClassName(String className) {
+            return (className != null && className.contains("."));
         }
 
     }

@@ -23,7 +23,29 @@ public class ActionTriggerTest {
     private static Integer falseActions = 0;
 
     @Test
-    public void loadBalancerStartScheduleOnce_Test() throws Exception {
+    public void loadBalancerStartScheduleOnce_EncodedScripts_Test() throws Exception {
+
+        Map<String, String> loadBalancerAttributes =
+                getCreationScheduleOnceActionTriggerAttributes();
+
+        loadBalancerStartScheduleOnce(loadBalancerAttributes);
+
+    }
+
+    @Test
+    public void loadBalancerStartScheduleOnce_ClassnameScripts_Test() throws Exception {
+
+        Map<String, String> loadBalancerAttributes =
+                getCreationScheduleOnceActionTriggerAttributes();
+
+        loadBalancerAttributes.remove(ActionTrigger.OCCI_MONITORING_ACTION);
+        loadBalancerAttributes.put(ActionTrigger.OCCI_MONITORING_ACTION_CLASSNAME, ActionTrueScript.class.getName());
+
+        loadBalancerStartScheduleOnce(loadBalancerAttributes);
+
+    }
+
+    private void loadBalancerStartScheduleOnce(Map<String, String> atts) throws Exception {
 
         ActionTrigger actionTrigger = ActionTrigger.getInstance();
 
@@ -32,11 +54,9 @@ public class ActionTriggerTest {
         Assert.assertTrue(trueActions == 0);
         Assert.assertTrue(falseActions == 0);
 
-        Map<String, String> loadBalancerAttributes =
-                getCreationScheduleOnceActionTriggerAttributes();
         References references = actionTrigger.request(
                 Resource.ACTION_TRIGGER_CATEGORY_NAME, "create",
-                "scheduleonce", loadBalancerAttributes);
+                "scheduleonce", atts);
 
         Thread.sleep(100 * PERIODMS);
 
@@ -46,15 +66,37 @@ public class ActionTriggerTest {
     }
 
     @Test
-    public void loadBalancerStart_Test() throws Exception {
+    public void loadBalancerStart_EncodedScripts_Test() throws Exception {
+        String uuid = UUID.randomUUID().toString();
+        Map<String, String> loadBalancerAttributes = getCreationActionTriggerAttributes(uuid);
+        loadBalancerStart_Test(loadBalancerAttributes);
+    }
+
+    @Test
+    public void loadBalancerStart_ClassnameScripts_Test() throws Exception {
+        String uuid = UUID.randomUUID().toString();
+        Map<String, String> atts = getCreationActionTriggerAttributes(uuid);
+
+        atts.remove(ActionTrigger.OCCI_CONDITION_SCRIPT);
+        atts.remove(ActionTrigger.OCCI_MONITORING_FALSEACTION);
+        atts.remove(ActionTrigger.OCCI_MONITORING_TRUEACTION);
+
+        atts.put(ActionTrigger.OCCI_CONDITION_SCRIPT_CLASSNAME, ConditionScript.class.getName());
+        atts.put(ActionTrigger.OCCI_MONITORING_FALSEACTION_CLASSNAME, ActionFalseScript.class.getName());
+        atts.put(ActionTrigger.OCCI_MONITORING_TRUEACTION_CLASSNAME, ActionTrueScript.class.getName());
+
+        loadBalancerStart_Test(atts);
+    }
+
+
+    private void loadBalancerStart_Test(Map<String, String> atts) throws Exception {
+
         // This test will post a loadbalancer rule with 3 scripts: a condition
         // script, a true action script, and a false script.
         // If condition is true, true action script will be executed. This test
         // executes a true action script that increases a trueActions counter.
         // The test is based in counting if these variables are incremented or not.
-
         ActionTrigger actionTrigger = ActionTrigger.getInstance();
-        String uuid = UUID.randomUUID().toString();
 
         initializeCallbackCounters();
 
@@ -62,20 +104,19 @@ public class ActionTriggerTest {
         Assert.assertTrue(falseActions == 0);
         Assert.assertTrue(actionTrigger.getTimers().size() == 0);
 
-        Map<String, String> loadBalancerAttributes = getCreationActionTriggerAttributes(uuid);
         actionTrigger.request(
                 Resource.ACTION_TRIGGER_CATEGORY_NAME, "create",
-                "schedule", loadBalancerAttributes); // load balancer rule started
+                "schedule", atts); // load balancer rule started
 
         Thread.sleep(100 * PERIODMS);
         Assert.assertTrue(trueActions > 20);
         Assert.assertTrue(falseActions > 20);
         Assert.assertTrue(actionTrigger.getTimers().size() == 1);
 
-        loadBalancerAttributes = getDeletionActionTriggerAttributes(uuid);
+        atts = getDeletionActionTriggerAttributes(getUuid(atts));
         actionTrigger.request(
                 Resource.ACTION_TRIGGER_CATEGORY_NAME, "delete",
-                null, loadBalancerAttributes); // load balancer rule stopped
+                null, atts); // load balancer rule stopped
 
         Thread.sleep(10 * PERIODMS);
         initializeCallbackCounters();
@@ -85,6 +126,10 @@ public class ActionTriggerTest {
         Assert.assertTrue(falseActions == 0);
         Assert.assertTrue(actionTrigger.getTimers().size() == 0);
 
+    }
+
+    private String getUuid(Map<String, String> atts) {
+        return atts.get(ActionTrigger.OCCI_CORE_ID);
     }
 
     @Test
@@ -160,6 +205,7 @@ public class ActionTriggerTest {
         Assert.assertTrue(uniqueReference.getSubmissionMessage().contains("null"));
 
     }
+
 
     private Map<String, String> getCreationScheduleOnceActionTriggerAttributes()
             throws IOException {
