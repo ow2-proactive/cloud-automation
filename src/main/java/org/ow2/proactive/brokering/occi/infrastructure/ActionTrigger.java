@@ -1,13 +1,14 @@
 package org.ow2.proactive.brokering.occi.infrastructure;
 
 import groovy.lang.GroovyClassLoader;
-import org.apache.commons.codec.binary.Base64;
+import groovy.lang.GroovyRuntimeException;
 import org.apache.log4j.Logger;
 import org.ow2.proactive.brokering.Reference;
 import org.ow2.proactive.brokering.References;
 import org.ow2.proactive.brokering.occi.Attribute;
 import org.ow2.proactive.brokering.triggering.Action;
 import org.ow2.proactive.brokering.triggering.Condition;
+import org.ow2.proactive.brokering.utils.HttpUtility;
 
 import java.util.*;
 
@@ -18,6 +19,8 @@ public class ActionTrigger {
     public static final String OCCI_MONITORING_TRUEACTION = "occi.monitoring.trueaction";
     public static final String OCCI_MONITORING_FALSEACTION = "occi.monitoring.falseaction";
     public static final String OCCI_MONITORING_ACTION = "occi.monitoring.action";
+
+    public static final String OCCI_CORE_ID = "occi.core.id";
 
     private static final Logger logger = Logger.getLogger(ActionTrigger.class.getName());
 
@@ -48,6 +51,10 @@ public class ActionTrigger {
         return attributeList;
     }
 
+    public static Map<String, Timer> getTimers() {
+        return timers;
+    }
+
     public References request(
             String category,
             String operation,
@@ -57,48 +64,86 @@ public class ActionTrigger {
         References references = new References();
         if ("create".equalsIgnoreCase(operation)) {
             if ("scheduleonce".equalsIgnoreCase(action)) {
-                ActionExecutor actionExecutor = new ActionExecutor(attributes);
-                actionExecutor.start();
-                references.add(
-                        Reference.buildActionTriggerReference(
-                                "Action executor created", getUuid(attributes)));
+                references.add(createOneShotActionTrigger(attributes));
             } else {
-                ConditionChecker conditionChecker = new ConditionChecker(attributes);
-                Timer timer = new Timer();
-                timer.schedule(conditionChecker, 0, getDelay(attributes));
-                timers.put(getUuid(attributes), timer);
-                references.add(
-                        Reference.buildActionTriggerReference(
-                                "Timer created", getUuid(attributes)));
+                references.add(createPeriodicActionTrigger(attributes));
             }
         } else if ("delete".equalsIgnoreCase(operation)) {
-            Timer timer = timers.remove(getUuid(attributes));
-            timer.cancel();
-            references.add(
-                    Reference.buildActionTriggerReference(
-                            "Timer removed", getUuid(attributes)));
+            references.add(removeActionTrigger(attributes));
         }
         return references;
     }
 
-    private String getUuid(Map<String, String> attributes) {
-        return attributes.get("occi.core.id");
+    private Reference removeActionTrigger(Map<String, String> attributes) {
+        Timer timer = timers.remove(getUuid(attributes));
+        timer.cancel();
+        return Reference.buildActionTriggerReference(
+                "Timer removed", getUuid(attributes));
     }
 
-    private long getDelay(Map<String, String> atts) {
-        return Long.parseLong(atts.get(OCCI_MONITORING_PERIODMS));
+    private Reference createPeriodicActionTrigger(Map<String, String> attributes) {
+        ConditionChecker conditionChecker = null;
+
+        Long delay = null;
+        String uuid = null;
+
+        try {
+            conditionChecker = new ConditionChecker(attributes);
+            delay = getDelay(attributes);
+            uuid = getUuid(attributes);
+        } catch (ScriptException e) {
+            return Reference.buildActionTriggerFailedReference(
+                    "Bad script", e);
+        } catch (IllegalArgumentException e) {
+            return Reference.buildActionTriggerFailedReference(
+                    "Bad arguments", e);
+        }
+
+        Timer timer = new Timer();
+        timer.schedule(conditionChecker, 0, delay);
+        timers.put(uuid, timer);
+        return Reference.buildActionTriggerReference(
+                "Timer created", uuid);
     }
 
-    public static Map<String, Timer> getTimers() {
-        return timers;
+    private Reference createOneShotActionTrigger(Map<String, String> attributes) {
+
+        ActionExecutor actionExecutor = null;
+        String uuid = null;
+        try {
+            actionExecutor = new ActionExecutor(attributes);
+            uuid = getUuid(attributes);
+        } catch (ScriptException e) {
+            return Reference.buildActionTriggerFailedReference(
+                    "Bad script", e);
+        } catch (IllegalArgumentException e) {
+            return Reference.buildActionTriggerFailedReference(
+                    "Bad arguments", e);
+        }
+
+        actionExecutor.start();
+        return Reference.buildActionTriggerReference(
+                "Action executor created", uuid);
     }
 
-    public static String encodeBase64(String src) {
-        return new String(Base64.encodeBase64(src.getBytes()));
+
+    private String getUuid(Map<String, String> attributes) throws IllegalArgumentException {
+        String str = attributes.get(OCCI_CORE_ID);
+        if (str == null)
+            throw new IllegalArgumentException("uuid cannot be null");
+        return str;
     }
 
-    public static String decodeBase64(String src) {
-        return new String(Base64.decodeBase64(src.getBytes()));
+    private long getDelay(Map<String, String> atts) throws IllegalArgumentException {
+        String str = atts.get(OCCI_MONITORING_PERIODMS);
+        if (str == null)
+            throw new IllegalArgumentException("delay cannot be null");
+
+        try {
+            return Long.parseLong(str);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 
     // INNER CLASSES
@@ -108,18 +153,9 @@ public class ActionTrigger {
         private Class action;
         private Map<String, String> args;
 
-        public ActionExecutor(Map<String, String> args) {
+        public ActionExecutor(Map<String, String> args) throws ScriptException {
             this.args = args;
-            this.action = getActionAsClass(args, OCCI_MONITORING_ACTION);
-        }
-
-        private Class getActionAsClass(Map<String, String> args, String key) {
-            GroovyClassLoader gcl = new GroovyClassLoader();
-            String encodedScript = args.get(key);
-            if (encodedScript != null)
-                return gcl.parseClass(decodeBase64(encodedScript));
-            else
-                return null;
+            this.action = ScriptUtils.getEncodedScriptAsClass(args, OCCI_MONITORING_ACTION);
         }
 
         private void executeAction(Class script) {
@@ -148,31 +184,13 @@ public class ActionTrigger {
         private Class actionCaseTrue;
         private Class actionCaseFalse;
 
-        public ConditionChecker(Map<String, String> args) {
-            this.conditionScript = getConditionScript(args);
-            this.actionCaseTrue = getActionAsClass(args, OCCI_MONITORING_TRUEACTION);
-            this.actionCaseFalse = getActionAsClass(args, OCCI_MONITORING_FALSEACTION);
+        public ConditionChecker(Map<String, String> args) throws ScriptException {
+            conditionScript = ScriptUtils.getEncodedScriptAsClass(args, OCCI_CONDITION_SCRIPT);
+            actionCaseTrue = ScriptUtils.getEncodedScriptAsClass(args, OCCI_MONITORING_TRUEACTION);
+            actionCaseFalse = ScriptUtils.getEncodedScriptAsClass(args, OCCI_MONITORING_FALSEACTION);
             this.args = args;
-        }
-
-        private Class getConditionScript(Map<String, String> args) {
-            GroovyClassLoader gcl = new GroovyClassLoader();
-            String encodedScript = args.get(OCCI_CONDITION_SCRIPT);
-            Class clazz = gcl.parseClass(decodeBase64(encodedScript));
-            return clazz;
-        }
-
-        private Class getActionAsClass(Map<String, String> args, String key) {
-            GroovyClassLoader gcl = new GroovyClassLoader();
-            String encodedScript = args.get(key);
-            if (encodedScriptIsValid(encodedScript))
-                return gcl.parseClass(decodeBase64(encodedScript));
-            else
-                return null;
-        }
-
-        private boolean encodedScriptIsValid(String encodedScript) {
-            return (encodedScript != null && !encodedScript.isEmpty());
+            if (conditionScript == null || actionCaseTrue == null)
+                throw new ScriptException("Condition and True scripts must be provided");
         }
 
         @Override
@@ -203,6 +221,46 @@ public class ActionTrigger {
             } catch (Throwable e) {
                 logger.warn("Error when executing action: " + script, e);
             }
+        }
+
+    }
+
+    static class ScriptUtils {
+
+        public static Class getEncodedScriptAsClass(Map<String, String> args, String key)
+                throws ScriptException {
+
+            GroovyClassLoader gcl = new GroovyClassLoader();
+            String encodedScript = args.get(key);
+            if (encodedScriptIsNotEmpty(encodedScript))
+                try {
+                    return gcl.parseClass(HttpUtility.decodeBase64(encodedScript));
+                } catch (GroovyRuntimeException e) {
+                    throw new ScriptException(e);
+                }
+            else
+                return null;
+
+        }
+
+        public static boolean encodedScriptIsNotEmpty(String encodedScript) {
+            return (encodedScript != null && !encodedScript.isEmpty());
+        }
+
+    }
+
+    static class ScriptException extends Exception {
+
+        public ScriptException(String message) {
+            super(message);
+        }
+
+        public ScriptException(String message, Throwable throwable) {
+            super(message, throwable);
+        }
+
+        public ScriptException(Throwable throwable) {
+            super(throwable);
         }
 
     }

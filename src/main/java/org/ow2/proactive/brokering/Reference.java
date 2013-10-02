@@ -22,6 +22,10 @@ public class Reference {
         return new Reference(Nature.NATURE_TRIGGER, SubmissionStatus.SUBMISSION_DONE, message, id);
     }
 
+    public static Reference buildActionTriggerFailedReference(String message, Exception e) {
+        return new Reference(Nature.NATURE_TRIGGER, SubmissionStatus.SUBMISSION_NOT_DONE, message + ":" + e.getMessage(), null);
+    }
+
     public static Reference buildJobReference(String json) {
         JsonObject ob = Json.createReader(new StringReader(json)).readObject();
         Boolean isValid = jobSubmittedCorrectly(ob);
@@ -50,6 +54,10 @@ public class Reference {
 
     public Boolean isSuccessfullySubmitted() {
         return successfullySubmitted == SubmissionStatus.SUBMISSION_DONE;
+    }
+
+    public String getSubmissionMessage() {
+        return submissionMessage;
     }
 
     public String toString() {
