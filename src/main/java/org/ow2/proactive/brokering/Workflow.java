@@ -24,7 +24,7 @@ import java.util.Map;
 
 
 public class Workflow {
-    private static final Logger logger = Logger.getLogger(Catalog.class.getName());
+    private static final Logger logger = Logger.getLogger(Workflow.class.getName());
     private File job;
     private long lastModification;
     private Map<String, String> genericInfo;
@@ -96,7 +96,7 @@ public class Workflow {
     public boolean isCompliant(String category, String operation, String action, Map<String, String> attributes) {
         // Generic Informations 'category' and 'operation' must contains given 'category' and 'operation' values
         if (!valueIsContainedInSet(category, genericInfo.get("category")) || !valueIsContainedInSet(operation, genericInfo.get("operation"))) {
-            logger.debug(job.getName() + " : Wrong category or operation");
+            //logger.debug(job.getName() + " : Wrong category or operation");
             return false;
         }
 

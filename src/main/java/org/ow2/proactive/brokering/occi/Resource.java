@@ -117,24 +117,24 @@ public class Resource {
         }
     }
 
-    public boolean create() throws Exception {
+    public References create() throws Exception {
         References references = Broker.getInstance().request(category, "create", getAttributes());
-        return references.areAllSubmitted();
+        return references;
     }
 
-    public boolean read() throws Exception {
+    public References read() throws Exception {
         References references = Broker.getInstance().request(category, "read", getAttributes());
-        return references.areAllSubmitted();
+        return references;
     }
 
-    public boolean update(String action) throws Exception {
+    public References update(String action) throws Exception {
         References references = Broker.getInstance().request(category, "update", action, getAttributes());
-        return references.areAllSubmitted();
+        return references;
     }
 
-    public boolean delete() throws Exception {
+    public References delete() throws Exception {
         References references = Broker.getInstance().request(category, "delete", getAttributes());
-        return references.areAllSubmitted();
+        return references;
     }
 
     public List<Resource> getLinkedResources() {

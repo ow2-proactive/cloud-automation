@@ -62,10 +62,11 @@ public class Reference {
 
     public String toString() {
         return
-                "nature: " + natureOfReference +
+                "[Reference nature: " + natureOfReference +
                         ", submitted: " + successfullySubmitted +
                         ", id: " + submissionId +
-                        ", submissionMessage: " + submissionMessage;
+                        ", submissionMessage: " + submissionMessage +
+                        "]";
     }
 
     static enum Nature {

@@ -1,6 +1,7 @@
 package org.ow2.proactive.brokering.occi;
 
 import org.apache.log4j.Logger;
+import org.ow2.proactive.brokering.References;
 import org.ow2.proactive.brokering.occi.api.Occi;
 import org.ow2.proactive.brokering.occi.infrastructure.Utils;
 
@@ -41,9 +42,10 @@ public class OcciServer implements Occi {
             Resource resource = Resource.factory(uuid, host, category, Utils.buildMap(attributes));
             db.store(resource);
 
-            if (!resource.create()) {
+            References references = resource.create();
+            if (!references.areAllSubmitted()) {
                 logger.debug("Response : CODE:" + Response.Status.BAD_REQUEST);
-                return Response.status(Response.Status.BAD_REQUEST).build();
+                return Response.status(Response.Status.BAD_REQUEST).entity(references.getSummary()).build();
             }
 
             Response.ResponseBuilder responseBuilder = Response.status(Response.Status.CREATED);
@@ -141,16 +143,18 @@ public class OcciServer implements Occi {
                 resource.getAttributes().put("action.state", "pending");
             }
 
+            References references = new References();
             Response.ResponseBuilder response = null;
             boolean brokerResponse = false;
             if (action != null) {
-                resource.update(action);
+                references = resource.update(action);
             }
             if (brokerResponse) {
                 response = Response.status(Response.Status.ACCEPTED); // Async operation is submitted
             } else {
                 response = Response.status(Response.Status.OK);
             }
+            response.entity(references.getSummary());
             response.header("X-OCCI-Location", resource.getUrl());
             response.entity("X-OCCI-Location: " + resource.getUrl() + "\n");
             logger.debug("Response : [X-OCCI-Location: " + resource.getUrl() + "] CODE:" + Response.Status.OK);

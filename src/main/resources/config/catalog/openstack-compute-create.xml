@@ -17,12 +17,10 @@
         <variable name="iaas.provider.newvm.proactive.home.dir"/>
         <variable name="occi.compute.proactive.node.token" value="${iaas.provider.newvm.name}"/>
 
-        <variable name="proactive.rm.url" value="pamr://0/"/>
+        <variable name="proactive.rm.url"/>
 
         <variable name="proactive.rm.credentials"/>
         <variable name="proactive.rm.nodesource.name"/>
-        <variable name="utils.scripts.server.address"/>
-        <variable name="utils.scripts.rscripts.path"/>
 
     </variables>
     <genericInformation>
