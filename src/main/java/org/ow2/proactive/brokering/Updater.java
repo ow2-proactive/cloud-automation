@@ -25,7 +25,7 @@ public class Updater {
     private LinkedBlockingQueue<UpdateUnit> queue;
 
     public Updater(SchedulerProxy scheduler, Long periodMs) {
-        this(OcciServer.getInstance(), scheduler, periodMs);
+        this(new OcciServer(), scheduler, periodMs);
     }
 
     public Updater(Occi occi, SchedulerProxy scheduler, Long periodMs) {

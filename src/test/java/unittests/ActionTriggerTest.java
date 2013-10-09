@@ -8,15 +8,18 @@ import org.ow2.proactive.brokering.References;
 import org.ow2.proactive.brokering.occi.Resource;
 import org.ow2.proactive.brokering.occi.infrastructure.ActionTrigger;
 import org.ow2.proactive.brokering.utils.HttpUtility;
-import triggering.ActionFalseScript;
-import triggering.ActionTrueScript;
-import triggering.ConditionScript;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
+/*
+import triggering.ActionFalseScriptClass;
+import triggering.ActionTrueScriptClass;
+import triggering.ConditionScriptClass;
+*/
 
 public class ActionTriggerTest {
 
@@ -35,17 +38,19 @@ public class ActionTriggerTest {
 
     }
 
+    /*
     @Test
     public void loadBalancerStartScheduleOnce_ClassnameScripts_Test() throws Exception {
 
         Map<String, String> loadBalancerAttributes =
                 getCreationScheduleOnceActionTriggerAttributes();
 
-        loadBalancerAttributes.put(ActionTrigger.OCCI_MONITORING_ACTION, ActionTrueScript.class.getName());
+        loadBalancerAttributes.put(ActionTrigger.OCCI_MONITORING_ACTION, "triggering.ActionTrueScript");
 
         loadBalancerStartScheduleOnce(loadBalancerAttributes);
 
     }
+    */
 
     private void loadBalancerStartScheduleOnce(Map<String, String> atts) throws Exception {
 
@@ -74,17 +79,19 @@ public class ActionTriggerTest {
         loadBalancerStart_Test(loadBalancerAttributes);
     }
 
+    /*
     @Test
     public void loadBalancerStart_ClassnameScripts_Test() throws Exception {
         String uuid = UUID.randomUUID().toString();
         Map<String, String> atts = getCreationActionTriggerAttributes(uuid);
 
-        atts.put(ActionTrigger.OCCI_CONDITION_SCRIPT, ConditionScript.class.getName());
-        atts.put(ActionTrigger.OCCI_MONITORING_FALSEACTION, ActionFalseScript.class.getName());
-        atts.put(ActionTrigger.OCCI_MONITORING_TRUEACTION, ActionTrueScript.class.getName());
+        atts.put(ActionTrigger.OCCI_CONDITION_SCRIPT, ConditionScriptClass.class.getName());
+        atts.put(ActionTrigger.OCCI_MONITORING_FALSEACTION, ActionFalseScriptClass.class.getName());
+        atts.put(ActionTrigger.OCCI_MONITORING_TRUEACTION, ActionTrueScriptClass.class.getName());
 
         loadBalancerStart_Test(atts);
     }
+    */
 
 
     private void loadBalancerStart_Test(Map<String, String> atts) throws Exception {

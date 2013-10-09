@@ -11,8 +11,9 @@ import java.util.Map;
 import java.util.UUID;
 
 public class OcciServer implements Occi {
-    private static OcciServer instance;
+
     private static Logger logger = Logger.getLogger(OcciServer.class);
+
     private static Database db;
 
     // ************* OCCI SERVER MANAGEMENT **************
@@ -201,17 +202,6 @@ public class OcciServer implements Occi {
         if (db == null)
             db = Database.getInstance();
 
-        if (instance == null)
-            instance = this;
-        else
-            throw new IllegalStateException("Cannot instantiate twice.");
-    }
-
-    public static OcciServer getInstance() {
-        if (instance == null)
-            throw new IllegalStateException("This class has not been instantiated yet.");
-
-        return instance;
     }
 
     public static void setDatabase(Database db) {

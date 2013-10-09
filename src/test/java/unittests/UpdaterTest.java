@@ -99,7 +99,7 @@ public class UpdaterTest {
     }
 
     private static Occi createMockOfOcciServer() {
-        return OcciServer.getInstance();
+        return new OcciServer();
     }
 
     private static SchedulerProxy createMockOfSchedulerProxy() throws Exception {
@@ -114,7 +114,7 @@ public class UpdaterTest {
         // that are non-json formatted.
         for (int i = 1; i <= 2; i++) {
             Reference jobReference = Reference.buildJobReference(
-                    createSubmitResponse(i, "TestJob" + i));
+                    createSubmitResponse(i, "TestJob" + i), "");
             jobReferences.add(jobReference);
             JsonObject taskRes = Utils.convertToJson(restResponses.get(i + "").toString());
             when(scheduler.getAllTaskResultsAsJson(jobReference)).thenReturn(taskRes);

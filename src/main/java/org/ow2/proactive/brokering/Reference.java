@@ -2,6 +2,7 @@ package org.ow2.proactive.brokering;
 
 import javax.json.Json;
 import javax.json.JsonObject;
+import javax.json.stream.JsonParsingException;
 import java.io.StringReader;
 
 public class Reference {
@@ -26,16 +27,30 @@ public class Reference {
         return new Reference(Nature.NATURE_TRIGGER, SubmissionStatus.SUBMISSION_NOT_DONE, message + ":" + e.getMessage(), null);
     }
 
-    public static Reference buildJobReference(String json) {
-        JsonObject ob = Json.createReader(new StringReader(json)).readObject();
+
+    public static Reference buildJobFailedReference(String json) {
+        return new Reference(Nature.NATURE_JOB, SubmissionStatus.SUBMISSION_NOT_DONE, json, null);
+    }
+
+    public static Reference buildJobReference(String json, String info) {
+
+        JsonObject ob;
+        try {
+            ob = Json.createReader(new StringReader(json)).readObject();
+        } catch (JsonParsingException e) {
+            return buildJobFailedReference(info + " : " + json);
+        }
+
         Boolean isValid = jobSubmittedCorrectly(ob);
         if (isValid) {
             String id = ob.getInt("id") + "";
-            String message = ob.getString("readableName");
-            return new Reference(Nature.NATURE_JOB, SubmissionStatus.SUBMISSION_DONE, message, id);
+            String message = info + " : " + ob.getString("readableName");
+            return new Reference(
+                    Nature.NATURE_JOB, SubmissionStatus.SUBMISSION_DONE, message, id);
         } else {
-            String errorMessage = ob.getString("errorMessage");
-            return new Reference(Nature.NATURE_JOB, SubmissionStatus.SUBMISSION_NOT_DONE, errorMessage, null);
+            String errorMessage = info + " : " + ob.getString("errorMessage");
+            return new Reference(
+                    Nature.NATURE_JOB, SubmissionStatus.SUBMISSION_NOT_DONE, errorMessage, null);
         }
     }
 
@@ -62,11 +77,11 @@ public class Reference {
 
     public String toString() {
         return
-                "[Reference nature: " + natureOfReference +
-                        ", submitted: " + successfullySubmitted +
-                        ", id: " + submissionId +
-                        ", submissionMessage: " + submissionMessage +
-                        "]";
+                "[Reference nature: '" + natureOfReference +
+                        "', submitted: '" + successfullySubmitted +
+                        "', id: '" + submissionId +
+                        "', submissionMessage: '" + submissionMessage +
+                        "']";
     }
 
     static enum Nature {
