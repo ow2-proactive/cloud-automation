@@ -1,8 +1,9 @@
 package org.ow2.proactive.brokering;
 
+import org.apache.log4j.Logger;
+
 import java.io.File;
 import java.util.*;
-import org.apache.log4j.Logger;
 
 
 public class Catalog {
@@ -60,7 +61,6 @@ public class Catalog {
 
                 // Add new rules and update existing ones if needed
                 for (File f : path.listFiles()) {
-                    System.out.println(f);
                     Workflow workflow = workflows.get(f);
                     if (workflow != null && workflow.hasChanged()) { // Known & modified
                         workflow.update();

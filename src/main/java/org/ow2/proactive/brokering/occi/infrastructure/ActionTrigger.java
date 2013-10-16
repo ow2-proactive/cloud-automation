@@ -66,8 +66,10 @@ public class ActionTrigger {
             } else {
                 references.add(createPeriodicActionTrigger(attributes));
             }
-        } else if ("delete".equalsIgnoreCase(operation)) {
-            references.add(removeActionTrigger(attributes));
+        } else if ("update".equalsIgnoreCase(operation)) {
+            if ("delete".equalsIgnoreCase(action)) {
+                references.add(removeActionTrigger(attributes));
+            }
         }
         return references;
     }

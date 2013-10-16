@@ -102,7 +102,6 @@ public class OcciServer implements Occi {
             if (attribute == null) {
                 response.entity(resource);
             } else {
-                System.out.println("Returning an attribute value : " + attribute);
                 logger.info("Returning an attribute value : " + attribute);
                 response.entity(resource.getAttributes().get(attribute));
             }

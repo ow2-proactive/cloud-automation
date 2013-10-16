@@ -2,11 +2,15 @@ package org.ow2.proactive.brokering.triggering;
 
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyRuntimeException;
-import org.ow2.proactive.brokering.utils.HttpUtility;
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.log4j.Logger;
 
 import java.util.Map;
 
 public class ScriptUtils {
+
+    private static final Logger logger = Logger.getLogger(ScriptUtils.class.getName());
 
     public static Class getEncodedScriptAsClass(Map<String, String> args, String key)
             throws ScriptException {
@@ -25,7 +29,9 @@ public class ScriptUtils {
             }
         else if (encodedScriptIsNotEmpty(argumentScript))
             try {
-                return gcl.parseClass(HttpUtility.decodeBase64(argumentScript));
+                String script = decode(argumentScript);
+                logger.debug("Script decoded: '" + script + "'");
+                return gcl.parseClass(script);
             } catch (GroovyRuntimeException e) {
                 throw new ScriptException(e);
             }
@@ -40,6 +46,18 @@ public class ScriptUtils {
 
     private static boolean isClassName(String className) {
         return (className.contains("."));
+    }
+
+    public static String encode(String src) {
+        return new String(Hex.encodeHex(src.getBytes()));
+    }
+
+    public static String decode(String src) {
+        try {
+            return new String(Hex.decodeHex(src.toCharArray()));
+        } catch (DecoderException e) {
+            throw new RuntimeException("Error decoding: " + src, e);
+        }
     }
 
 }

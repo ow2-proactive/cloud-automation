@@ -7,7 +7,7 @@ import org.ow2.proactive.brokering.Reference;
 import org.ow2.proactive.brokering.References;
 import org.ow2.proactive.brokering.occi.Resource;
 import org.ow2.proactive.brokering.occi.infrastructure.ActionTrigger;
-import org.ow2.proactive.brokering.utils.HttpUtility;
+import org.ow2.proactive.brokering.triggering.ScriptUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -120,8 +120,8 @@ public class ActionTriggerTest {
 
         atts = getDeletionActionTriggerAttributes(getUuid(atts));
         actionTrigger.request(
-                Resource.ACTION_TRIGGER_CATEGORY_NAME, "delete",
-                null, atts); // load balancer rule stopped
+                Resource.ACTION_TRIGGER_CATEGORY_NAME, "update", "delete",
+                atts); // load balancer rule stopped
 
         Thread.sleep(10 * PERIODMS);
         initializeCallbackCounters();
@@ -247,7 +247,7 @@ public class ActionTriggerTest {
     }
 
     private String getScriptAsEncodedString(String path) throws IOException {
-        return HttpUtility.encodeBase64(getScriptAsString(path));
+        return ScriptUtils.encode(getScriptAsString(path));
     }
 
     private String getScriptAsString(String path) throws IOException {
