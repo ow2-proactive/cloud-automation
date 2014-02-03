@@ -1,0 +1,5 @@
+include 'occi'
+include 'monitoring'
+include 'workflow-catalog'
+include 'workflow-catalog-rest'
+

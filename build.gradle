@@ -1,0 +1,113 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        maven { url 'http://repo.activeeon.com/content/repositories/snapshots/' }
+        maven { url 'http://repo.activeeon.com/content/repositories/releases/' }
+        maven { url 'http://repo.activeeon.com/content/repositories/thirdparty/' }
+    }
+
+    dependencies {
+        //classpath 'org.objectweb.proactive:programming-build-utils:5.5.0-SNAPSHOT'
+        // needed at runtime by AntStubGenerator...
+        //classpath 'org.objectweb.proactive:programming-core:5.5.0-SNAPSHOT'
+    }
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'maven'
+
+    group = 'org.ow2.proactive'
+    version = '1.0-SNAPSHOT'
+
+    rootProject.buildscript.repositories.each {
+        repositories.add(it)
+    }
+
+    dependencies {
+        compile 'log4j:log4j:1.2.16'
+        testCompile 'junit:junit:4.8.2'
+        testCompile 'org.mockito:mockito-all:1.8.4'
+    }
+
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                repository(url: "http://repo.activeeon.com/content/repositories/snapshots/") {
+                    authentication(userName: "${System.getProperty('nexusUsername')}",
+                            password: "${System.getProperty('nexusPassword')}")
+                }
+            }
+        }
+    }
+}
+
+project(':workflow-catalog') {
+    dependencies {
+        compile 'org.jboss.resteasy:resteasy-jaxrs:2.3.5.Final'
+        compile 'org.apache.httpcomponents:httpmime:4.1.2'
+        compile 'javax.json:javax.json-api:1.0'
+    }
+}
+
+project(':workflow-catalog-rest') {
+    apply plugin: 'war'
+    apply plugin: 'jetty'
+
+    configurations {
+    }
+    dependencies {
+
+        compile project(':workflow-catalog')
+
+        compile 'org.jboss.resteasy:resteasy-jaxrs:2.3.5.Final'
+        compile 'org.jboss.resteasy:jaxrs-api:2.3.5.Final'
+        compile 'org.codehaus.jackson:jackson-core-asl:1.9.4'
+        compile 'org.apache.httpcomponents:httpmime:4.1.2'
+        compile 'org.codehaus.groovy:groovy-all:2.1.2'
+        compile 'javax.json:javax.json-api:1.0'
+        compile 'org.glassfish:javax.json:1.0.2'
+
+    }
+}
+
+project(':occi') {
+    apply plugin: 'war'
+    apply plugin: 'jetty'
+
+    configurations {
+    }
+    dependencies {
+
+        compile project(':workflow-catalog')
+
+        //runtime group: 'org.groovy', name: 'groovy', version: '2.2.0', ext: 'jar'
+        compile 'com.almworks.sqlite4java:sqlite4java:0.282'
+        //runtime groupId:'com.almworks.sqlite4java',artifactId:'libsqlite4java-linux-amd64',version:'0.282',ext:'so'
+        runtime 'com.almworks.sqlite4java:libsqlite4java-linux-amd64:0.282'
+        //runtime group:'com.almworks.sqlite4java',name:'libsqlite4java-linux-amd64',version:'0.282',ext:'so'
+        //runtime 'com.almworks.sqlite4java:libsqlite4java-linux-i386:0.282:so'
+        runtime 'com.almworks.sqlite4java:libsqlite4java-linux-i386:0.282'
+        //runtime 'com.almworks.sqlite4java:libsqlite4java-osx:0.282:jnilib'
+        runtime 'com.almworks.sqlite4java:libsqlite4java-osx:0.282'
+
+        compile 'org.jboss.resteasy:resteasy-jaxrs:2.3.5.Final'
+        compile 'org.jboss.resteasy:jaxrs-api:2.3.5.Final'
+        compile 'org.codehaus.jackson:jackson-core-asl:1.9.4'
+        compile 'org.apache.httpcomponents:httpmime:4.1.2'
+        compile 'org.codehaus.groovy:groovy-all:2.1.2'
+        compile 'javax.json:javax.json-api:1.0'
+        compile 'org.glassfish:javax.json:1.0.2'
+
+    }
+
+}
+
+project(':monitoring') {
+
+    dependencies {
+        compile project(':occi')
+    }
+}
+
