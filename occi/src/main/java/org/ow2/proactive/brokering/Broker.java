@@ -118,7 +118,7 @@ public class Broker {
 
         References references = new References();
         for (Workflow workflow : catalog.getWorkflows()) {
-            if (workflow.isCompliant(category, operation, action, attributes)) {
+            if (OcciWorkflowUtils.isCompliant(workflow, category, operation, action, attributes)) {
                 int appliedRules = this.applyRules(attributes, rules);
                 //              if (workflow.isDeepCompliant(attributes))
                 File jobFile = workflow.configure(attributes);

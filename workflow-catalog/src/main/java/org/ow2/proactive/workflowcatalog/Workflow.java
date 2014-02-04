@@ -1,6 +1,7 @@
 package org.ow2.proactive.workflowcatalog;
 
 import org.apache.log4j.Logger;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.JobParsingException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -18,15 +19,14 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 
 public class Workflow {
+
     private static final Logger logger = Logger.getLogger(Workflow.class.getName());
-    private File job;
     private long lastModification;
+    private File job;
     private Map<String, String> genericInfo;
     private Map<String, String> variables;
 
@@ -37,31 +37,39 @@ public class Workflow {
         variables = new HashMap<String, String>();
     }
 
-    public static void fillElements(Document doc, String tagName, Map<String, String> elements) {
-        try {
-            NodeList vars = doc.getElementsByTagName(tagName).item(0).getChildNodes();
-            for (int n = 0; n < vars.getLength(); n++) {
-                Node var = vars.item(n);
-                if (var.getNodeType() == 1) {
-                    String key = var.getAttributes().getNamedItem("name").getNodeValue();
-                    Node valueNode = var.getAttributes().getNamedItem("value");
-                    String value = null;
-                    if (valueNode != null) {
-                        value = valueNode.getNodeValue();
-                    }
-                    elements.put(key, value);
-                }
-            }
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
+    public List<String> listVariables() throws JobParsingException {
+        return listNodeNames("variables");
+    }
+
+    public List<String> listGenericInformation() throws JobParsingException {
+        return listNodeNames("genericInformation");
+    }
+
+    public synchronized boolean containsGenericInfo(String key) {
+        return genericInfo.containsKey(key);
+    }
+
+    public synchronized boolean containsVariable(String key) {
+        return variables.containsKey(key);
+    }
+
+    public synchronized String getGenericInfo(String key) {
+        return genericInfo.get(key);
+    }
+
+    public synchronized String getVariable(String key) {
+        return variables.get(key);
+    }
+
+    public String getName() {
+        return job.getName();
     }
 
     public String toString() {
         return job.getName();
     }
 
-    public void update() {
+    public synchronized void update() {
         try {
             DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
@@ -85,57 +93,54 @@ public class Workflow {
         return job.lastModified() != lastModification;
     }
 
-    /**
-     * Only checks compliance with the generic informations.
-     *
-     * @param category
-     * @param operation
-     * @param attributes
-     * @return
-     */
-    public boolean isCompliant(String category, String operation, String action, Map<String, String> attributes) {
-        // Generic Informations 'category' and 'operation' must contains given 'category' and 'operation' values
-        if (!valueIsContainedInSet(category, genericInfo.get("category")) || !valueIsContainedInSet(operation, genericInfo.get("operation"))) {
-            //logger.debug(job.getName() + " : Wrong category or operation");
-            return false;
-        }
-
-        // If an action is given, it must be present in the Generic information
-        if (action != null && !valueIsContainedInSet(action, genericInfo.get("action"))) {
-            logger.debug(job.getName() + " : Wrong action (" + action + "/" + genericInfo.get("action") + ")");
-            return false;
-        }
-
-        // Request attributes which are in Generic Informations must matches (contains) their values
-        for (String attributeKey : attributes.keySet()) {
-            if (genericInfo.containsKey(attributeKey)
-                    && !valueIsContainedInSet(attributes.get(attributeKey), genericInfo.get(attributeKey))) {
-                logger.debug(job.getName() + " : Wrong value for " + attributeKey);
-                return false;
+    private List<String> listNodeNames(String tagName) throws JobParsingException {
+        List<String> variablesList = new ArrayList<String>();
+        Document doc = getJobDocument();
+        NodeList vars = doc.getElementsByTagName(tagName).item(0).getChildNodes();
+        for (int n = 0; n < vars.getLength(); n++) {
+            Node var = vars.item(n);
+            if (var.getNodeType() == Node.ELEMENT_NODE) {
+                String key = var.getAttributes().getNamedItem("name").getNodeValue();
+                variablesList.add(key);
             }
         }
-        return true;
+        return variablesList;
     }
 
-    public boolean isDeepCompliant(Map<String, String> attributes) {
-        // Check that empty template variables (variables without 'value' attribute) are in the request attributes
-        for (String variableName : variables.keySet()) {
-            if (variables.get(variableName) == null && !attributes.containsKey(variableName)) {
-                return false;
-            }
+    private Document getJobDocument() throws JobParsingException {
+        Document doc;
+        try {
+            DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+            doc = docBuilder.parse(job);
+        } catch (ParserConfigurationException e) {
+            throw new RuntimeException(e);
+        } catch (SAXException e) {
+            throw new JobParsingException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-        return true;
+        return doc;
     }
 
-    private boolean valueIsContainedInSet(String value, String set) {
-        // Coma separated values, case and spaces are ignored
-        if (value == null || set == null)
-            return false;
-        String[] values = set.replaceAll(" ", "").toLowerCase().split(",");
-        Arrays.sort(values);
-        if (value == null || Arrays.binarySearch(values, value.toLowerCase()) < 0)
-            return false;
-        return true;
+    private void fillElements(Document doc, String tagName, Map<String, String> elements) {
+        try {
+            NodeList vars = doc.getElementsByTagName(tagName).item(0).getChildNodes();
+            for (int n = 0; n < vars.getLength(); n++) {
+                Node var = vars.item(n);
+                if (var.getNodeType() == 1) {
+                    String key = var.getAttributes().getNamedItem("name").getNodeValue();
+                    Node valueNode = var.getAttributes().getNamedItem("value");
+                    String value = null;
+                    if (valueNode != null) {
+                        value = valueNode.getNodeValue();
+                    }
+                    elements.put(key, value);
+                }
+            }
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
     }
 
     public File configure(Map<String, String> attributes)

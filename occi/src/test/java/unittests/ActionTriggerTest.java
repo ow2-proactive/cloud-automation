@@ -2,6 +2,7 @@ package unittests;
 
 import junit.framework.Assert;
 import org.apache.commons.io.FileUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.ow2.proactive.workflowcatalog.Reference;
 import org.ow2.proactive.workflowcatalog.References;
@@ -29,6 +30,7 @@ public class ActionTriggerTest {
     private static Integer falseActions = 0;
 
     @Test
+    @Ignore
     public void loadBalancerStartScheduleOnce_EncodedScripts_Test() throws Exception {
 
         Map<String, String> loadBalancerAttributes =
@@ -73,6 +75,7 @@ public class ActionTriggerTest {
     }
 
     @Test
+    @Ignore
     public void loadBalancerStart_EncodedScripts_Test() throws Exception {
         String uuid = UUID.randomUUID().toString();
         Map<String, String> loadBalancerAttributes = getCreationActionTriggerAttributes(uuid);
@@ -138,6 +141,7 @@ public class ActionTriggerTest {
     }
 
     @Test
+    @Ignore
     public void loadBalancerStartScheduleOnceWithNonEncodedScript_Test() throws Exception {
 
         ActionTrigger actionTrigger = ActionTrigger.getInstance();
@@ -161,6 +165,7 @@ public class ActionTriggerTest {
     }
 
     @Test
+    @Ignore
     public void loadBalancerStartScheduleWithNonEncodedScript_Test() throws Exception {
 
         String uuid = UUID.randomUUID().toString();
@@ -185,6 +190,7 @@ public class ActionTriggerTest {
     }
 
     @Test
+    @Ignore
     public void loadBalancerStartScheduleWithNoDelayArgument_Test() throws Exception {
 
         String uuid = UUID.randomUUID().toString();

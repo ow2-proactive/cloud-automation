@@ -20,11 +20,11 @@ public class Reference {
     }
 
     public static Reference buildActionTriggerReference(String message, String id) {
-        return new Reference(Nature.NATURE_TRIGGER, SubmissionStatus.SUBMISSION_DONE, message, id);
+        return new Reference(Nature.NATURE_OTHER, SubmissionStatus.SUBMISSION_DONE, message, id);
     }
 
     public static Reference buildActionTriggerFailedReference(String message, Exception e) {
-        return new Reference(Nature.NATURE_TRIGGER, SubmissionStatus.SUBMISSION_NOT_DONE, message + ":" + e.getMessage(), null);
+        return new Reference(Nature.NATURE_OTHER, SubmissionStatus.SUBMISSION_NOT_DONE, message + ":" + e.getMessage(), null);
     }
 
 
@@ -86,7 +86,7 @@ public class Reference {
 
     static enum Nature {
 
-        NATURE_UNKNOWN(0), NATURE_JOB(1), NATURE_TRIGGER(2);
+        NATURE_UNKNOWN(0), NATURE_JOB(1), NATURE_OTHER(2);
 
         private int nature;
 
