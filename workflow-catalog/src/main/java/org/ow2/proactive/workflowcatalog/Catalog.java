@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 public class Catalog {
@@ -13,13 +14,13 @@ public class Catalog {
 
     /**
      * @param path
-     * @param refresh in seconds
+     * @param refresh in milliseconds
      */
     public Catalog(File path, long refresh) {
         timer = new Timer();
         UpdateTask task = new UpdateTask(path);
         timer.schedule(task, 0, refresh);
-        workflows = new HashMap<File, Workflow>();
+        workflows = new ConcurrentHashMap<File, Workflow>();
         task.run();
     }
 
@@ -70,7 +71,7 @@ public class Catalog {
                         workflow = new Workflow(f);
                         workflow.update();
                         workflows.put(f, workflow);
-                        logger.info("Added in catalog : " + f.getName());
+                        logger.info("Added to catalog : " + f.getName());
                     }
                 }
             }

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:proactive:jobdescriptor:3.1"
+     xsi:schemaLocation="urn:proactive:jobdescriptor:3.1 http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/3.1/schedulerjob.xsd"
+     name="ProactiveJob">
+    <variables>
+        <variable name="variable1"/>
+        <variable name="variable2"/>
+    </variables>
+    <genericInformation>
+        <info name="genericInformation1" value="genericInformationValue1"/>
+        <info name="genericInformation2" value="genericInformationValue2"/>
+    </genericInformation>
+
+    <taskFlow>
+        <task name="Task">
+            <nativeExecutable>
+                <staticCommand value="${variable1}">
+                </staticCommand>
+            </nativeExecutable>
+        </task>
+    </taskFlow>
+</job>
