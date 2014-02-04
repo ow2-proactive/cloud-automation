@@ -1,2 +1,9 @@
 target/
+*.iml
 .idea/
+.gradle/
+out/
+occi/build/
+monitoring/build/
+workflow-catalog/build/
+workflow-catalog-rest/build/

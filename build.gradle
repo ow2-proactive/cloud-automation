@@ -48,6 +48,7 @@ project(':workflow-catalog') {
         compile 'org.jboss.resteasy:resteasy-jaxrs:2.3.5.Final'
         compile 'org.apache.httpcomponents:httpmime:4.1.2'
         compile 'javax.json:javax.json-api:1.0'
+        testCompile 'com.google.guava:guava:12.0'
     }
 }
 
@@ -67,6 +68,7 @@ project(':workflow-catalog-rest') {
         compile 'org.apache.httpcomponents:httpmime:4.1.2'
         compile 'org.codehaus.groovy:groovy-all:2.1.2'
         compile 'javax.json:javax.json-api:1.0'
+        compile 'com.google.code.gson:gson:2.2.4'
         compile 'org.glassfish:javax.json:1.0.2'
 
     }

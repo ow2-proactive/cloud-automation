@@ -20,21 +20,22 @@ public class OcciWorkflowUtils {
      */
     public static boolean isCompliant(Workflow workflow, String category, String operation, String action, Map<String, String> attributes) {
         // Generic Informations 'category' and 'operation' must contains given 'category' and 'operation' values
-        if (!valueIsContainedInSet(category, workflow.getGenericInfo("category")) || !valueIsContainedInSet(operation, workflow.getGenericInfo("operation"))) {
+        if (!valueIsContainedInSet(category, workflow.getGenericInformation("category")) ||
+                !valueIsContainedInSet(operation, workflow.getGenericInformation("operation"))) {
             //logger.debug(job.getName() + " : Wrong category or operation");
             return false;
         }
 
         // If an action is given, it must be present in the Generic information
-        if (action != null && !valueIsContainedInSet(action, workflow.getGenericInfo("action"))) {
-            logger.debug(workflow.getName() + " : Wrong action (" + action + "/" + workflow.getGenericInfo("action") + ")");
+        if (action != null && !valueIsContainedInSet(action, workflow.getGenericInformation("action"))) {
+            logger.debug(workflow.getName() + " : Wrong action (" + action + "/" + workflow.getGenericInformation("action") + ")");
             return false;
         }
 
         // Request attributes which are in Generic Informations must matches (contains) their values
         for (String attributeKey : attributes.keySet()) {
             if (workflow.containsGenericInfo(attributeKey)
-                    && !valueIsContainedInSet(attributes.get(attributeKey), workflow.getGenericInfo(attributeKey))) {
+                    && !valueIsContainedInSet(attributes.get(attributeKey), workflow.getGenericInformation(attributeKey))) {
                 logger.debug(workflow.getName() + " : Wrong value for " + attributeKey);
                 return false;
             }

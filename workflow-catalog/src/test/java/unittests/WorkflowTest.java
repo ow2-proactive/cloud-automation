@@ -1,13 +1,12 @@
 package unittests;
 
-import junit.framework.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.ow2.proactive.workflowcatalog.Workflow;
-
 import java.io.File;
 import java.net.URL;
-import java.util.List;
+import java.util.Map;
+import org.junit.Test;
+import org.junit.BeforeClass;
+import junit.framework.Assert;
+import org.ow2.proactive.workflowcatalog.Workflow;
 
 public class WorkflowTest {
 
@@ -17,6 +16,7 @@ public class WorkflowTest {
     public static void beforeAll() throws Exception {
         URL url = WorkflowTest.class.getClass().getResource("/catalog/workflow1.xml");
         workflow = new Workflow(new File(url.getFile()));
+        workflow.update();
     }
 
     @Test
@@ -26,18 +26,18 @@ public class WorkflowTest {
 
     @Test
     public void getVariables_Test() throws Exception {
-        List<String> variables = workflow.listVariables();
+        Map<String, String> variables = workflow.getVariables();
         Assert.assertTrue(variables.size() == 2);
-        Assert.assertTrue(variables.contains("variable1"));
-        Assert.assertTrue(variables.contains("variable2"));
+        Assert.assertTrue(variables.keySet().contains("variable1"));
+        Assert.assertTrue(variables.keySet().contains("variable2"));
     }
 
     @Test
     public void getGenericInformation_Test() throws Exception {
-        List<String> gInformation = workflow.listGenericInformation();
+        Map<String, String> gInformation = workflow.getGenericInformation();
         Assert.assertTrue(gInformation.size() == 2);
-        Assert.assertTrue(gInformation.contains("genericInformation1"));
-        Assert.assertTrue(gInformation.contains("genericInformation2"));
+        Assert.assertTrue(gInformation.keySet().contains("genericInformation1"));
+        Assert.assertTrue(gInformation.keySet().contains("genericInformation2"));
     }
 
     @Test

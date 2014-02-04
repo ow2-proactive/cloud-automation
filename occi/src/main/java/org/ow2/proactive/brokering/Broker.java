@@ -124,7 +124,7 @@ public class Broker {
                 File jobFile = workflow.configure(attributes);
                 logger.debug("Generated job file : " + jobFile.getAbsolutePath());
                 String output = scheduler.submitJob(jobFile);
-                Reference ref = Reference.buildJobReference(output, workflow.toString());
+                Reference ref = Reference.buildJobReference(output, workflow.getName());
                 references.add(ref);
                 if (ref.isSuccessfullySubmitted())
                     logger.info("Workflow '" + workflow + "' configured (" + appliedRules + " rules applied) and submitted (Job ID=" + ref.getId() + ")");

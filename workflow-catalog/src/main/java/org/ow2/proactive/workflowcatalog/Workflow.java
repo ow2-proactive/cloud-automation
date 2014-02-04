@@ -37,12 +37,12 @@ public class Workflow {
         variables = new HashMap<String, String>();
     }
 
-    public List<String> listVariables() throws JobParsingException {
-        return listNodeNames("variables");
+    public Map<String, String> getVariables() {
+        return new HashMap<String, String> (variables);
     }
 
-    public List<String> listGenericInformation() throws JobParsingException {
-        return listNodeNames("genericInformation");
+    public Map<String, String> getGenericInformation() {
+        return new HashMap<String, String> (genericInfo);
     }
 
     public synchronized boolean containsGenericInfo(String key) {
@@ -53,7 +53,7 @@ public class Workflow {
         return variables.containsKey(key);
     }
 
-    public synchronized String getGenericInfo(String key) {
+    public synchronized String getGenericInformation(String key) {
         return genericInfo.get(key);
     }
 
@@ -71,40 +71,20 @@ public class Workflow {
 
     public synchronized void update() {
         try {
-            DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
-            Document doc = docBuilder.parse(job);
+            Document doc = getJobDocument();
 
             fillElements(doc, "genericInformation", genericInfo);
             fillElements(doc, "variables", variables);
 
             lastModification = job.lastModified();
 
-        } catch (ParserConfigurationException e) {
-            e.printStackTrace();
-        } catch (SAXException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (JobParsingException e) {
             e.printStackTrace();
         }
     }
 
     public boolean hasChanged() {
         return job.lastModified() != lastModification;
-    }
-
-    private List<String> listNodeNames(String tagName) throws JobParsingException {
-        List<String> variablesList = new ArrayList<String>();
-        Document doc = getJobDocument();
-        NodeList vars = doc.getElementsByTagName(tagName).item(0).getChildNodes();
-        for (int n = 0; n < vars.getLength(); n++) {
-            Node var = vars.item(n);
-            if (var.getNodeType() == Node.ELEMENT_NODE) {
-                String key = var.getAttributes().getNamedItem("name").getNodeValue();
-                variablesList.add(key);
-            }
-        }
-        return variablesList;
     }
 
     private Document getJobDocument() throws JobParsingException {
@@ -144,11 +124,10 @@ public class Workflow {
     }
 
     public File configure(Map<String, String> attributes)
-            throws IOException, ParserConfigurationException, SAXException, TransformerException {
+            throws IOException, JobParsingException, TransformerException {
         // Load the job template
-        DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
-        Document doc = docBuilder.parse(job);
+
+        Document doc = getJobDocument();
 
         // Set job variables from attributes
         NodeList vars = doc.getElementsByTagName("variables").item(0).getChildNodes();

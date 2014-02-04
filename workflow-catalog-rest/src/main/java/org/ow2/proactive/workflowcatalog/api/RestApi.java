@@ -1,4 +1,4 @@
-package org.ow2.proactive.brokering.wc.api;
+package org.ow2.proactive.workflowcatalog.api;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;

@@ -111,7 +111,7 @@ public class Resource {
 
     public URL getUrl() {
         try {
-            return new URL("http://" + host + "/brokering/api/occi/" + category + "/" + uuid);
+            return new URL("http://" + host + "/occi/api/occi/" + category + "/" + uuid);
         } catch (Throwable e) {
             return null;
         }

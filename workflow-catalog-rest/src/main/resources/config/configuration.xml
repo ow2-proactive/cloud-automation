@@ -1,0 +1,6 @@
+<configuration>
+    <scheduler username="admin" password="admin" url="http://194.2.202.227/rest/rest"/>
+    <catalog path="config/catalog/" refresh="10"/>
+    <updater refresh="10"/>
+    <security insecuremode="true"/>
+</configuration>
