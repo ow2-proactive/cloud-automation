@@ -2,7 +2,6 @@ package unittests;
 
 import junit.framework.Assert;
 import org.apache.commons.io.FileUtils;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.ow2.proactive.workflowcatalog.Reference;
 import org.ow2.proactive.workflowcatalog.References;
@@ -17,9 +16,9 @@ import java.util.Map;
 import java.util.UUID;
 
 /*
-import triggering.ActionFalseScriptClass;
-import triggering.ActionTrueScriptClass;
-import triggering.ConditionScriptClass;
+import unittests.triggering.ActionFalseScript;
+import unittests.triggering.ActionTrueScript;
+import unittests.triggering.ConditionScript;
 */
 
 public class ActionTriggerTest {
@@ -30,7 +29,6 @@ public class ActionTriggerTest {
     private static Integer falseActions = 0;
 
     @Test
-    @Ignore
     public void loadBalancerStartScheduleOnce_EncodedScripts_Test() throws Exception {
 
         Map<String, String> loadBalancerAttributes =
@@ -47,7 +45,7 @@ public class ActionTriggerTest {
         Map<String, String> loadBalancerAttributes =
                 getCreationScheduleOnceActionTriggerAttributes();
 
-        loadBalancerAttributes.put(ActionTrigger.OCCI_MONITORING_ACTION, "triggering.ActionTrueScript");
+        loadBalancerAttributes.put(ActionTrigger.OCCI_MONITORING_ACTION, ActionTrueScript.class.getName());
 
         loadBalancerStartScheduleOnce(loadBalancerAttributes);
 
@@ -75,7 +73,6 @@ public class ActionTriggerTest {
     }
 
     @Test
-    @Ignore
     public void loadBalancerStart_EncodedScripts_Test() throws Exception {
         String uuid = UUID.randomUUID().toString();
         Map<String, String> loadBalancerAttributes = getCreationActionTriggerAttributes(uuid);
@@ -88,9 +85,9 @@ public class ActionTriggerTest {
         String uuid = UUID.randomUUID().toString();
         Map<String, String> atts = getCreationActionTriggerAttributes(uuid);
 
-        atts.put(ActionTrigger.OCCI_CONDITION_SCRIPT, ConditionScriptClass.class.getName());
-        atts.put(ActionTrigger.OCCI_MONITORING_FALSEACTION, ActionFalseScriptClass.class.getName());
-        atts.put(ActionTrigger.OCCI_MONITORING_TRUEACTION, ActionTrueScriptClass.class.getName());
+        atts.put(ActionTrigger.OCCI_CONDITION_SCRIPT, ConditionScript.class.getName());
+        atts.put(ActionTrigger.OCCI_MONITORING_FALSEACTION, ActionFalseScript.class.getName());
+        atts.put(ActionTrigger.OCCI_MONITORING_TRUEACTION, ActionTrueScript.class.getName());
 
         loadBalancerStart_Test(atts);
     }
@@ -141,7 +138,6 @@ public class ActionTriggerTest {
     }
 
     @Test
-    @Ignore
     public void loadBalancerStartScheduleOnceWithNonEncodedScript_Test() throws Exception {
 
         ActionTrigger actionTrigger = ActionTrigger.getInstance();
@@ -151,7 +147,7 @@ public class ActionTriggerTest {
 
         loadBalancerAttributes.put(
                 ActionTrigger.OCCI_MONITORING_ACTION,
-                getScriptAsString("/triggering/ActionTrueScript.groovy")); // overwritten
+                getScriptAsString("/triggering/ActionTrueScript.groovy-script")); // overwritten
 
         References references = actionTrigger.request(
                 Resource.ACTION_TRIGGER_CATEGORY_NAME, "create",
@@ -165,7 +161,6 @@ public class ActionTriggerTest {
     }
 
     @Test
-    @Ignore
     public void loadBalancerStartScheduleWithNonEncodedScript_Test() throws Exception {
 
         String uuid = UUID.randomUUID().toString();
@@ -177,7 +172,7 @@ public class ActionTriggerTest {
 
         atts.put(
                 ActionTrigger.OCCI_MONITORING_TRUEACTION,
-                getScriptAsString("/triggering/ActionTrueScript.groovy")); // overwriten
+                getScriptAsString("/triggering/ActionTrueScript.groovy-script")); // overwriten
 
         References references = actionTrigger.request(
                 Resource.ACTION_TRIGGER_CATEGORY_NAME, "create",
@@ -190,7 +185,6 @@ public class ActionTriggerTest {
     }
 
     @Test
-    @Ignore
     public void loadBalancerStartScheduleWithNoDelayArgument_Test() throws Exception {
 
         String uuid = UUID.randomUUID().toString();
@@ -221,7 +215,7 @@ public class ActionTriggerTest {
         Map<String, String> loadBalancerAttributes = new HashMap<String, String>();
         loadBalancerAttributes.put(
                 ActionTrigger.OCCI_MONITORING_ACTION,
-                getScriptAsEncodedString("/triggering/ActionTrueScript.groovy"));
+                getScriptAsEncodedString("/triggering/ActionTrueScript.groovy-script"));
         loadBalancerAttributes.put(
                 ActionTrigger.OCCI_CORE_ID,
                 UUID.randomUUID().toString());
@@ -238,11 +232,11 @@ public class ActionTriggerTest {
         Map<String, String> loadBalancerAttributes = new HashMap<String, String>();
         loadBalancerAttributes.put(ActionTrigger.OCCI_CORE_ID, uuid);
         loadBalancerAttributes.put(ActionTrigger.OCCI_CONDITION_SCRIPT,
-                                   getScriptAsEncodedString("/triggering/ConditionScript.groovy"));      // half times true, half times false
+                                   getScriptAsEncodedString("/triggering/ConditionScript.groovy-script"));      // half times true, half times false
         loadBalancerAttributes.put(ActionTrigger.OCCI_MONITORING_FALSEACTION,
-                                   getScriptAsEncodedString("/triggering/ActionFalseScript.groovy"));
+                                   getScriptAsEncodedString("/triggering/ActionFalseScript.groovy-script"));
         loadBalancerAttributes.put(ActionTrigger.OCCI_MONITORING_TRUEACTION,
-                                   getScriptAsEncodedString("/triggering/ActionTrueScript.groovy"));
+                                   getScriptAsEncodedString("/triggering/ActionTrueScript.groovy-script"));
         loadBalancerAttributes.put(ActionTrigger.OCCI_MONITORING_PERIODMS, PERIODMS.toString());
         return loadBalancerAttributes;
     }
@@ -257,6 +251,10 @@ public class ActionTriggerTest {
     }
 
     private String getScriptAsString(String path) throws IOException {
+
+        //File f1 = new File(this.getClass().getResource("/triggering").getFile());
+        //for (String s :f1.list())
+            //System.out.println(s);
         File f = new File(this.getClass().getResource(path).getFile());
         return FileUtils.readFileToString(f);
     }

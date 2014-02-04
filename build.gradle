@@ -50,6 +50,7 @@ project(':workflow-catalog') {
         compile 'javax.json:javax.json-api:1.0'
         testCompile 'com.google.guava:guava:12.0'
     }
+
 }
 
 project(':workflow-catalog-rest') {
@@ -72,6 +73,8 @@ project(':workflow-catalog-rest') {
         compile 'org.glassfish:javax.json:1.0.2'
 
     }
+
+
 }
 
 project(':occi') {
@@ -84,14 +87,9 @@ project(':occi') {
 
         compile project(':workflow-catalog')
 
-        //runtime group: 'org.groovy', name: 'groovy', version: '2.2.0', ext: 'jar'
         compile 'com.almworks.sqlite4java:sqlite4java:0.282'
-        //runtime groupId:'com.almworks.sqlite4java',artifactId:'libsqlite4java-linux-amd64',version:'0.282',ext:'so'
         runtime 'com.almworks.sqlite4java:libsqlite4java-linux-amd64:0.282'
-        //runtime group:'com.almworks.sqlite4java',name:'libsqlite4java-linux-amd64',version:'0.282',ext:'so'
-        //runtime 'com.almworks.sqlite4java:libsqlite4java-linux-i386:0.282:so'
         runtime 'com.almworks.sqlite4java:libsqlite4java-linux-i386:0.282'
-        //runtime 'com.almworks.sqlite4java:libsqlite4java-osx:0.282:jnilib'
         runtime 'com.almworks.sqlite4java:libsqlite4java-osx:0.282'
 
         compile 'org.jboss.resteasy:resteasy-jaxrs:2.3.5.Final'
