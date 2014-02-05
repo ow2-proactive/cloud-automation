@@ -1,10 +1,15 @@
 package org.ow2.proactive.workflowcatalog.api;
 
+import java.io.IOException;
 import java.util.*;
-import org.ow2.proactive.workflowcatalog.Catalog;
-import org.ow2.proactive.workflowcatalog.Workflow;
+import org.apache.http.auth.AuthenticationException;
+import org.ow2.proactive.workflowcatalog.*;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.JobParsingException;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.JobSubmissionException;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerProxy;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerLoginData;
+import javax.xml.transform.TransformerException;
+
 import static org.ow2.proactive.workflowcatalog.api.utils.ConfigurationHelper.*;
 
 public class Core {
@@ -16,19 +21,39 @@ public class Core {
         return instance;
     }
 
-    private SchedulerLoginData loginData;
     private SchedulerProxy scheduler;
     private Catalog catalog;
 
     private Core() {
         Configuration config = getConfiguration();
-        loginData = getSchedulerLoginData(config);
+        SchedulerLoginData loginData = getSchedulerLoginData(config);
         scheduler = new SchedulerProxy(loginData);
         catalog = new Catalog(getCatalogPath(config), config.catalog.refresh * 1000);
     }
 
     public Collection<Workflow> getWorkflows() {
         return catalog.getWorkflows();
+    }
+
+    public References executeWorkflow(WorkflowParameters data) throws JobSubmissionException {
+        References references = new References();
+        Collection<Workflow> workflows = catalog.getWorkflows(data);
+        for (Workflow w: workflows) {
+            try {
+                String jsonResponse = scheduler.submitJob(w.configure(data.getVariables()));
+                references.add(Reference.buildJobReference(jsonResponse, w.getName()));
+            } catch (JobParsingException e) {
+                throw new JobSubmissionException("Error parsing", e);
+            } catch (AuthenticationException e) {
+                throw new JobSubmissionException("Error authenticating", e);
+            } catch (TransformerException e) {
+                throw new JobSubmissionException("Unexpected error", e);
+            } catch (IOException e) {
+                throw new JobSubmissionException(e);
+            }
+        }
+
+        return references;
     }
 
 }

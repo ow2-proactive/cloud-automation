@@ -19,7 +19,7 @@ public class ActionTrigger {
 
     public static final String OCCI_CORE_ID = "occi.core.id";
 
-    public static Map<String, Timer> timers;
+    private static Map<String, Timer> timers;
 
     private static ActionTrigger instance;
 

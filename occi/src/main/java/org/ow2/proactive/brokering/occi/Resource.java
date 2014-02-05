@@ -118,23 +118,19 @@ public class Resource {
     }
 
     public References create() throws Exception {
-        References references = Broker.getInstance().request(category, "create", getAttributes());
-        return references;
+        return Broker.getInstance().request(category, "create", getAttributes());
     }
 
     public References read() throws Exception {
-        References references = Broker.getInstance().request(category, "read", getAttributes());
-        return references;
+        return Broker.getInstance().request(category, "read", getAttributes());
     }
 
     public References update(String action) throws Exception {
-        References references = Broker.getInstance().request(category, "update", action, getAttributes());
-        return references;
+        return Broker.getInstance().request(category, "update", action, getAttributes());
     }
 
     public References delete() throws Exception {
-        References references = Broker.getInstance().request(category, "delete", getAttributes());
-        return references;
+        return Broker.getInstance().request(category, "delete", getAttributes());
     }
 
     public List<Resource> getLinkedResources() {

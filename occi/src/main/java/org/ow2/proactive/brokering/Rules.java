@@ -8,14 +8,13 @@ import java.util.*;
 public class Rules {
     private static final Logger logger = Logger.getLogger(Rules.class.getName());
     private final List<File> rules;
-    private final Timer timer;
 
     /**
      * @param path
      * @param refresh in seconds
      */
     public Rules(File path, long refresh) {
-        timer = new Timer();
+        Timer timer = new Timer();
         rules = new LinkedList<File>();
         timer.schedule(new UpdateTask(path), 0, refresh);
     }

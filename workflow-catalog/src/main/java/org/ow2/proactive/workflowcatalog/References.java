@@ -12,9 +12,11 @@ public class References extends ArrayList<Reference> {
     }
 
     public String getSummary() {
-        StringBuffer summary = new StringBuffer();
-        for (Reference r : this)
-            summary.append(r.toString() + "\n");
+        StringBuilder summary = new StringBuilder();
+        for (Reference r : this) {
+            summary.append(r.toString());
+            summary.append("\n");
+        }
         return summary.toString();
     }
 

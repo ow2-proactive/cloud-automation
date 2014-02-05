@@ -21,7 +21,6 @@ public class Updater {
     private static final Logger logger = Logger.getLogger(Updater.class.getName());
 
     private Occi occi;
-    private Timer timer;
     private SchedulerProxy scheduler;
     private LinkedBlockingQueue<UpdateUnit> queue;
 
@@ -33,8 +32,8 @@ public class Updater {
         this.occi = occi;
         this.scheduler = scheduler;
         this.queue = new LinkedBlockingQueue<UpdateUnit>();
-        this.timer = new Timer();
-        this.timer.schedule(new UpdaterTask(), 0, periodMs);
+        Timer timer = new Timer();
+        timer.schedule(new UpdaterTask(), 0, periodMs);
     }
 
     public synchronized int getUpdateQueueSize() {
@@ -115,7 +114,7 @@ public class Updater {
         }
 
         private void printLogsIfIncorrectExecution(Response r) {
-            if (!HttpUtility.isSuccessStatusCode(r.getStatus()))
+            if (HttpUtility.isNotSuccessStatusCode(r.getStatus()))
                 logger.warn("Error trying to update category instance: " + r);
         }
 

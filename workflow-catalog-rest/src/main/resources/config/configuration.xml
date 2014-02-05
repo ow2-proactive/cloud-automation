@@ -1,5 +1,5 @@
 <configuration>
-    <scheduler username="admin" password="admin" url="http://194.2.202.227/rest/rest"/>
+    <scheduler username="mjost" password="***REMOVED***" url="https://portal.cloud.sophia.inria.fr/SchedulingRest/rest"/>
     <catalog path="config/catalog/" refresh="10"/>
     <updater refresh="10"/>
     <security insecuremode="true"/>

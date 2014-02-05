@@ -27,7 +27,6 @@ public class Broker {
 
     private static Broker instance;
 
-    private SchedulerLoginData loginData;
     private SchedulerProxy scheduler;
     private Updater updater;
     private Catalog catalog;
@@ -40,7 +39,7 @@ public class Broker {
             Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
             Configuration config = (Configuration) jaxbUnmarshaller.unmarshal(configFile);
 
-            loginData = new SchedulerLoginData(
+            SchedulerLoginData loginData = new SchedulerLoginData(
                     config.scheduler.url, config.scheduler.username,
                     config.scheduler.password, config.security.insecuremode);
 

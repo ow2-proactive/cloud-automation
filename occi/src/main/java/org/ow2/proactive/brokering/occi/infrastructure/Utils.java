@@ -20,7 +20,10 @@ public class Utils {
     public static String buildString(Map<String, String> attributes) {
         StringBuffer sb = new StringBuffer();
         for (Map.Entry<String, String> entry : attributes.entrySet()) {
-            sb.append(entry.getKey().replaceAll("\"","") + "=" + entry.getValue().replaceAll("\"","") + ",");
+            sb.append(entry.getKey().replaceAll("\"",""));
+            sb.append("=");
+            sb.append(entry.getValue().replaceAll("\"",""));
+            sb.append(",");
         }
 
         String output = sb.toString();

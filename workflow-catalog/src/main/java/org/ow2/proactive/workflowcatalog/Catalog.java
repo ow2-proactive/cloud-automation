@@ -10,32 +10,30 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Catalog {
     private static final Logger logger = Logger.getLogger(Catalog.class.getName());
     private final Map<File, Workflow> workflows;
-    private final Timer timer;
 
     /**
      * @param path
      * @param refresh in milliseconds
      */
     public Catalog(File path, long refresh) {
-        timer = new Timer();
+        Timer timer = new Timer();
         UpdateTask task = new UpdateTask(path);
         timer.schedule(task, 0, refresh);
         workflows = new ConcurrentHashMap<File, Workflow>();
         task.run();
     }
 
-    public Collection<Workflow> getWorkflows() {
-        return workflows.values();
+    public Collection<Workflow> getWorkflows(WorkflowParameters filter) {
+        ArrayList<Workflow> result = new ArrayList<Workflow>();
+        for (Workflow w: getWorkflows())
+            if (filter.matches(w))
+                result.add(w);
+        logger.info("Matching workflows: " + result.size());
+        return result;
     }
 
-    private void show(String s, Map<String, String> map) {
-        System.out.println(s);
-        Iterator<String> it = map.keySet().iterator();
-        while (it.hasNext()) {
-            String key = it.next();
-            String value = map.get(key);
-            System.out.println(key + " => " + value);
-        }
+    public Collection<Workflow> getWorkflows() {
+        return workflows.values();
     }
 
     private class UpdateTask extends TimerTask {
@@ -78,3 +76,4 @@ public class Catalog {
         }
     }
 }
+

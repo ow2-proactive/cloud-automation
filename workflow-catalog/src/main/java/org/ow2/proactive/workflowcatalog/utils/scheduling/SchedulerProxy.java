@@ -69,7 +69,7 @@ public class SchedulerProxy {
         HttpResponse response = null;
         try {
             response = httpClient.execute(get);
-            if (!HttpUtility.isSuccessStatusCode(response.getStatusLine().getStatusCode()))
+            if (HttpUtility.isNotSuccessStatusCode(response.getStatusLine().getStatusCode()))
                 throw new JobStatusRetrievalException(
                         "Error getting result for " +
                                 "JobId=" + r.getId() + " : " + response.getStatusLine());

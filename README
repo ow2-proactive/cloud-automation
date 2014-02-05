@@ -1,2 +1,26 @@
+#### OCCI Cloud automation
 
-gradle jettyRunWar
+In working progress.
+
+#### Workflow Catalog
+
+The Workflow Catalog (WC) is a tool that provides the user with a list of already written ProActive Scheduling workflow templates, ready to be instantiated and submitted. 
+
+### Compilation
+
+   gradle :workflow-catalog-rest:build
+
+### Tests
+
+   gradle :workflow-catalog-rest:test
+
+### Usage
+
+   gradle :workflow-catalog-rest:jettyRunWar
+
+## Curl examples
+
+   curl -X GET http://localhost:8080/workflow-catalog-rest/api/workflows/
+
+   curl -X POST http://localhost:8080/workflow-catalog-rest/api/workflows/job -d '{"workflowName":"workflow1.xml","variables":{"genericInformation1":"genericInformationValue1", "genericInformation2":"genericInformationValue2", "variable1":"date", "variable2":"not-used"}}'
+

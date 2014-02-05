@@ -107,7 +107,7 @@ public class ActionTriggerTest {
 
         Assert.assertTrue(trueActions == 0);
         Assert.assertTrue(falseActions == 0);
-        Assert.assertTrue(actionTrigger.getTimers().size() == 0);
+        Assert.assertTrue(ActionTrigger.getTimers().size() == 0);
 
         actionTrigger.request(
                 Resource.ACTION_TRIGGER_CATEGORY_NAME, "create",
@@ -116,7 +116,7 @@ public class ActionTriggerTest {
         Thread.sleep(100 * PERIODMS);
         Assert.assertTrue(trueActions > 20);
         Assert.assertTrue(falseActions > 20);
-        Assert.assertTrue(actionTrigger.getTimers().size() == 1);
+        Assert.assertTrue(ActionTrigger.getTimers().size() == 1);
 
         atts = getDeletionActionTriggerAttributes(getUuid(atts));
         actionTrigger.request(
@@ -129,7 +129,7 @@ public class ActionTriggerTest {
 
         Assert.assertTrue(trueActions == 0);
         Assert.assertTrue(falseActions == 0);
-        Assert.assertTrue(actionTrigger.getTimers().size() == 0);
+        Assert.assertTrue(ActionTrigger.getTimers().size() == 0);
 
     }
 
@@ -156,7 +156,7 @@ public class ActionTriggerTest {
         Assert.assertTrue(references.size() == 1);
 
         Reference uniqueReference = references.get(0);
-        Assert.assertTrue(uniqueReference.isSuccessfullySubmitted() == false);
+        Assert.assertTrue(!uniqueReference.isSuccessfullySubmitted());
 
     }
 
@@ -181,7 +181,7 @@ public class ActionTriggerTest {
         Assert.assertTrue(references.size() == 1);
 
         Reference uniqueReference = references.get(0);
-        Assert.assertTrue(uniqueReference.isSuccessfullySubmitted() == false);
+        Assert.assertTrue(!uniqueReference.isSuccessfullySubmitted());
     }
 
     @Test
@@ -203,7 +203,7 @@ public class ActionTriggerTest {
         Assert.assertTrue(references.size() == 1);
 
         Reference uniqueReference = references.get(0);
-        Assert.assertTrue(uniqueReference.isSuccessfullySubmitted() == false);
+        Assert.assertTrue(!uniqueReference.isSuccessfullySubmitted());
         Assert.assertTrue(uniqueReference.getSubmissionMessage().contains("delay"));
         Assert.assertTrue(uniqueReference.getSubmissionMessage().contains("null"));
 

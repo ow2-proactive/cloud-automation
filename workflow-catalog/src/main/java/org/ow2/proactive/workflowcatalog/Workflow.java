@@ -7,7 +7,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -38,11 +37,11 @@ public class Workflow {
     }
 
     public Map<String, String> getVariables() {
-        return new HashMap<String, String> (variables);
+        return new HashMap<String, String>(variables);
     }
 
     public Map<String, String> getGenericInformation() {
-        return new HashMap<String, String> (genericInfo);
+        return new HashMap<String, String>(genericInfo);
     }
 
     public synchronized boolean containsGenericInfo(String key) {
@@ -72,19 +71,72 @@ public class Workflow {
     public synchronized void update() {
         try {
             Document doc = getJobDocument();
-
-            fillElements(doc, "genericInformation", genericInfo);
-            fillElements(doc, "variables", variables);
-
+            extractElementsFromDocument(doc, "genericInformation", genericInfo);
+            extractElementsFromDocument(doc, "variables", variables);
             lastModification = job.lastModified();
-
         } catch (JobParsingException e) {
-            e.printStackTrace();
+            logger.warn("Error updating", e);
         }
     }
 
     public boolean hasChanged() {
         return job.lastModified() != lastModification;
+    }
+
+    public File configure(Map<String, String> attributes)
+            throws IOException, JobParsingException, TransformerException {
+        Document doc = getJobDocument();
+        setJobElementsInDocument(doc, "variables", attributes);
+        setJobElementsInDocument(doc, "genericInformation", attributes);
+        File jobFile = buildJobFile(doc);
+        logger.debug(String.format("Job file: %s", jobFile));
+        return jobFile;
+    }
+
+    private File buildJobFile(Document doc) throws IOException, TransformerException {
+        File jobFile = File.createTempFile("broker_tempjob_", ".xml");
+        jobFile.deleteOnExit();
+        Transformer transformer = TransformerFactory.newInstance().newTransformer();
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        StreamResult result = new StreamResult(jobFile);
+        DOMSource source = new DOMSource(doc);
+        transformer.transform(source, result);
+        return jobFile;
+    }
+
+    private void setJobElementsInDocument(Document doc, String tagName, Map<String,
+            String> attributes) {
+        NodeList vars = doc.getElementsByTagName(tagName).item(0).getChildNodes();
+        for (int n = 0; n < vars.getLength(); n++) {
+            if (vars.item(n).getNodeType() == Node.ELEMENT_NODE) {
+                Element var = (Element) vars.item(n);
+                String varName = var.getAttributes().getNamedItem("name").getNodeValue();
+                if (attributes.get(varName) != null) {
+                    var.setAttribute("value", attributes.get(varName));
+                }
+            }
+        }
+    }
+
+    private void extractElementsFromDocument(Document doc, String tagName, Map<String,
+            String> elements) {
+        try {
+            NodeList vars = doc.getElementsByTagName(tagName).item(0).getChildNodes();
+            for (int n = 0; n < vars.getLength(); n++) {
+                Node var = vars.item(n);
+                if (var.getNodeType() == 1) {
+                    String key = var.getAttributes().getNamedItem("name").getNodeValue();
+                    Node valueNode = var.getAttributes().getNamedItem("value");
+                    String value = null;
+                    if (valueNode != null) {
+                        value = valueNode.getNodeValue();
+                    }
+                    elements.put(key, value);
+                }
+            }
+        } catch (Throwable e) {
+            logger.warn("Error extracting", e);
+        }
     }
 
     private Document getJobDocument() throws JobParsingException {
@@ -103,65 +155,4 @@ public class Workflow {
         return doc;
     }
 
-    private void fillElements(Document doc, String tagName, Map<String, String> elements) {
-        try {
-            NodeList vars = doc.getElementsByTagName(tagName).item(0).getChildNodes();
-            for (int n = 0; n < vars.getLength(); n++) {
-                Node var = vars.item(n);
-                if (var.getNodeType() == 1) {
-                    String key = var.getAttributes().getNamedItem("name").getNodeValue();
-                    Node valueNode = var.getAttributes().getNamedItem("value");
-                    String value = null;
-                    if (valueNode != null) {
-                        value = valueNode.getNodeValue();
-                    }
-                    elements.put(key, value);
-                }
-            }
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
-    }
-
-    public File configure(Map<String, String> attributes)
-            throws IOException, JobParsingException, TransformerException {
-        // Load the job template
-
-        Document doc = getJobDocument();
-
-        // Set job variables from attributes
-        NodeList vars = doc.getElementsByTagName("variables").item(0).getChildNodes();
-        for (int n = 0; n < vars.getLength(); n++) {
-            if (vars.item(n).getNodeType() == Node.ELEMENT_NODE) {
-                Element var = (Element) vars.item(n);
-                String varName = var.getAttributes().getNamedItem("name").getNodeValue();
-                if (attributes.get(varName) != null) {
-                    var.setAttribute("value", attributes.get(varName));
-                }
-            }
-        }
-
-        // Set proper Generic informations from attributes
-        NodeList gis = doc.getElementsByTagName("genericInformation").item(0).getChildNodes();
-        for (int n = 0; n < gis.getLength(); n++) {
-            if (gis.item(n).getNodeType() == Node.ELEMENT_NODE) {
-                Element gi = (Element) gis.item(n);
-                String giName = gi.getAttributes().getNamedItem("name").getNodeValue();
-                if (attributes.get(giName) != null) {
-                    gi.setAttribute("value", attributes.get(giName));
-                }
-            }
-        }
-
-        // Create output Job file
-        File jobFile = File.createTempFile("broker_tempjob_", ".xml");
-        //jobFile.deleteOnExit(); // TODO Remove comment after debugging
-        Transformer transformer = TransformerFactory.newInstance().newTransformer();
-        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-        StreamResult result = new StreamResult(jobFile);
-        DOMSource source = new DOMSource(doc);
-        transformer.transform(source, result);
-
-        return jobFile;
-    }
 }

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <job xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:proactive:jobdescriptor:3.1"
      xsi:schemaLocation="urn:proactive:jobdescriptor:3.1 http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/3.1/schedulerjob.xsd"
-     name="Workflow1">
+     name="Workflow2">
+    <description>Test of 8 tasks with variable durations and dependencies</description>
     <variables>
         <variable name="variable1"/>
         <variable name="variable2"/>
     </variables>
-    <description>Job example number 1</description>
     <genericInformation>
         <info name="genericInformation1" value="genericInformationValue1"/>
         <info name="genericInformation2" value="genericInformationValue2"/>

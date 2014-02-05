@@ -49,9 +49,7 @@ public class OcciWorkflowUtils {
             return false;
         String[] values = set.replaceAll(" ", "").toLowerCase().split(",");
         Arrays.sort(values);
-        if (value == null || Arrays.binarySearch(values, value.toLowerCase()) < 0)
-            return false;
-        return true;
+        return !(value == null || Arrays.binarySearch(values, value.toLowerCase()) < 0);
     }
 
 

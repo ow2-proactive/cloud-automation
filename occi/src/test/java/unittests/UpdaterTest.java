@@ -123,8 +123,7 @@ public class UpdaterTest {
     }
 
     private Map<String, String> getDefaultComputeAttributes() {
-        Map<String, String> map = new HashMap<String, String>();
-        return map;
+        return new HashMap<String, String>();
     }
 
     private void waitUntilUpdaterReacts() throws InterruptedException {
