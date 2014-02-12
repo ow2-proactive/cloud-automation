@@ -107,7 +107,9 @@ project(':occi') {
 project(':monitoring') {
 
     dependencies {
-        compile project(':occi')
+        compile project(':workflow-catalog')
+        compile 'javax.json:javax.json-api:1.0'
+        testCompile 'org.glassfish:javax.json:1.0.2'
     }
 }
 
