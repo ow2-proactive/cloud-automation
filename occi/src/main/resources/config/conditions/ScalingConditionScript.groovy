@@ -1,4 +1,4 @@
-package config.triggering
+package config.conditions
 
 /*
 import org.ow2.proactive.brokering.monitoring.InfrastructureMonitoring

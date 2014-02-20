@@ -8,63 +8,87 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "configuration")
 public class Configuration {
     @XmlElement
-    Scheduler scheduler;
+    public Scheduler scheduler;
 
     @XmlElement
-    Catalog catalog;
+    public Catalog catalog;
 
     @XmlElement
-    Rules rules;
+    public Rules rules;
 
     @XmlElement
-    Security security;
+    public Actions actions;
 
     @XmlElement
-    OcciUpdater updater;
+    public Conditions conditions;
+
+    @XmlElement
+    public Security security;
+
+    @XmlElement
+    public OcciUpdater updater;
 
     @Override
     public String toString() {
         String result = "Scheduler : " + scheduler.url + " (" + scheduler.username + " / " + scheduler.password + ")\n";
         result += "Catalog : " + catalog.path + "\n";
+        result += "Actions : " + actions.path + "\n";
+        result += "Conditions : " + conditions.path + "\n";
         result += "Rules : " + rules.path + "\n";
         result += "Security : " + security.insecuremode + "\n";
         return result;
     }
 
-    static class Security {
+    public static class Security {
         @XmlAttribute
-        Boolean insecuremode;
+        public Boolean insecuremode;
     }
 
-    static class Scheduler {
+    public static class Scheduler {
         @XmlAttribute
-        String username;
+        public String username;
 
         @XmlAttribute
-        String password;
+        public String password;
 
         @XmlAttribute
-        String url;
+        public String url;
     }
 
-    static class Catalog {
+    public static class Catalog {
         @XmlAttribute
-        String path;
+        public String path;
 
         @XmlAttribute
-        long refresh;
+        public long refresh;
     }
 
-    static class Rules {
+    public static class Rules {
         @XmlAttribute
-        String path;
+        public String path;
 
         @XmlAttribute
-        long refresh;
+        public long refresh;
     }
 
-    static class OcciUpdater {
+    public static class Actions {
         @XmlAttribute
-        long refresh;
+        public String path;
+
+        @XmlAttribute
+        public long refresh;
+    }
+
+    public static class Conditions {
+        @XmlAttribute
+        public String path;
+
+        @XmlAttribute
+        public long refresh;
+    }
+
+    public static class OcciUpdater {
+        @XmlAttribute
+        public long refresh;
     }
 }

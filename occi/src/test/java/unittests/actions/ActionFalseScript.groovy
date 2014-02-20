@@ -1,12 +1,12 @@
-package unittests.triggering
+package unittests.actions
 
 import org.ow2.proactive.brokering.triggering.Action
 import unittests.ActionTriggerTest
 
-public class ActionTrueScript implements Action {
+public class ActionFalseScript implements Action {
 
     @Override
     void execute(Map<String, String> args) {
-        ActionTriggerTest.addOneTrueActionExecuted();
+        ActionTriggerTest.addOneFalseActionExecuted();
     }
 }

@@ -5,14 +5,17 @@ import groovy.lang.GroovyRuntimeException;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.log4j.Logger;
+import org.ow2.proactive.brokering.Scripts;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Map;
 
 public class ScriptUtils {
 
     private static final Logger logger = Logger.getLogger(ScriptUtils.class.getName());
 
-    public static Class getEncodedScriptAsClass(Map<String, String> args, String key)
+    public static Class getEncodedScriptAsClass(Map<String, String> args, Scripts scripts, String key)
             throws ScriptException {
 
         GroovyClassLoader gcl = new GroovyClassLoader();
@@ -21,10 +24,10 @@ public class ScriptUtils {
         if (argumentScript == null)
             return null;
 
-        if (isClassName(argumentScript))
+        if (isFileName(argumentScript))
             try {
-                return Class.forName(argumentScript);
-            } catch (ClassNotFoundException e) {
+                return scripts.getScriptAsClass(argumentScript);
+            } catch (IOException e) {
                 throw new ScriptException(e);
             }
         else if (encodedScriptIsNotEmpty(argumentScript))
@@ -44,7 +47,7 @@ public class ScriptUtils {
         return (!encodedScript.isEmpty());
     }
 
-    private static boolean isClassName(String className) {
+    private static boolean isFileName(String className) {
         return (className.contains("."));
     }
 

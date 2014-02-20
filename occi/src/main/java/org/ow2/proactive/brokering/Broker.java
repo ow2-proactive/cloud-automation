@@ -4,6 +4,7 @@ import groovy.lang.GroovyClassLoader;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.ow2.proactive.brokering.occi.Resource;
+import org.ow2.proactive.brokering.occi.categories.Utils;
 import org.ow2.proactive.brokering.occi.categories.trigger.ActionTrigger;
 import org.ow2.proactive.workflowcatalog.Catalog;
 import org.ow2.proactive.workflowcatalog.Reference;
@@ -11,10 +12,7 @@ import org.ow2.proactive.workflowcatalog.References;
 import org.ow2.proactive.workflowcatalog.Workflow;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerLoginData;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerProxy;
-
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
@@ -35,10 +33,8 @@ public class Broker {
 
     private Broker() {
         try {
-            File configFile = new File(Broker.class.getResource("/config/configuration.xml").getFile());
-            JAXBContext jaxbContext = JAXBContext.newInstance(Configuration.class);
-            Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-            Configuration config = (Configuration) jaxbUnmarshaller.unmarshal(configFile);
+
+            Configuration config = Utils.getConfiguration();
 
             SchedulerLoginData loginData = new SchedulerLoginData(
                     config.scheduler.url, config.scheduler.username,
@@ -46,23 +42,17 @@ public class Broker {
 
             scheduler = new SchedulerProxy(loginData);
 
-            File catalogPath = new File(config.catalog.path);
-            if (!catalogPath.isDirectory()) {
-                catalogPath = new File(Broker.class.getResource("/config/catalog").getFile());
-            }
-
-            File rulesPath = new File(config.rules.path);
-            if (!rulesPath.isDirectory()) {
-                rulesPath = new File(Broker.class.getResource("/config/rules").getFile());
-            }
+            File catalogPath = getPath(config.catalog.path, "/config/catalog");
+            File rulesPath = getPath(config.rules.path, "/config/rules");
 
             catalog = new Catalog(catalogPath, config.catalog.refresh * 1000);
             rules = new Rules(rulesPath, config.rules.refresh * 1000);
             updater = new Updater(new SchedulerProxy(loginData), config.updater.refresh * 1000);
 
-
         } catch (JAXBException e) {
-            e.printStackTrace();
+
+            logger.error("Could not initialize server", e);
+
         }
     }
 
@@ -104,6 +94,14 @@ public class Broker {
     //
     ///////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////
+
+    private File getPath(String path, String defaultPath) {
+        File c = new File(path);
+        if (!c.isDirectory()) {
+            c = new File(Broker.class.getResource(defaultPath).getFile());
+        }
+        return c;
+    }
 
     private UUID getUuid(Map<String, String> attributes) {
         return UUID.fromString(attributes.get("occi.core.id"));
@@ -163,7 +161,7 @@ public class Broker {
     private int applyRules(Map<String, String> attributes, Rules rules) {
         int count = 0;
 
-        List<File> ruleFiles = rules.getRules();
+        List<File> ruleFiles = rules.getScripts();
         GroovyClassLoader gcl = new GroovyClassLoader();
         for (File file : ruleFiles) {
             try {

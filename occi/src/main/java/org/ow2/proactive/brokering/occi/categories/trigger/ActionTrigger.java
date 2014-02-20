@@ -1,14 +1,18 @@
 package org.ow2.proactive.brokering.occi.categories.trigger;
 
 import org.apache.log4j.Logger;
+import org.ow2.proactive.brokering.Configuration;
+import org.ow2.proactive.brokering.occi.categories.Utils;
+import org.ow2.proactive.brokering.triggering.*;
 import org.ow2.proactive.workflowcatalog.Reference;
 import org.ow2.proactive.workflowcatalog.References;
 import org.ow2.proactive.brokering.occi.Attribute;
-import org.ow2.proactive.brokering.triggering.ActionExecutor;
-import org.ow2.proactive.brokering.triggering.ConditionChecker;
-import org.ow2.proactive.brokering.triggering.ScriptException;
+
+import javax.xml.bind.JAXBException;
+
 import static org.ow2.proactive.brokering.occi.Resource.*;
 
+import java.io.File;
 import java.util.*;
 
 public class ActionTrigger {
@@ -25,17 +29,42 @@ public class ActionTrigger {
     public static final String OCCI_CORE_ID = "occi.core.id";
 
     private static Map<String, Timer> timers;
+    private static Actions actions;
+    private static Conditions conditions;
+
+    private File getPath(String path, String defaultPath) {
+        File c = new File(path);
+        if (!c.isDirectory()) {
+            c = new File(ActionTrigger.class.getResource(defaultPath).getFile());
+        }
+        return c;
+    }
 
     private static ActionTrigger instance;
 
-    private ActionTrigger() {
+    private ActionTrigger(Configuration config) {
         timers = new HashMap<String, Timer>();
+        actions = new Actions(getPath(config.actions.path, "/config/actions"), config.actions.refresh);
+        conditions = new Conditions(getPath(config.conditions.path, "/config/conditions"), config.conditions.refresh);
+    }
+    private ActionTrigger() throws JAXBException {
+        this(Utils.getConfiguration());
     }
 
     public static ActionTrigger getInstance() {
-        // TODO : Double check locking
         if (instance == null) {
-            instance = new ActionTrigger();
+            try {
+                instance = new ActionTrigger();
+            } catch (JAXBException e) {
+                logger.error("Cannot create action trigger", e);
+            }
+        }
+        return instance;
+    }
+
+    public static ActionTrigger getInstance(Configuration config) {
+        if (instance == null) {
+            instance = new ActionTrigger(config);
         }
         return instance;
     }
@@ -94,7 +123,7 @@ public class ActionTrigger {
         String uuid = null;
 
         try {
-            conditionChecker = new ConditionChecker(attributes);
+            conditionChecker = new ConditionChecker(attributes, actions, conditions);
             delay = getDelay(attributes);
             uuid = getUuid(attributes);
         } catch (ScriptException e) {
@@ -117,7 +146,7 @@ public class ActionTrigger {
         ActionExecutor actionExecutor = null;
         String uuid = null;
         try {
-            actionExecutor = new ActionExecutor(attributes);
+            actionExecutor = new ActionExecutor(attributes, actions);
             uuid = getUuid(attributes);
         } catch (ScriptException e) {
             return Reference.buildActionTriggerFailedReference(

@@ -2,7 +2,9 @@ package unittests;
 
 import junit.framework.Assert;
 import org.apache.commons.io.FileUtils;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.ow2.proactive.brokering.Configuration;
 import org.ow2.proactive.workflowcatalog.Reference;
 import org.ow2.proactive.workflowcatalog.References;
 import org.ow2.proactive.brokering.occi.Resource;
@@ -16,9 +18,9 @@ import java.util.Map;
 import java.util.UUID;
 
 /*
-import unittests.triggering.ActionFalseScript;
-import unittests.triggering.ActionTrueScript;
-import unittests.triggering.ConditionScript;
+import unittests.actions.ActionFalseScript;
+import unittests.actions.ActionTrueScript;
+import unittests.conditions.ConditionScript;
 */
 
 public class ActionTriggerTest {
@@ -27,6 +29,18 @@ public class ActionTriggerTest {
 
     private static Integer trueActions = 0;
     private static Integer falseActions = 0;
+
+    @BeforeClass
+    public static void before() throws Exception {
+        Configuration config = new Configuration();
+        config.actions = new Configuration.Actions();
+        config.actions.path = ActionTrigger.class.getResource("/actions/").getFile();
+        config.actions.refresh = 10;
+        config.conditions = new Configuration.Conditions();
+        config.conditions.path = ActionTrigger.class.getResource("/conditions/").getFile();
+        config.conditions.refresh = 10;
+        ActionTrigger.getInstance(config);
+    }
 
     @Test
     public void loadBalancerStartScheduleOnce_EncodedScripts_Test() throws Exception {
@@ -38,19 +52,17 @@ public class ActionTriggerTest {
 
     }
 
-    /*
     @Test
-    public void loadBalancerStartScheduleOnce_ClassnameScripts_Test() throws Exception {
+    public void loadBalancerStartScheduleOnce_FilenameScripts_Test() throws Exception {
 
         Map<String, String> loadBalancerAttributes =
                 getCreationScheduleOnceActionTriggerAttributes();
 
-        loadBalancerAttributes.put(ActionTrigger.OCCI_MONITORING_ACTION, ActionTrueScript.class.getName());
+        loadBalancerAttributes.put(ActionTrigger.OCCI_MONITORING_ACTION, "ActionTrueScript.groovy-script");
 
         loadBalancerStartScheduleOnce(loadBalancerAttributes);
 
     }
-    */
 
     private void loadBalancerStartScheduleOnce(Map<String, String> atts) throws Exception {
 
@@ -79,19 +91,17 @@ public class ActionTriggerTest {
         loadBalancerStart_Test(loadBalancerAttributes);
     }
 
-    /*
     @Test
-    public void loadBalancerStart_ClassnameScripts_Test() throws Exception {
+    public void loadBalancerStart_FilenameScripts_Test() throws Exception {
         String uuid = UUID.randomUUID().toString();
         Map<String, String> atts = getCreationActionTriggerAttributes(uuid);
 
-        atts.put(ActionTrigger.OCCI_CONDITION_SCRIPT, ConditionScript.class.getName());
-        atts.put(ActionTrigger.OCCI_MONITORING_FALSEACTION, ActionFalseScript.class.getName());
-        atts.put(ActionTrigger.OCCI_MONITORING_TRUEACTION, ActionTrueScript.class.getName());
+        atts.put(ActionTrigger.OCCI_CONDITION_SCRIPT, "ConditionScript.groovy-script");
+        atts.put(ActionTrigger.OCCI_MONITORING_FALSEACTION, "ActionFalseScript.groovy-script");
+        atts.put(ActionTrigger.OCCI_MONITORING_TRUEACTION, "ActionTrueScript.groovy-script");
 
         loadBalancerStart_Test(atts);
     }
-    */
 
 
     private void loadBalancerStart_Test(Map<String, String> atts) throws Exception {
@@ -147,7 +157,7 @@ public class ActionTriggerTest {
 
         loadBalancerAttributes.put(
                 ActionTrigger.OCCI_MONITORING_ACTION,
-                getScriptAsString("/triggering/ActionTrueScript.groovy-script")); // overwritten
+                getScriptAsString("/actions/ActionTrueScript.groovy-script")); // overwritten
 
         References references = actionTrigger.request(
                 Resource.ACTION_TRIGGER_CATEGORY_NAME, "create",
@@ -172,7 +182,7 @@ public class ActionTriggerTest {
 
         atts.put(
                 ActionTrigger.OCCI_MONITORING_TRUEACTION,
-                getScriptAsString("/triggering/ActionTrueScript.groovy-script")); // overwriten
+                getScriptAsString("/actions/ActionTrueScript.groovy-script")); // overwriten
 
         References references = actionTrigger.request(
                 Resource.ACTION_TRIGGER_CATEGORY_NAME, "create",
@@ -215,7 +225,7 @@ public class ActionTriggerTest {
         Map<String, String> loadBalancerAttributes = new HashMap<String, String>();
         loadBalancerAttributes.put(
                 ActionTrigger.OCCI_MONITORING_ACTION,
-                getScriptAsEncodedString("/triggering/ActionTrueScript.groovy-script"));
+                getScriptAsEncodedString("/actions/ActionTrueScript.groovy-script"));
         loadBalancerAttributes.put(
                 ActionTrigger.OCCI_CORE_ID,
                 UUID.randomUUID().toString());
@@ -232,11 +242,11 @@ public class ActionTriggerTest {
         Map<String, String> loadBalancerAttributes = new HashMap<String, String>();
         loadBalancerAttributes.put(ActionTrigger.OCCI_CORE_ID, uuid);
         loadBalancerAttributes.put(ActionTrigger.OCCI_CONDITION_SCRIPT,
-                                   getScriptAsEncodedString("/triggering/ConditionScript.groovy-script"));      // half times true, half times false
+                                   getScriptAsEncodedString("/conditions/ConditionScript.groovy-script"));      // half times true, half times false
         loadBalancerAttributes.put(ActionTrigger.OCCI_MONITORING_FALSEACTION,
-                                   getScriptAsEncodedString("/triggering/ActionFalseScript.groovy-script"));
+                                   getScriptAsEncodedString("/actions/ActionFalseScript.groovy-script"));
         loadBalancerAttributes.put(ActionTrigger.OCCI_MONITORING_TRUEACTION,
-                                   getScriptAsEncodedString("/triggering/ActionTrueScript.groovy-script"));
+                                   getScriptAsEncodedString("/actions/ActionTrueScript.groovy-script"));
         loadBalancerAttributes.put(ActionTrigger.OCCI_MONITORING_PERIODMS, PERIODMS.toString());
         return loadBalancerAttributes;
     }

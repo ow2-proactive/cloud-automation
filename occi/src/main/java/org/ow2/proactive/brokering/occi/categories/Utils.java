@@ -1,10 +1,15 @@
 package org.ow2.proactive.brokering.occi.categories;
 
 import org.apache.log4j.Logger;
+import org.ow2.proactive.brokering.Configuration;
 import org.ow2.proactive.brokering.occi.Attribute;
 
 import javax.json.Json;
 import javax.json.JsonObject;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+import java.io.File;
 import java.io.StringReader;
 import java.util.HashMap;
 import java.util.List;
@@ -103,6 +108,14 @@ public class Utils {
         for (String key : json.keySet())
             o.put(key, json.getString(key));
         return o;
+    }
+
+
+    public static Configuration getConfiguration() throws JAXBException {
+        File configFile = new File(Utils.class.getResource("/config/configuration.xml").getFile());
+        JAXBContext jaxbContext = JAXBContext.newInstance(Configuration.class);
+        Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
+        return (Configuration) jaxbUnmarshaller.unmarshal(configFile);
     }
 
 }

@@ -11,9 +11,9 @@ public class ActionExecutor extends Thread {
     private Class action;
     private Map<String, String> args;
 
-    public ActionExecutor(Map<String, String> args) throws ScriptException {
+    public ActionExecutor(Map<String, String> args, Actions actions) throws ScriptException {
         this.args = args;
-        this.action = ScriptUtils.getEncodedScriptAsClass(args, ActionTrigger.OCCI_MONITORING_ACTION);
+        this.action = ScriptUtils.getEncodedScriptAsClass(args, actions, ActionTrigger.OCCI_MONITORING_ACTION);
     }
 
     private void executeAction(Class script) {

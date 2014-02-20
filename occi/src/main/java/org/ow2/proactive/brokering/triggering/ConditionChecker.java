@@ -18,14 +18,15 @@ public class ConditionChecker extends TimerTask {
     private Class actionCaseTrue;
     private Class actionCaseFalse;
 
-    public ConditionChecker(Map<String, String> args) throws ScriptException {
+    public ConditionChecker(Map<String, String> args, Actions actions, Conditions conditions) throws ScriptException {
         try {
-            conditionScript = ScriptUtils.getEncodedScriptAsClass(args, OCCI_CONDITION_SCRIPT);
-            actionCaseTrue = ScriptUtils.getEncodedScriptAsClass(args, OCCI_MONITORING_TRUEACTION);
+            conditionScript = ScriptUtils.getEncodedScriptAsClass(args, conditions, OCCI_CONDITION_SCRIPT);
+            actionCaseTrue = ScriptUtils.getEncodedScriptAsClass(args, actions, OCCI_MONITORING_TRUEACTION);
             if (isScriptProvided(args, OCCI_MONITORING_FALSEACTION))
-                actionCaseFalse = ScriptUtils.getEncodedScriptAsClass(args, OCCI_MONITORING_FALSEACTION);
+                actionCaseFalse = ScriptUtils.getEncodedScriptAsClass(args, actions, OCCI_MONITORING_FALSEACTION);
         } catch (ScriptException e) {
             logger.info("Bad script", e);
+            throw e;
         }
 
         this.args = args;
