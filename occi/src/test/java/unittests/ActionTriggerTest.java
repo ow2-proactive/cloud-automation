@@ -6,7 +6,7 @@ import org.junit.Test;
 import org.ow2.proactive.workflowcatalog.Reference;
 import org.ow2.proactive.workflowcatalog.References;
 import org.ow2.proactive.brokering.occi.Resource;
-import org.ow2.proactive.brokering.occi.infrastructure.ActionTrigger;
+import org.ow2.proactive.brokering.occi.categories.trigger.ActionTrigger;
 import org.ow2.proactive.brokering.triggering.ScriptUtils;
 
 import java.io.File;

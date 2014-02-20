@@ -40,6 +40,8 @@ public class OcciWorkflowUtils {
                 return false;
             }
         }
+
+        logger.debug(workflow.getName() + " : Matching");
         return true;
     }
 

@@ -4,7 +4,7 @@ import org.ow2.proactive.brokering.Rule
 
 public class Vcloud implements Rule {
     boolean match(Map<String, String> attributes) {
-        return true; //(attributes.get("sla").contains("gold") || attributes.get("sla").contains("silver"));
+        return "vcloud".equalsIgnoreCase(attributes.get("rule"));
     }
 
     Map<String, String> apply(Map<String, String> attributes) {

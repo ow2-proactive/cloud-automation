@@ -1,7 +1,7 @@
 package org.ow2.proactive.brokering.triggering;
 
 import org.apache.log4j.Logger;
-import org.ow2.proactive.brokering.occi.infrastructure.ActionTrigger;
+import org.ow2.proactive.brokering.occi.categories.trigger.ActionTrigger;
 import java.util.Map;
 
 public class ActionExecutor extends Thread {

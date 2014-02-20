@@ -1,21 +1,26 @@
 package org.ow2.proactive.brokering.occi.categories.trigger;
 
+import org.apache.log4j.Logger;
 import org.ow2.proactive.workflowcatalog.Reference;
 import org.ow2.proactive.workflowcatalog.References;
 import org.ow2.proactive.brokering.occi.Attribute;
 import org.ow2.proactive.brokering.triggering.ActionExecutor;
 import org.ow2.proactive.brokering.triggering.ConditionChecker;
 import org.ow2.proactive.brokering.triggering.ScriptException;
+import static org.ow2.proactive.brokering.occi.Resource.*;
 
 import java.util.*;
 
 public class ActionTrigger {
+
+    private static Logger logger = Logger.getLogger(ActionTrigger.class);
 
     public static final String OCCI_MONITORING_PERIODMS = "occi.monitoring.periodms";
     public static final String OCCI_CONDITION_SCRIPT = "occi.monitoring.condition";
     public static final String OCCI_MONITORING_TRUEACTION = "occi.monitoring.trueaction";
     public static final String OCCI_MONITORING_FALSEACTION = "occi.monitoring.falseaction";
     public static final String OCCI_MONITORING_ACTION = "occi.monitoring.action";
+    public static final String OCCI_MONITORING_METADATA = "occi.monitoring.metadata";
 
     public static final String OCCI_CORE_ID = "occi.core.id";
 
@@ -45,6 +50,7 @@ public class ActionTrigger {
         attributeList.add(new Attribute(OCCI_MONITORING_ACTION, mutable, !required));
         attributeList.add(new Attribute(OCCI_MONITORING_FALSEACTION, mutable, !required));
         attributeList.add(new Attribute(OCCI_MONITORING_TRUEACTION, mutable, !required));
+        attributeList.add(new Attribute(OCCI_MONITORING_METADATA, mutable, !required));
 
         return attributeList;
     }
@@ -60,13 +66,13 @@ public class ActionTrigger {
             Map<String, String> attributes) {
 
         References references = new References();
-        if ("create".equalsIgnoreCase(operation)) {
+        if (OP_CREATE.equalsIgnoreCase(operation)) {
             if ("scheduleonce".equalsIgnoreCase(action)) {
                 references.add(createOneShotActionTrigger(attributes));
             } else {
                 references.add(createPeriodicActionTrigger(attributes));
             }
-        } else if ("update".equalsIgnoreCase(operation)) {
+        } else if (OP_UPDATE.equalsIgnoreCase(operation)) {
             if ("delete".equalsIgnoreCase(action)) {
                 references.add(removeActionTrigger(attributes));
             }

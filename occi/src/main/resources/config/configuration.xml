@@ -1,8 +1,8 @@
 <configuration>
-    <scheduler username="admin" password="admin" url="http://194.2.202.227/rest/rest"/>
+    <scheduler username="demo" password="demo" url="http://localhost:8080/rest/rest"/>
     <catalog path="config/catalog/" refresh="10"/>
     <rules path="config/rules/" refresh="10"/>
-    <updater refresh="10"/>
+    <updater refresh="50"/>
     <security insecuremode="true"/>
     <!--<option name="multiJobSelectionMode" value="false"/>-->
 </configuration>

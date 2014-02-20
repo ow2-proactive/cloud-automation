@@ -1,1 +1,3 @@
 Use JAR-API.
+Make trigger persistent (restart using database information if broker is re-started).
+

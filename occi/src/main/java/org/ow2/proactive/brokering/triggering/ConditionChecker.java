@@ -3,10 +3,11 @@ package org.ow2.proactive.brokering.triggering;
 
 import org.apache.log4j.Logger;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TimerTask;
 
-import static org.ow2.proactive.brokering.occi.infrastructure.ActionTrigger.*;
+import static org.ow2.proactive.brokering.occi.categories.trigger.ActionTrigger.*;
 
 public class ConditionChecker extends TimerTask {
 
@@ -18,12 +19,16 @@ public class ConditionChecker extends TimerTask {
     private Class actionCaseFalse;
 
     public ConditionChecker(Map<String, String> args) throws ScriptException {
-        conditionScript = ScriptUtils.getEncodedScriptAsClass(args, OCCI_CONDITION_SCRIPT);
-        actionCaseTrue = ScriptUtils.getEncodedScriptAsClass(args, OCCI_MONITORING_TRUEACTION);
-        actionCaseFalse = ScriptUtils.getEncodedScriptAsClass(args, OCCI_MONITORING_FALSEACTION);
+        try {
+            conditionScript = ScriptUtils.getEncodedScriptAsClass(args, OCCI_CONDITION_SCRIPT);
+            actionCaseTrue = ScriptUtils.getEncodedScriptAsClass(args, OCCI_MONITORING_TRUEACTION);
+            if (isScriptProvided(args, OCCI_MONITORING_FALSEACTION))
+                actionCaseFalse = ScriptUtils.getEncodedScriptAsClass(args, OCCI_MONITORING_FALSEACTION);
+        } catch (ScriptException e) {
+            logger.info("Bad script", e);
+        }
+
         this.args = args;
-        if (conditionScript == null || actionCaseTrue == null)
-            throw new ScriptException("Condition and True scripts must be provided");
     }
 
     @Override
@@ -37,7 +42,7 @@ public class ConditionChecker extends TimerTask {
     private Boolean checkCondition(Class script) {
         try {
             Condition cond = (Condition) script.newInstance();
-            return cond.evaluate(args);
+            return cond.evaluate(new HashMap<String,String>(args));
         } catch (Throwable e) {
             logger.warn("Error when checking condition: " + script, e);
             return false;
@@ -50,10 +55,14 @@ public class ConditionChecker extends TimerTask {
 
         try {
             Action cond = (Action) script.newInstance();
-            cond.execute(args);
+            cond.execute(new HashMap<String, String>(args));
         } catch (Throwable e) {
             logger.warn("Error when executing action: " + script, e);
         }
+    }
+
+    private boolean isScriptProvided(Map<String, String> args, String key) {
+        return args.containsKey(key) && !args.get(key).isEmpty();
     }
 
 }

@@ -9,7 +9,7 @@ import org.ow2.proactive.brokering.occi.Database;
 import org.ow2.proactive.brokering.occi.OcciServer;
 import org.ow2.proactive.brokering.occi.Resource;
 import org.ow2.proactive.brokering.occi.api.Occi;
-import org.ow2.proactive.brokering.occi.infrastructure.Utils;
+import org.ow2.proactive.brokering.occi.categories.Utils;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerProxy;
 
 import javax.json.JsonObject;

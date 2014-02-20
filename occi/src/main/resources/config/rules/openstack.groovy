@@ -4,7 +4,7 @@ import org.ow2.proactive.brokering.Rule
 
 public class OpenStack implements Rule {
     boolean match(Map<String, String> attributes) {
-        return false; //attributes.get("sla").equalsIgnoreCase("bronze");
+        return "openstack".equalsIgnoreCase(attributes.get("rule"));
     }
 
     Map<String, String> apply(Map<String, String> attributes) {

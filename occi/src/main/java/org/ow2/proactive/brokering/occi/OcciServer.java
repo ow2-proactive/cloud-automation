@@ -3,7 +3,7 @@ package org.ow2.proactive.brokering.occi;
 import org.apache.log4j.Logger;
 import org.ow2.proactive.workflowcatalog.References;
 import org.ow2.proactive.brokering.occi.api.Occi;
-import org.ow2.proactive.brokering.occi.infrastructure.Utils;
+import org.ow2.proactive.brokering.occi.categories.Utils;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;

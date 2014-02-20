@@ -2,14 +2,20 @@ package org.ow2.proactive.brokering.occi;
 
 import org.apache.log4j.Logger;
 import org.ow2.proactive.brokering.Broker;
-import org.ow2.proactive.brokering.occi.infrastructure.*;
+import org.ow2.proactive.brokering.occi.categories.iaas.*;
+import org.ow2.proactive.brokering.occi.categories.saas.Platform;
+import org.ow2.proactive.brokering.occi.categories.trigger.ActionTrigger;
+import org.ow2.proactive.brokering.occi.categories.saas.Instruction;
 import org.ow2.proactive.workflowcatalog.References;
-import org.ow2.proactive.workflowcatalog.Reference;
 
 import java.net.URL;
 import java.util.*;
 
 public class Resource {
+    public static final String OP_CREATE = "create";
+    public static final String OP_READ = "read";
+    public static final String OP_UPDATE = "update";
+    public static final String OP_DELETE = "delete";
 
     public static final String COMPUTE_CATEGORY_NAME = "compute";
     public static final String STORAGE_CATEGORY_NAME = "storage";
@@ -118,19 +124,19 @@ public class Resource {
     }
 
     public References create() throws Exception {
-        return Broker.getInstance().request(category, "create", getAttributes());
+        return Broker.getInstance().request(category, OP_CREATE, getAttributes());
     }
 
     public References read() throws Exception {
-        return Broker.getInstance().request(category, "read", getAttributes());
+        return Broker.getInstance().request(category, OP_READ, getAttributes());
     }
 
     public References update(String action) throws Exception {
-        return Broker.getInstance().request(category, "update", action, getAttributes());
+        return Broker.getInstance().request(category, OP_UPDATE, action, getAttributes());
     }
 
     public References delete() throws Exception {
-        return Broker.getInstance().request(category, "delete", getAttributes());
+        return Broker.getInstance().request(category, OP_DELETE, getAttributes());
     }
 
     public List<Resource> getLinkedResources() {
@@ -146,11 +152,6 @@ public class Resource {
             }
         }
         return result;
-    }
-
-
-    private void addResourceToTheUpdateQueue(Reference jobReference, Resource resource) {
-        //
     }
 
 }

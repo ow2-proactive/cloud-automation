@@ -1,9 +1,10 @@
 package org.ow2.proactive.brokering;
 
 import groovy.lang.GroovyClassLoader;
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.ow2.proactive.brokering.occi.Resource;
-import org.ow2.proactive.brokering.occi.infrastructure.ActionTrigger;
+import org.ow2.proactive.brokering.occi.categories.trigger.ActionTrigger;
 import org.ow2.proactive.workflowcatalog.Catalog;
 import org.ow2.proactive.workflowcatalog.Reference;
 import org.ow2.proactive.workflowcatalog.References;
@@ -121,12 +122,16 @@ public class Broker {
                 int appliedRules = this.applyRules(attributes, rules);
                 //              if (workflow.isDeepCompliant(attributes))
                 File jobFile = workflow.configure(attributes);
+
                 logger.debug("Generated job file : " + jobFile.getAbsolutePath());
+                logger.debug(FileUtils.readFileToString(jobFile));
+
                 String output = scheduler.submitJob(jobFile);
                 Reference ref = Reference.buildJobReference(output, workflow.getName());
                 references.add(ref);
-                if (ref.isSuccessfullySubmitted())
-                    logger.info("Workflow '" + workflow + "' configured (" + appliedRules + " rules applied) and submitted (Job ID=" + ref.getId() + ")");
+                logger.info(
+                        String.format("Workflow '%s' configured ('%d' rules applied) and submitted (Job ID='%s')",
+                                      workflow, appliedRules, ref.getId()));
             }
         }
 
@@ -140,7 +145,10 @@ public class Broker {
             Map<String, String> attributes) {
 
         if (Resource.ACTION_TRIGGER_CATEGORY_NAME.equalsIgnoreCase(category)) {
-            return ActionTrigger.getInstance().request(category, operation, action, attributes);
+            int appliedRules = this.applyRules(attributes, rules);
+            References references = ActionTrigger.getInstance().request(category, operation, action, attributes);
+            logger.info("Action trigger configured: (" + appliedRules + " rules applied)");
+            return references;
         }
         return new References();
     }
@@ -164,6 +172,7 @@ public class Broker {
                 if (rule.match(attributes)) {
                     rule.apply(attributes);
                     count++;
+                    logger.debug("Applying rule: " + rule.getClass().getName());
                 }
             } catch (Throwable e) {
                 e.printStackTrace();

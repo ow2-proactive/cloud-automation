@@ -4,7 +4,7 @@ import org.apache.log4j.Logger;
 import org.ow2.proactive.brokering.occi.OcciServer;
 import org.ow2.proactive.brokering.occi.Resource;
 import org.ow2.proactive.brokering.occi.api.Occi;
-import org.ow2.proactive.brokering.occi.infrastructure.Utils;
+import org.ow2.proactive.brokering.occi.categories.Utils;
 import org.ow2.proactive.workflowcatalog.Reference;
 import org.ow2.proactive.workflowcatalog.utils.HttpUtility;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.JobNotFinishedException;
