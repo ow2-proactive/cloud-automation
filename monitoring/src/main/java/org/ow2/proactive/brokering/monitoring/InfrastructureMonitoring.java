@@ -1,5 +1,8 @@
 package org.ow2.proactive.brokering.monitoring;
 
+import org.ow2.proactive.brokering.monitoring.MonitoringException;
+import org.ow2.proactive.brokering.monitoring.MonitoringProxy;
+
 import javax.json.*;
 import java.io.StringReader;
 import java.util.HashMap;

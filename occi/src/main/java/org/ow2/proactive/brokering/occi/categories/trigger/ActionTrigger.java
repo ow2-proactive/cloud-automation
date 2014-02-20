@@ -1,4 +1,4 @@
-package org.ow2.proactive.brokering.occi.infrastructure;
+package org.ow2.proactive.brokering.occi.categories.trigger;
 
 import org.ow2.proactive.workflowcatalog.Reference;
 import org.ow2.proactive.workflowcatalog.References;
