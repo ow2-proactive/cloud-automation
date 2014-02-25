@@ -72,6 +72,12 @@ public class Catalog {
                         logger.info("Added to catalog : " + f.getName());
                     }
                 }
+
+                if (workflows.isEmpty()) {
+                    logger.warn("Catalog is empty");
+                }
+            } else {
+                logger.warn("Catalog not a directory");
             }
         }
     }

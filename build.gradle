@@ -103,6 +103,7 @@ project(':occi') {
         compile 'javax.json:javax.json-api:1.0'
         compile 'org.glassfish:javax.json:1.0.2'
         compile 'com.jayway.jsonpath:json-path:0.9.1'
+        compile 'com.google.code.gson:gson:2.2.4'
 
     }
 

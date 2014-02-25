@@ -3,9 +3,9 @@ package org.ow2.proactive.brokering.occi;
 import org.apache.log4j.Logger;
 import org.ow2.proactive.brokering.Broker;
 import org.ow2.proactive.brokering.occi.categories.iaas.*;
-import org.ow2.proactive.brokering.occi.categories.saas.Platform;
+import org.ow2.proactive.brokering.occi.categories.paas.Platform;
 import org.ow2.proactive.brokering.occi.categories.trigger.ActionTrigger;
-import org.ow2.proactive.brokering.occi.categories.saas.Instruction;
+import org.ow2.proactive.brokering.occi.categories.paas.Instruction;
 import org.ow2.proactive.workflowcatalog.References;
 
 import java.net.URL;

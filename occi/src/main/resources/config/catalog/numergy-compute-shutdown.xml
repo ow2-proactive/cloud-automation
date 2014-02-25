@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd"
+	name="job-undeploy-numergy-vm" priority="normal" cancelJobOnError="true">
+    <variables>
+        <!-- Tools configuration -->
+        <variable name="accessKey" value="***REMOVED***"/>
+        <variable name="secretKey" value="***REMOVED***"/>
+        <variable name="tenantId" value="***REMOVED***"/>
+        <variable name="uri" value="https://api2.numergy.com/"/>
+        <variable name="metadataServer" value="http://localhost:9200/"/>
+        <variable name="instanceId" value="4b2b35d4-278a-11e3-8d40-005056992152"/>
+    </variables>
+	<taskFlow>
+
+        <task name="undeploy-vm">
+            <description>Deploy VM</description>
+            <scriptExecutable>
+                <script >
+                    <code language="groovy">
+                        <![CDATA[
+
+import org.ow2.proactive.iaas.IaasInstance
+import org.ow2.proactive.iaas.numergy.NumergyAPI
+
+String accessKey = '${accessKey}'
+String secretKey = '${secretKey}'
+String tenantId = '${tenantId}'
+String uri = '${uri}'
+String metadataServer = '${metadataServer}'
+String instanceId = '${instanceId}'
+
+println ">>> Logging to Numergy..."
+
+NumergyAPI api = NumergyAPI.getNumergyAPI(
+        accessKey, secretKey, tenantId,
+        new URI(uri), new URI(metadataServer));
+
+println ">>> Undeploying VM..."
+
+api.stopInstance(new IaasInstance(instanceId))
+
+println ">>> VM undeployed."
+
+result = instanceId
+
+]]>
+                    </code>
+                </script>
+            </scriptExecutable>
+        </task>
+    </taskFlow>
+</job>

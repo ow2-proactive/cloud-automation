@@ -24,7 +24,8 @@ public class ActionExecutor extends Thread {
             Action action = (Action) script.newInstance();
             action.execute(args);
         } catch (Throwable e) {
-            logger.warn("Error executing action: " + script, e);
+            logger.warn("Error executing action: " + e.getMessage());
+            logger.debug("Error executing action: " + script, e);
         }
     }
 

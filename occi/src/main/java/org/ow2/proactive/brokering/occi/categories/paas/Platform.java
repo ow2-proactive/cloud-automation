@@ -1,4 +1,4 @@
-package org.ow2.proactive.brokering.occi.categories.saas;
+package org.ow2.proactive.brokering.occi.categories.paas;
 
 import org.ow2.proactive.brokering.occi.Attribute;
 
@@ -34,6 +34,18 @@ public class Platform {
         attributeList.add(new Attribute("occi.networkinterface.address", mutable, !required));
         attributeList.add(new Attribute("occi.compute.error.code", mutable, !required, "0"));
         attributeList.add(new Attribute("occi.compute.error.description", mutable, !required));
+
+        // Potential multi-host platform input
+        attributeList.add(new Attribute("occi.paas.vm.count.maximum", mutable, !required));
+        attributeList.add(new Attribute("occi.paas.vm.count.minimum", mutable, !required));
+        attributeList.add(new Attribute("occi.paas.application.name", mutable, !required));
+        // Potential multi-host platform output
+        attributeList.add(new Attribute("occi.paas.application.endpoints", mutable, !required));
+
+        attributeList.add(new Attribute("occi.paas.elasticity.base", mutable, !required));
+        attributeList.add(new Attribute("occi.paas.elasticity.trigger", mutable, !required));
+
+
         return attributeList;
     }
 }

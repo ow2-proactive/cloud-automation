@@ -1,4 +1,4 @@
-package org.ow2.proactive.brokering.occi.categories.saas;
+package org.ow2.proactive.brokering.occi.categories.paas;
 
 import org.ow2.proactive.brokering.occi.Attribute;
 

@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd"
+	name="job-deploy-numergy-vm" priority="normal" cancelJobOnError="true">
+    <variables>
+        <!-- Tools configuration -->
+        <variable name="numergy.accesskey"/>
+        <variable name="numergy.secretkey"/>
+        <variable name="numergy.tenantid"/>
+        <variable name="numergy.endpoint"/>
+        <variable name="numergy.metadataserver"/>
+        <variable name="numergy.vm.instanceref"/>
+        <variable name="numergy.vm.name"/>
+        <variable name="proactive.rm.url" value="rmi://localhost:1099"/>
+
+        <variable name="proactive.protocol" value="rmi"/>
+        <variable name="proactive.router_port" value=""/>
+        <variable name="proactive.router_address" value=""/>
+        <variable name="proactive.credentials" value=""/>
+        <variable name="proactive.node_source_name" value="NUMERGY"/>
+        <variable name="proactive.node_name" value="nodename"/>
+        <variable name="proactive.token" value="token"/>
+
+
+    </variables>
+    <genericInformation>
+        <info name="category" value="compute"/>
+        <info name="operation" value="create"/>
+        <info name="action" value="start"/>
+        <info name="provider" value="numergy"/>
+    </genericInformation>
+
+
+
+	<taskFlow>
+
+        <task name="deploy-vm">
+            <description>Deploy VM</description>
+            <scriptExecutable>
+                <script >
+                    <code language="groovy">
+                        <![CDATA[
+
+import org.ow2.proactive.iaas.IaasInstance
+import org.ow2.proactive.iaas.numergy.NumergyAPI
+import net.minidev.json.JSONObject
+
+String accessKey = '${numergy.accesskey}'
+String secretKey = '${numergy.secretkey}'
+String tenantId = '${numergy.tenantid}'
+String uri = '${numergy.endpoint}'
+String metadataServer = '${numergy.metadataserver}'
+String instanceRef = '${numergy.vm.instanceref}'
+String name = '${numergy.vm.name}'
+
+String rm_url='${proactive.rm.url}'
+String protocol='${proactive.protocol}'
+String router_port='${proactive.router_port}'
+String router_address='${proactive.router_address}'
+String credentials='${proactive.credentials}'
+String node_source_name='${proactive.node_source_name}'
+String node_name='${proactive.node_name}'
+String token='${proactive.token}'
+
+def mdmap = new HashMap<String, String>();
+mdmap.put("rm_url", rm_url);
+mdmap.put("protocol", protocol);
+mdmap.put("router_port", router_port);
+mdmap.put("router_address", router_address);
+mdmap.put("credentials", credentials);
+mdmap.put("node_source_name", node_source_name);
+mdmap.put("node_name", node_name);
+mdmap.put("token", token);
+def metadata = new JSONObject(mdmap).toJSONString()
+
+println ">>> Logging to Numergy..."
+println "Metadata: " + metadata
+
+NumergyAPI api = NumergyAPI.getNumergyAPI(
+        accessKey, secretKey, tenantId,
+        new URI(uri), new URI(metadataServer));
+
+def map = new HashMap<String, String>();
+map.put("instanceRef", instanceRef);
+map.put("name", name);
+map.put("metadata", metadata);
+
+println ">>> Deploying VM..."
+
+println "Map: " + map
+
+def instance = api.startInstance(map)
+
+println ">>> VM deployed: " + instance.instanceId
+
+while (!api.isInstanceStarted(instance)) {
+    println ">>> Waiting for instance to be started..."
+    Thread.sleep(1000 * 60 * 1)
+}
+
+println ">>> VM started correctly."
+
+result = instance.instanceId
+
+]]>
+                    </code>
+                </script>
+            </scriptExecutable>
+        </task>
+    </taskFlow>
+</job>

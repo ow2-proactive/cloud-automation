@@ -1,0 +1,543 @@
+<job xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:proactive:jobdescriptor:dev"
+	 xsi:schemaLocation="urn:proactive:jobdescriptor:dev http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/dev/schedulerjob.xsd"
+	 name="VMWareNuxeoScaling" projectName="UnivCloud" cancelJobOnError="false" maxNumberOfExecution="1">
+	<variables>
+		<variable name="occi.compute.vendor.location" value="PARIS1-Gold"/>
+		<variable name="occi.compute.vendor.name" value="VCLOUD"/>
+		<variable name="orgName" value="UNCL-PARIS1"/>
+
+		<variable name="endpoint" value="https://10.1.244.15"/>
+		<variable name="login" value="***REMOVED***"/>
+		<variable name="password" value="***REMOVED***"/>
+
+		<variable name="vim.service.url" value="https://10.1.244.13/sdk/"/>
+		<variable name="vim.service.username" value="administrator"/>
+		<variable name="vim.service.password" value="***REMOVED***"/>
+
+		<variable name="nuxeo.vapp.template" value="NuxeoBaseLargeDisk"/>
+		<variable name="minNumberOfNodes" value="1"/>
+		<variable name="maxNumberOfNodes" value="5"/>
+		<variable name="vappName" value="Nuxeo-Elastic"/>
+	</variables>
+	<taskFlow>
+		<task name="CreateNuxeoVapp">
+			<javaExecutable class="org.ow2.proactive.iaas.vcloud.tasks.ComposeVapp">
+				<parameters>
+					<parameter name="providerName" value="VCLOUD"/>
+
+					<parameter name="apiurl" value="${endpoint}"/>
+					<parameter name="username" value="${login}"/>
+					<parameter name="password" value="${password}"/>
+					<parameter name="organizationName" value="${orgName}"/>
+
+					<parameter name="vdcName" value="${occi.compute.vendor.location}"/>
+					<parameter name="templateName" value="${nuxeo.vapp.template}"/>
+					<parameter name="instanceName" value="${vappName}"/>
+				</parameters>
+			</javaExecutable>
+		</task>
+		<task name="CustomizeLoadBalancer">
+			<depends>
+				<task ref="CreateNuxeoVapp"/>
+			</depends>
+			<pre>
+				<script>
+					<code language="javascript">
+						<![CDATA[
+						importPackage(java.lang);
+
+						jobId = System.getProperty('pas.job.id');
+						script = "#!/bin/sh\n" +
+						"export NODE_TOKEN=LB_" + jobId + "\n" +
+						"hostname lb" + "\n" +
+						"ntpdate -s 91.189.89.199\n" +
+						"echo 127.0.1.1 lb >> /etc/hosts\n" +
+						"wget -q -O - http://10.1.244.17:9393/node.sh | bash \n";
+
+						System.setProperty("script", script);
+						org.ow2.proactive.scripting.PropertyUtils.exportProperty("script");
+					]]>
+					</code>
+				</script>
+			</pre>
+			<javaExecutable class="org.ow2.proactive.iaas.vcloud.tasks.CustomizeVapp">
+				<parameters>
+					<parameter name="providerName" value="VCLOUD"/>
+
+					<!--Required for events to determine end of customization-->
+					<parameter name="vim.service.url" value="${vim.service.url}"/>
+					<parameter name="vim.service.username" value="${vim.service.username}"/>
+					<parameter name="vim.service.password" value="${vim.service.password}"/>
+
+					<parameter name="apiurl" value="${endpoint}"/>
+					<parameter name="username" value="${login}"/>
+					<parameter name="password" value="${password}"/>
+					<parameter name="organizationName" value="${orgName}"/>
+				</parameters>
+			</javaExecutable>
+		</task>
+		<task name="StartLoadBalancer">
+			<depends>
+				<task ref="CreateNuxeoVapp"/>
+				<task ref="CustomizeLoadBalancer"/>
+				<task ref="ExportVariables_Min"/>
+				<task ref="ExportVariables_Max"/>
+			</depends>
+			<pre>
+				<script>
+					<code language="javascript">
+						org.ow2.proactive.scripting.PropertyUtils.propagateProperty("minNumberOfNodes");
+						org.ow2.proactive.scripting.PropertyUtils.propagateProperty("maxNumberOfNodes");
+					</code>
+				</script>
+			</pre>
+			<javaExecutable class="org.ow2.proactive.iaas.vcloud.tasks.Deploy">
+				<parameters>
+					<parameter name="providerName" value="VCLOUD"/>
+
+					<parameter name="apiurl" value="${endpoint}"/>
+					<parameter name="username" value="${login}"/>
+					<parameter name="password" value="${password}"/>
+					<parameter name="organizationName" value="${orgName}"/>
+
+					<parameter name="vdcName" value="${occi.compute.vendor.location}"/>
+				</parameters>
+			</javaExecutable>
+		</task>
+		<task name="StartLoadBalancerDBService">
+			<genericInformation>
+				<info name="NODE_ACCESS_TOKEN" value="LB_$PAS_JOB_ID"/>
+			</genericInformation>
+			<depends>
+				<task ref="StartLoadBalancer"/>
+			</depends>
+			<nativeExecutable>
+				<staticCommand value="service">
+					<arguments>
+						<argument value="postgresql"/>
+						<argument value="start"/>
+					</arguments>
+				</staticCommand>
+			</nativeExecutable>
+		</task>
+		<task name="StartLoadBalancerLBService">
+			<genericInformation>
+				<info name="NODE_ACCESS_TOKEN" value="LB_$PAS_JOB_ID"/>
+			</genericInformation>
+			<depends>
+				<task ref="StartLoadBalancer"/>
+			</depends>
+			<nativeExecutable>
+				<staticCommand value="service">
+					<arguments>
+						<argument value="apache2"/>
+						<argument value="start"/>
+					</arguments>
+				</staticCommand>
+			</nativeExecutable>
+		</task>
+
+
+		<task name="ExportVariables_Min">
+			<javaExecutable class="org.ow2.proactive.iaas.vcloud.tasks.ExportProperty">
+				<parameters>
+					<parameter name="name" value="maxNumberOfNodes"/>
+					<parameter name="value" value="${maxNumberOfNodes}"/>
+				</parameters>
+			</javaExecutable>
+		</task>
+		<task name="ExportVariables_Max">
+			<javaExecutable class="org.ow2.proactive.iaas.vcloud.tasks.ExportProperty">
+				<parameters>
+					<parameter name="name" value="minNumberOfNodes"/>
+					<parameter name="value" value="${minNumberOfNodes}"/>
+				</parameters>
+			</javaExecutable>
+		</task>
+		<task name="StartScaling">
+			<depends>
+				<task ref="StartLoadBalancer"/>
+			</depends>
+			<nativeExecutable>
+				<staticCommand value="echo">
+					<arguments>
+						<argument value="do we scale?"/>
+					</arguments>
+				</staticCommand>
+			</nativeExecutable>
+			<controlFlow block="start">
+				<if target="CopyVM" else="RemoveInstanceFromLoadBalancer" continuation="Monitor">
+					<script>
+						<code language="javascript">
+							it = java.lang.System.getProperty("pas.task.iteration");
+							print('iteration ' + it + '\n');
+							if (it == 0 || it == null) {
+								// first run start at least one nuxeo instance
+								branch = "if";
+								java.lang.System.setProperty("latest", 1);
+							} else {
+								action = java.lang.System.getProperty("action");
+								print('action is ' + action + '\'n')
+								print('latest is ' + java.lang.System.getProperty("latest") + '\'n')
+								if (action == "start") {
+									branch = "if";
+								} else {
+									branch = "else";
+								}
+							}
+							org.ow2.proactive.scripting.PropertyUtils.propagateProperty("latest");
+							org.ow2.proactive.scripting.PropertyUtils.propagateProperty("minNumberOfNodes");
+							org.ow2.proactive.scripting.PropertyUtils.propagateProperty("maxNumberOfNodes");
+						</code>
+					</script>
+				</if>
+			</controlFlow>
+		</task>
+		<task name="CopyVM">
+			<pre>
+				<script>
+					<code language="javascript">
+						org.ow2.proactive.scripting.PropertyUtils.propagateProperty("latest");
+						org.ow2.proactive.scripting.PropertyUtils.propagateProperty("minNumberOfNodes");
+						org.ow2.proactive.scripting.PropertyUtils.propagateProperty("maxNumberOfNodes");
+					</code>
+				</script>
+			</pre>
+			<javaExecutable class="org.ow2.proactive.iaas.vcloud.tasks.Copy">
+				<parameters>
+					<parameter name="providerName" value="VCLOUD"/>
+
+					<parameter name="apiurl" value="${endpoint}"/>
+					<parameter name="username" value="${login}"/>
+					<parameter name="password" value="${password}"/>
+					<parameter name="organizationName" value="${orgName}"/>
+
+					<parameter name="vdcName" value="${occi.compute.vendor.location}"/>
+					<parameter name="instanceName" value="${nuxeo.vapp.template}"/>
+					<parameter name="toVappName" value="${vappName}"/>
+					<parameter name="templateName" value="VM-Master"/>
+					<parameter name="newInstanceName" value="VM-Slave"/> <!-- index added by task -->
+				</parameters>
+			</javaExecutable>
+			<controlFlow block="start"/>
+		</task>
+		<task name="CustomizeVM">
+			<depends>
+				<task ref="CopyVM"/>
+			</depends>
+			<pre>
+				<script>
+					<code language="javascript">
+						<![CDATA[
+						importPackage(java.lang);
+						it = java.lang.System.getProperty("pas.task.iteration");
+						jobId = System.getProperty('pas.job.id');
+						script = "#!/bin/sh\n" +
+						"export NODE_TOKEN=" + jobId + "_SLAVE" + it + " \n" +
+						"hostname slave" + it + "\n" +
+						"echo 127.0.1.1 slave" + it + " >> /etc/hosts\n" +
+						"ntpdate -s 91.189.89.199\n" +
+						"wget -q -O - http://10.1.244.17:9393/node.sh | bash \n";
+
+						System.setProperty("script", script);
+						org.ow2.proactive.scripting.PropertyUtils.exportProperty("script");
+
+						org.ow2.proactive.scripting.PropertyUtils.propagateProperty("latest");
+						org.ow2.proactive.scripting.PropertyUtils.propagateProperty("minNumberOfNodes");
+						org.ow2.proactive.scripting.PropertyUtils.propagateProperty("maxNumberOfNodes");
+						]]>
+					</code>
+				</script>
+			</pre>
+			<javaExecutable class="org.ow2.proactive.iaas.vcloud.tasks.CustomizeVM">
+				<parameters>
+					<parameter name="providerName" value="VCLOUD"/>
+
+					<!--Required for events to determine end of customization-->
+					<parameter name="vim.service.url" value="${vim.service.url}"/>
+					<parameter name="vim.service.username" value="${vim.service.username}"/>
+					<parameter name="vim.service.password" value="${vim.service.password}"/>
+
+					<parameter name="apiurl" value="${endpoint}"/>
+					<parameter name="username" value="${login}"/>
+					<parameter name="password" value="${password}"/>
+					<parameter name="organizationName" value="${orgName}"/>
+				</parameters>
+			</javaExecutable>
+		</task>
+		<task name="ConfigureNuxeoService">
+			<genericInformation>
+				<info name="NODE_ACCESS_TOKEN" value="$PAS_JOB_ID_SLAVE$PAS_TASK_ITERATION"/>
+			</genericInformation>
+			<depends>
+				<task ref="CustomizeVM"/>
+			</depends>
+			<pre>
+				<script>
+					<code language="javascript">
+						org.ow2.proactive.scripting.PropertyUtils.propagateProperty("latest");
+						org.ow2.proactive.scripting.PropertyUtils.propagateProperty("minNumberOfNodes");
+						org.ow2.proactive.scripting.PropertyUtils.propagateProperty("maxNumberOfNodes");
+					</code>
+				</script>
+			</pre>
+			<scriptExecutable>
+				<script>
+					<code language="python">
+import java
+
+it = java.lang.System.getProperty("pas.task.iteration");
+job_id = java.lang.System.getProperty("pas.job.id");
+cfg_file = open("/etc/nuxeo/nuxeo.conf","a")
+cfg_file.write("nuxeo.server.jvmRoute=slave%s\n" % it)
+cfg_file.write("metrics.graphite.enabled=true\n")
+cfg_file.write("metrics.graphite.host=193.52.46.22\n")
+cfg_file.write("metrics.graphite.port=2030\n")
+cfg_file.write("metrics.graphite.period=10\n")
+cfg_file.write("metrics.log4j.enabled=true\n")
+cfg_file.write("metrics.tomcat.enabled=true\n")
+cfg_file.close()
+					</code>
+				</script>
+			</scriptExecutable>
+		</task>
+		<task name="StartNuxeoService">
+			<genericInformation>
+				<info name="NODE_ACCESS_TOKEN" value="$PAS_JOB_ID_SLAVE$PAS_TASK_ITERATION"/>
+			</genericInformation>
+			<depends>
+				<task ref="ConfigureNuxeoService"/>
+			</depends>
+			<pre>
+				<script>
+					<code language="javascript">
+						org.ow2.proactive.scripting.PropertyUtils.propagateProperty("latest");
+						org.ow2.proactive.scripting.PropertyUtils.propagateProperty("minNumberOfNodes");
+						org.ow2.proactive.scripting.PropertyUtils.propagateProperty("maxNumberOfNodes");
+					</code>
+				</script>
+			</pre>
+			<nativeExecutable>
+				<staticCommand value="service">
+					<arguments>
+						<argument value="nuxeo"/>
+						<argument value="start"/>
+					</arguments>
+				</staticCommand>
+			</nativeExecutable>
+		</task>
+		<task name="ReconfigureLoadBalancer">
+			<genericInformation>
+				<info name="NODE_ACCESS_TOKEN" value="LB_$PAS_JOB_ID"/>
+			</genericInformation>
+			<depends>
+				<task ref="StartNuxeoService"/>
+			</depends>
+			<pre>
+				<script>
+					<code language="javascript">
+						org.ow2.proactive.scripting.PropertyUtils.propagateProperty("latest");
+						org.ow2.proactive.scripting.PropertyUtils.propagateProperty("minNumberOfNodes");
+						org.ow2.proactive.scripting.PropertyUtils.propagateProperty("maxNumberOfNodes");
+					</code>
+				</script>
+			</pre>
+			<scriptExecutable>
+				<script>
+					<code language="python">
+import java
+
+latest = java.lang.System.getProperty("latest")
+it = java.lang.System.getProperty("pas.task.iteration");
+cfg_file = open("/etc/apache2/mods-enabled/proxy_balancer.conf","r+")
+cfg = cfg_file.read()
+new_cfg = ""
+for line in cfg.splitlines():
+	if "ProxySet" in line:
+		ip = 100 + int(latest)
+		new_cfg += "BalancerMember ajp://192.168.2.%s:8009 route=slave%s \n" % (ip,it)
+	new_cfg += line + "\n"
+cfg_file.seek(0)
+cfg_file.write(new_cfg)
+cfg_file.truncate()
+cfg_file.close()
+					</code>
+				</script>
+			</scriptExecutable>
+		</task>
+		<task name="ReloadLoadBalancer">
+			<genericInformation>
+				<info name="NODE_ACCESS_TOKEN" value="LB_$PAS_JOB_ID"/>
+			</genericInformation>
+			<depends>
+				<task ref="ReconfigureLoadBalancer"/>
+			</depends>
+			<pre>
+				<script>
+					<code language="javascript">
+						org.ow2.proactive.scripting.PropertyUtils.propagateProperty("latest");
+						org.ow2.proactive.scripting.PropertyUtils.propagateProperty("minNumberOfNodes");
+						org.ow2.proactive.scripting.PropertyUtils.propagateProperty("maxNumberOfNodes");
+					</code>
+				</script>
+			</pre>
+			<nativeExecutable>
+				<staticCommand value="service">
+					<arguments>
+						<argument value="apache2"/>
+						<argument value="reload"/>
+					</arguments>
+				</staticCommand>
+			</nativeExecutable>
+			<controlFlow block="end" />
+		</task>
+
+
+		<task name="RemoveInstanceFromLoadBalancer">
+			<genericInformation>
+				<info name="NODE_ACCESS_TOKEN" value="LB_$PAS_JOB_ID"/>
+			</genericInformation>
+			<pre>
+				<script>
+					<code language="javascript">
+						org.ow2.proactive.scripting.PropertyUtils.propagateProperty("latest");
+						org.ow2.proactive.scripting.PropertyUtils.propagateProperty("minNumberOfNodes");
+						org.ow2.proactive.scripting.PropertyUtils.propagateProperty("maxNumberOfNodes");
+					</code>
+				</script>
+			</pre>
+			<scriptExecutable>
+				<script>
+					<code language="python">
+import java
+
+latest = int(java.lang.System.getProperty("latest"))
+cfg_file = open("/etc/apache2/mods-enabled/proxy_balancer.conf","r+")
+cfg = cfg_file.read()
+new_cfg = ""
+ip = "192.168.2.%s" % str(100 + latest + 1)
+for line in cfg.splitlines():
+	if not (ip in line):
+		new_cfg += line + "\n"
+cfg_file.seek(0)
+cfg_file.write(new_cfg)
+cfg_file.truncate()
+cfg_file.close()
+					</code>
+				</script>
+			</scriptExecutable>
+			<controlFlow block="start"/>
+		</task>
+		<task name="ReloadLoadBalancerAfterRemoval">
+			<genericInformation>
+				<info name="NODE_ACCESS_TOKEN" value="LB_$PAS_JOB_ID"/>
+			</genericInformation>
+			<depends>
+				<task ref="RemoveInstanceFromLoadBalancer"/>
+			</depends>
+			<pre>
+				<script>
+					<code language="javascript">
+						org.ow2.proactive.scripting.PropertyUtils.propagateProperty("latest");
+						org.ow2.proactive.scripting.PropertyUtils.propagateProperty("minNumberOfNodes");
+						org.ow2.proactive.scripting.PropertyUtils.propagateProperty("maxNumberOfNodes");
+					</code>
+				</script>
+			</pre>
+			<nativeExecutable>
+				<staticCommand value="service">
+					<arguments>
+						<argument value="apache2"/>
+						<argument value="reload"/>
+					</arguments>
+				</staticCommand>
+			</nativeExecutable>
+		</task>
+		<task name="DeleteVM">
+			<depends>
+				<task ref="ReloadLoadBalancerAfterRemoval"/>
+			</depends>
+			<pre>
+				<script>
+					<code language="javascript">
+						org.ow2.proactive.scripting.PropertyUtils.propagateProperty("latest");
+						org.ow2.proactive.scripting.PropertyUtils.propagateProperty("minNumberOfNodes");
+						org.ow2.proactive.scripting.PropertyUtils.propagateProperty("maxNumberOfNodes");
+					</code>
+				</script>
+			</pre>
+			<javaExecutable class="org.ow2.proactive.iaas.vcloud.tasks.DeleteVM">
+				<parameters>
+					<parameter name="providerName" value="VCLOUD"/>
+
+					<parameter name="apiurl" value="${endpoint}"/>
+					<parameter name="username" value="${login}"/>
+					<parameter name="password" value="${password}"/>
+					<parameter name="organizationName" value="${orgName}"/>
+
+					<parameter name="vdcName" value="${occi.compute.vendor.location}"/>
+					<parameter name="instanceName" value="${vappName}"/>
+					<parameter name="templateName" value="VM-Slave"/> <!-- index added by task -->
+				</parameters>
+			</javaExecutable>
+			<controlFlow block="end" />
+		</task>
+
+		<task name="Monitor">
+			<genericInformation>
+				<info name="NODE_ACCESS_TOKEN" value="LB_$PAS_JOB_ID"/>
+			</genericInformation>
+			<scriptExecutable>
+				<script>
+					<code language="python">
+<![CDATA[
+import time
+import java
+import org.ow2.proactive.scripting
+
+it = java.lang.System.getProperty("pas.task.iteration")
+latest = int(java.lang.System.getProperty("latest"))
+
+while True:
+	time.sleep(5)
+	try:
+		file = open('/tmp/monitor','r')
+		monitor = file.read()
+		if "start" in monitor:
+			if latest < 5 :
+				action = "start"
+				break
+		if "stop" in monitor:
+			if latest > 1 :
+				action = "stop"
+				break
+	except IOError:
+		pass
+
+if action == "start":
+	latest = latest + 1
+elif action == "stop":
+	latest = latest - 1
+
+java.lang.System.setProperty("latest", str(latest))
+org.ow2.proactive.scripting.PropertyUtils.propagateProperty("latest")
+java.lang.System.setProperty("action", action)
+org.ow2.proactive.scripting.PropertyUtils.propagateProperty("action")
+org.ow2.proactive.scripting.PropertyUtils.propagateProperty("minNumberOfNodes")
+org.ow2.proactive.scripting.PropertyUtils.propagateProperty("maxNumberOfNodes")
+]]>
+					</code>
+				</script>
+			</scriptExecutable>
+			<controlFlow block="end">
+				<loop target="StartScaling">
+					<script>
+						<code language="javascript">
+							loop = true
+						</code>
+					</script>
+				</loop>
+			</controlFlow>
+		</task>
+	</taskFlow>
+</job>

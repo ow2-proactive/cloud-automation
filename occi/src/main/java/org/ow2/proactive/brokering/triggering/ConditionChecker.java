@@ -34,31 +34,39 @@ public class ConditionChecker extends TimerTask {
 
     @Override
     public void run() {
-        if (checkCondition(conditionScript))
-            executeAction(actionCaseTrue);
-        else
-            executeAction(actionCaseFalse);
-    }
-
-    private Boolean checkCondition(Class script) {
         try {
-            Condition cond = (Condition) script.newInstance();
-            return cond.evaluate(new HashMap<String,String>(args));
-        } catch (Throwable e) {
-            logger.warn("Error when checking condition: " + script, e);
-            return false;
+            boolean conditionResult = checkCondition(conditionScript);
+            if (conditionResult)
+                executeAction(actionCaseTrue);
+            else
+                executeAction(actionCaseFalse);
+        } catch (ScriptException e) {
+            logger.debug("Failure in execution of ConditionChecker", e);
         }
     }
 
-    private void executeAction(Class script) {
+    private Boolean checkCondition(Class script) throws ScriptException {
+        try {
+            Condition cond = (Condition) script.newInstance();
+            return cond.evaluate(args);
+        } catch (Throwable e) {
+            logger.info("Error when checking condition: " + e.getMessage());
+            logger.debug("Error when checking condition: " + script, e);
+            throw new ScriptException(e);
+        }
+    }
+
+    private void executeAction(Class script) throws ScriptException {
         if (script == null)
             return;
 
         try {
             Action cond = (Action) script.newInstance();
-            cond.execute(new HashMap<String, String>(args));
+            cond.execute(args);
         } catch (Throwable e) {
+            logger.info("Error when executing action: " + e.getMessage());
             logger.warn("Error when executing action: " + script, e);
+            throw new ScriptException(e);
         }
     }
 

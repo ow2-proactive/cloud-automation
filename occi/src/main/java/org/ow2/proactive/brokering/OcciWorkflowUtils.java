@@ -22,7 +22,7 @@ public class OcciWorkflowUtils {
         // Generic Informations 'category' and 'operation' must contains given 'category' and 'operation' values
         if (!valueIsContainedInSet(category, workflow.getGenericInformation("category")) ||
                 !valueIsContainedInSet(operation, workflow.getGenericInformation("operation"))) {
-            //logger.debug(job.getName() + " : Wrong category or operation");
+            logger.debug(workflow.getName() + " : Wrong category or operation (" + workflow.getGenericInformation("category") + ":" +  workflow.getGenericInformation("operation") + ")");
             return false;
         }
 

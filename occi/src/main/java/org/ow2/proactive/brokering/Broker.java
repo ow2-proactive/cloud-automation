@@ -165,6 +165,7 @@ public class Broker {
         GroovyClassLoader gcl = new GroovyClassLoader();
         for (File file : ruleFiles) {
             try {
+                logger.debug("Rule: " + file.getName());
                 Class clazz = gcl.parseClass(file);
                 Rule rule = (Rule) clazz.newInstance();
                 if (rule.match(attributes)) {
@@ -173,8 +174,7 @@ public class Broker {
                     logger.debug("Applying rule: " + rule.getClass().getName());
                 }
             } catch (Throwable e) {
-                e.printStackTrace();
-                logger.debug("Error when loading a rules file : " + file.getName(), e);
+                logger.debug("Error loading rule : " + file.getName(), e);
             }
         }
         return count;

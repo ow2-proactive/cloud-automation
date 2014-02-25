@@ -5,7 +5,8 @@ import org.ow2.proactive.brokering.Rule
 public class Numergy implements Rule {
 
     boolean match(Map<String, String> attributes) {
-        return "numergy".equalsIgnoreCase(attributes.get("rule"));
+        String rule = attributes.get("rule");
+        return (rule!=null && rule.contains("numergy"))
     }
 
     Map<String, String> apply(Map<String, String> attributes) {
@@ -18,7 +19,9 @@ public class Numergy implements Rule {
         attributes.put("numergy.endpoint", "https://109.24.132.213/")
         attributes.put("numergy.metadataserver", "http://localhost:9200/") 
         attributes.put("numergy.vm.instanceref", "50335578-9971-11e3-8d40-005056992152")
-        attributes.put("numergy.vm.name", "vmname")
+
+        attributes.put("paas.elasticsearch.node.name", "masternode")
+
 
         attributes.put("proactive.rm.url", "pnp://10.200.96.143:64738/")
         attributes.put("proactive.protocol", "pnp")
@@ -26,8 +29,6 @@ public class Numergy implements Rule {
         attributes.put("proactive.router_address", "")
         attributes.put("proactive.credentials", "***REMOVED***")
         attributes.put("proactive.node_source_name", "Default")
-        attributes.put("proactive.node_name", "nodename")
-        attributes.put("proactive.token", "token")
 
         return attributes;
 

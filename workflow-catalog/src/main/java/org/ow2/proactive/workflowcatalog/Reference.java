@@ -56,7 +56,7 @@ public class Reference {
 
     private static Boolean jobSubmittedCorrectly(JsonObject jsonObject) {
         try {
-            jsonObject.containsKey("id");
+            jsonObject.getInt("id");
             return true;
         } catch (NullPointerException e) {
             return false;

@@ -75,7 +75,7 @@ public class Workflow {
             extractElementsFromDocument(doc, "variables", variables);
             lastModification = job.lastModified();
         } catch (JobParsingException e) {
-            logger.warn("Error updating", e);
+            logger.warn("Error updating: " + e.getMessage());
         }
     }
 
@@ -135,7 +135,7 @@ public class Workflow {
                 }
             }
         } catch (Throwable e) {
-            logger.warn("Error extracting: " + getName(), e);
+            logger.warn("Error extracting: " + getName() + ", " + e.getMessage());
         }
     }
 

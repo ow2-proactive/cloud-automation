@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd"
+     name="elasticsearch-elastic-platform-create" priority="normal" cancelJobOnError="true">
+    <variables>
+
+        <!-- Provided by elasticsearch rule -->
+        <variable name="occi.server.endpoint" value="http://10.200.96.143:8081/occi/api/occi"/>
+
+        <variable name="elasticity.vm.count.maximum" value="3"/>
+        <variable name="elasticity.vm.count.minimum" value="1"/>
+
+        <!-- Output -->
+        <variable name="elasticity.platform.base.uuid" value="1"/>
+        <variable name="elasticity.trigger.uuid" value=""/>
+
+    </variables>
+
+    <genericInformation>
+        <info name="category" value="platform-so-taht-does-not-matcDDDDDDDDDDDDDDD"/>
+        <info name="operation" value="create"/>
+        <info name="action" value="start"/>
+        <info name="provider" value="numergy"/>
+        <info name="rule" value="numergy"/>
+    </genericInformation>
+
+    <taskFlow>
+        <task name="create-initial-es">
+            <scriptExecutable>
+                <script >
+                    <code language="groovy">
+                        <![CDATA[
+
+import org.ow2.proactive.brokering.occi.client.OcciClient
+
+def vmName = "Master-" + Math.abs(new Random().nextInt())
+def occiServerUrl = "${occi.server.endpoint}"
+def client = new org.ow2.proactive.brokering.occi.client.OcciClient(occiServerUrl);
+Map<String, String> ar = new HashMap<String, String>();
+ar.put("rule","numergy");
+ar.put("provider","numergy");
+ar.put("numergy.vm.name", vmName);
+
+/*
+UNCOMMENT WHEN READY
+def resource = client.createResource("platform", ar, null);
+
+def json = new net.minidev.json.JSONObject();
+json.put("occi.paas.application.endpoints", resource.getLocation())
+json.put("occi.paas.elasticity.base", resource.getLocation());
+result = json.toJSONString()
+println result
+*/
+
+def json = new net.minidev.json.JSONObject()
+json.put("occi.paas.application.endpoints", "endpoints")
+json.put("occi.paas.elasticity.base", "http://10.200.96.143:8081/occi/api/occi/platform/a722403e-9b33-4cdf-82e6-ab6aa6a6da7f")
+result = json.toJSONString()
+println result
+
+]]>
+                    </code>
+                </script>
+            </scriptExecutable>
+        </task>
+
+        <task name="create-initial-trigger">
+            <depends>
+                <task ref="create-initial-es"/>
+            </depends>
+            <scriptExecutable>
+                <script >
+                    <code language="groovy">
+                        <![CDATA[
+
+import org.ow2.proactive.brokering.occi.client.OcciClient
+
+net.minidev.json.JSONObject json1 = com.jayway.jsonpath.JsonPath.parse(results[0].toString()).json()
+def basePlatform = json1.get("occi.paas.elasticity.base")
+println "Platform of base: $basePlatform"
+
+def occiServerUrl = "${occi.server.endpoint}"
+def client = new org.ow2.proactive.brokering.occi.client.OcciClient(occiServerUrl);
+
+Map<String, String> ar = new HashMap<String, String>();
+ar.put("rule","numergy");
+ar.put("occi.monitoring.periodms", "30000");
+ar.put("occi.monitoring.condition", "ConditionNumergy.groovy")
+ar.put("occi.monitoring.trueaction", "ActionTrueNumergy.groovy")
+ar.put("occi.paas.elasticity.base", basePlatform)
+ar.put("occi.server.endpoint", occiServerUrl)
+
+def resource = client.createResource("actiontrigger", ar, null);
+
+def json = new net.minidev.json.JSONObject();
+json.put("occi.paas.elasticity.trigger", resource.getLocation());
+result = json.toJSONString()
+println result
+
+]]>
+                    </code>
+                </script>
+            </scriptExecutable>
+        </task>
+
+    </taskFlow>
+
+</job>

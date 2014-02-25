@@ -103,6 +103,7 @@ public class Updater {
                 removeUpdateItem(u);
 
             } catch (JsonParsingException e) {
+                logger.debug("Could not parse json: " + u.reference);
                 removeUpdateItem(u);
             } catch (JobNotFinishedException e) {
                 logger.debug("Waiting for update job:" + u.reference);
