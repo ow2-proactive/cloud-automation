@@ -73,9 +73,7 @@ class ConditionNumergy implements Condition {
         if (missing > 0) {
             println "   scale out -->>"
             return true;
-        }
-
-        if (missing < 0) {
+        } else  if (missing < 0) {
 
             if (nroNodesBuilding != 0) {
                 println "   should scale down, but unstable situation so no scaling"
@@ -84,6 +82,9 @@ class ConditionNumergy implements Condition {
 
             println "   scale down -->>"
             return false;
+
+        } else {
+            throw new RuntimeException("all right")
         }
 
     }

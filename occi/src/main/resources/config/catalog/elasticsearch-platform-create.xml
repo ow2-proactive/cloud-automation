@@ -206,6 +206,7 @@ json.put("occi.networkinterface.address", ip.trim())
 json.put("occi.compute.hostname", name.trim())
 json.put("occi.compute.organization.name", hostname.trim())
 json.put("action.state", "done")
+json.put("occi.compute.state", "up")
 json.put("occi.paas.application.endpoints", "http://" + ip.trim() + ":9200")
 result = json.toJSONString()
 println result

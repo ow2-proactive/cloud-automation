@@ -87,6 +87,7 @@ ar.put("rule","numergy");
 ar.put("occi.monitoring.periodms", "30000");
 ar.put("occi.monitoring.condition", "ConditionNumergy.groovy")
 ar.put("occi.monitoring.trueaction", "ActionTrueNumergy.groovy")
+ar.put("occi.monitoring.falseaction", "ActionFalseNumergy.groovy")
 ar.put("occi.paas.elasticity.base", basePlatform)
 ar.put("occi.server.endpoint", occiServerUrl)
 
