@@ -102,7 +102,7 @@ public class ActionTrigger {
                 references.add(createPeriodicActionTrigger(attributes));
             }
         } else if (OP_UPDATE.equalsIgnoreCase(operation)) {
-            if ("delete".equalsIgnoreCase(action)) {
+            if ("delete".equalsIgnoreCase(action) || "stop".equalsIgnoreCase(action)) {
                 references.add(removeActionTrigger(attributes));
             }
         }

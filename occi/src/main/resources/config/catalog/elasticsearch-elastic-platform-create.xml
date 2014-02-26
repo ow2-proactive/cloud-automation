@@ -5,10 +5,11 @@
     <variables>
 
         <!-- Provided by elasticsearch rule -->
-        <variable name="occi.server.endpoint" value="http://10.200.96.143:8081/occi/api/occi"/>
+        <variable name="occi.server.endpoint"/>
 
         <variable name="elasticity.vm.count.maximum" value="3"/>
         <variable name="elasticity.vm.count.minimum" value="1"/>
+        <variable name="occi.core.id"/>
 
         <!-- Output -->
         <variable name="elasticity.platform.base.uuid" value="1"/>
@@ -17,11 +18,13 @@
     </variables>
 
     <genericInformation>
-        <info name="category" value="platform-so-taht-does-not-matcDDDDDDDDDDDDDDD"/>
+        <info name="category" value="platform"/>
         <info name="operation" value="create"/>
         <info name="action" value="start"/>
         <info name="provider" value="numergy"/>
         <info name="rule" value="numergy"/>
+        <info name="application" value="elasticsearch"/>
+        <info name="flavor" value="elastic"/>
     </genericInformation>
 
     <taskFlow>
@@ -40,23 +43,25 @@ Map<String, String> ar = new HashMap<String, String>();
 ar.put("rule","numergy");
 ar.put("provider","numergy");
 ar.put("numergy.vm.name", vmName);
+ar.put("flavor", "single");
+ar.put("application", "elasticsearch");
 
-/*
-UNCOMMENT WHEN READY
-def resource = client.createResource("platform", ar, null);
+//UNCOMMENT WHEN READY
+def resource = client.createResource("platform", ar);
 
 def json = new net.minidev.json.JSONObject();
 json.put("occi.paas.application.endpoints", resource.getLocation())
 json.put("occi.paas.elasticity.base", resource.getLocation());
 result = json.toJSONString()
 println result
-*/
 
+/*
 def json = new net.minidev.json.JSONObject()
 json.put("occi.paas.application.endpoints", "endpoints")
 json.put("occi.paas.elasticity.base", "http://10.200.96.143:8081/occi/api/occi/platform/a722403e-9b33-4cdf-82e6-ab6aa6a6da7f")
 result = json.toJSONString()
 println result
+*/
 
 ]]>
                     </code>
@@ -88,13 +93,16 @@ ar.put("occi.monitoring.periodms", "30000");
 ar.put("occi.monitoring.condition", "ConditionNumergy.groovy")
 ar.put("occi.monitoring.trueaction", "ActionTrueNumergy.groovy")
 ar.put("occi.monitoring.falseaction", "ActionFalseNumergy.groovy")
+ar.put("elasticity.vm.count.maximum", "${elasticity.vm.count.maximum}")
+ar.put("elasticity.vm.count.minimum", "${elasticity.vm.count.minimum}")
 ar.put("occi.paas.elasticity.base", basePlatform)
 ar.put("occi.server.endpoint", occiServerUrl)
 
-def resource = client.createResource("actiontrigger", ar, null);
+def resource = client.createResource("actiontrigger", ar);
 
 def json = new net.minidev.json.JSONObject();
 json.put("occi.paas.elasticity.trigger", resource.getLocation());
+json.put("action.state", "done");
 result = json.toJSONString()
 println result
 

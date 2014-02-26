@@ -31,12 +31,15 @@ public class OcciClient {
         httpClient = HttpUtility.turnClientIntoInsecure(new DefaultHttpClient());
     }
 
+    public ResourceInstance createResource(String category, Map<String, String> attributes) throws ResourceCreationException {
+        return createResource(category, attributes, null);
+    }
+
     public ResourceInstance createResource(String category, Map<String, String> attributes, String action) throws ResourceCreationException {
         String url = generateUrl(endpoint + "/" + category, action);
 
         HttpPost post = new HttpPost(url);
         post.setHeader("X-OCCI-Attribute", Utils.buildString(attributes));
-
 
         try {
             HttpResponse response = httpClient.execute(post);
@@ -49,6 +52,10 @@ public class OcciClient {
         } catch (Exception e) {
             throw new ResourceCreationException(e);
         }
+    }
+
+    public ResourceInstance updateResource(String category, String uuid, Map<String, String> attributes) throws ResourceCreationException {
+        return updateResource(category, uuid, attributes, null);
     }
 
     public ResourceInstance updateResource(String category, String uuid, Map<String, String> attributes, String action) throws ResourceCreationException {
@@ -114,16 +121,22 @@ public class OcciClient {
     public static void main(String args[]) throws Exception {
         OcciClient client = new OcciClient("http://localhost:8081/occi/api/occi");
 
-        /*
         Map<String, String> ar = new HashMap<String, String>();
-        ar.put("rule","numergy");
-        ar.put("provider","numergy");
-        ar.put("numergy.vm.name", "vmname-aftermidi");
-        ResourceInstance resource = client.createResource("platform", ar);
-        ResourceInstance resource2 = client.getResource("platform", resource.getUuid());
-        System.out.println(resource2);
-        */
-        client.updateResource("platform", "26bf9832-92df-45f1-80ee-0f3f0a3c5f31", Collections.EMPTY_MAP, "stop");
+        //ar.put("rule","numergy");
+        //ar.put("provider","numergy");
+        //ar.put("numergy.vm.name", "vmname-aftermidi");
+        //ar.put("application", "elasticsearch");
+        ar.put("occi.paas.status", "down");
+
+        ResourceInstance base = client.updateResource("platform", "a722403e-9b33-4cdf-82e6-ab6aa6a6da7f", Collections.EMPTY_MAP, "stop");
+        ResourceInstance trigger = client.updateResource("actiontrigger", "c31aa092-df68-4d17-a44d-82df6ced03d0", Collections.EMPTY_MAP, "stop");
+
+        Map<String, String> ar1 = new HashMap<String, String>();
+        ar1.put("occi.paas.status", "down");
+        ResourceInstance platformbig = client.updateResource("platform", "c6dff68a-66e7-46bf-8f65-a0731e6158f2", ar1);
+        //System.out.println(base);
+        //System.out.println(trigger);
+
     }
 
 }

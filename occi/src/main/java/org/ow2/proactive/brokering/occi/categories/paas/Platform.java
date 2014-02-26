@@ -35,6 +35,7 @@ public class Platform {
         attributeList.add(new Attribute("occi.compute.error.code", mutable, !required, "0"));
         attributeList.add(new Attribute("occi.compute.error.description", mutable, !required));
 
+        attributeList.add(new Attribute("occi.paas.status", mutable, !required));
         // Potential multi-host platform input
         attributeList.add(new Attribute("occi.paas.vm.count.maximum", mutable, !required));
         attributeList.add(new Attribute("occi.paas.vm.count.minimum", mutable, !required));

@@ -69,11 +69,11 @@ public class ElasticityUtils {
             return getVms(VmStatus.BUILDING, false).size();
         }
 
-        public Vm getOneReadyVm() {
+        public Vm getOneRandomReadyVm() {
             Map<String, Vm> vms = getVms(VmStatus.READY);
             for (String vmName: vms.keySet())
                 return vms.get(vmName);
-            throw new RuntimeException("No ready Vm");
+            throw new RuntimeException("Cannot get random VM: empty set");
         }
 
     }

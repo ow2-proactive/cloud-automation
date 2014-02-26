@@ -23,7 +23,19 @@ public class ResourceInstance extends HashMap<String, String> {
     }
 
     public String getLocation() {
-        return location;
+        if (location != null) {
+            return location;
+        } else {
+            throw new RuntimeException("No location is set");
+        }
+    }
+
+    public String getCategory() {
+        if (location != null) {
+            return extractCategory(location);
+        } else {
+            throw new RuntimeException("No location is set");
+        }
     }
 
     public String getUuid() {
@@ -36,6 +48,14 @@ public class ResourceInstance extends HashMap<String, String> {
         }
     }
 
+    private String extractCategory(String resourceLocationUrl) {
+        Pattern propertyRegex = Pattern.compile("/([a-zA-Z]*)/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}");
+        Matcher m = propertyRegex.matcher(resourceLocationUrl);
+        if(m.find())
+            return m.group(1);
+        else
+            throw new RuntimeException("Cannot extract category: " + resourceLocationUrl);
+    }
 
     private String extractUuid(String resourceLocationUrl) {
         Pattern propertyRegex = Pattern.compile("([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})");

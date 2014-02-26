@@ -11,7 +11,8 @@ public class Numergy implements Rule {
 
     Map<String, String> apply(Map<String, String> attributes) {
 
-        attributes.put("occi.compute.vendor.name", "NUMERGY");
+        attributes.put("occi.server.endpoint", "http://10.200.96.143:8081/occi/api/occi")
+        attributes.put("occi.compute.vendor.name", "NUMERGY")
 
         attributes.put("numergy.accesskey", "***REMOVED***")
         attributes.put("numergy.secretkey", "***REMOVED***") 

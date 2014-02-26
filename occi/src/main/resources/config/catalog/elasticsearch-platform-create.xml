@@ -33,6 +33,8 @@
         <info name="action" value="start"/>
         <info name="provider" value="numergy"/>
         <info name="rule" value="numergy"/>
+        <info name="application" value="elasticsearch"/>
+        <info name="flavor" value="single"/>
     </genericInformation>
 
     <taskFlow>
@@ -161,7 +163,8 @@ else
 
 println "service elasticsearch start".execute().text
 
-def json = new net.minidev.json.JSONObject();
+def json = new net.minidev.json.JSONObject()
+json.put("occi.paas.status", "up")
 result = json.toJSONString()
 println result
 

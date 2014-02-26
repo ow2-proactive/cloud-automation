@@ -17,12 +17,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/*
-import unittests.actions.ActionFalseScript;
-import unittests.actions.ActionTrueScript;
-import unittests.conditions.ConditionScript;
-*/
-
 public class ActionTriggerTest {
 
     private static final Integer PERIODMS = 10;

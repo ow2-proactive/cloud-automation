@@ -12,6 +12,9 @@
         <variable name="occi.compute.hostname"/>
         <variable name="occi.compute.vendor.vmpath"/>
 
+        <variable name="elasticity.platform.base.uuid" value=""/>
+        <variable name="elasticity.trigger.uuid" value=""/>
+
     </variables>
 
     <genericInformation>
@@ -21,26 +24,16 @@
         <info name="rule" value="numergy"/>
     </genericInformation>
 
-    <taskFlow>
+    <genericInformation>
+        <info name="category" value="platform"/>
+        <info name="operation" value="update"/>
+        <info name="action" value="stop"/>
+        <info name="rule" value="numergy"/>
+        <info name="application" value="elasticsearch"/>
+        <info name="flavor" value="elastic"/>
+    </genericInformation>
 
-        <task name="stop-es">
-            <genericInformation>
-                <info name="NODE_ACCESS_TOKEN" value="${occi.compute.hostname}"/>
-            </genericInformation>
-            <scriptExecutable>
-                <script >
-                    <code language="groovy">
-                        <![CDATA[
-// Stop ElasticSearch
-println "service elasticsearch stop".execute().text
-def json = new net.minidev.json.JSONObject();
-result = json.toJSONString()
-println result
-]]>
-                    </code>
-                </script>
-            </scriptExecutable>
-        </task>
+    <taskFlow>
 
         <task name="undeploy-vm">
             <depends>
@@ -51,32 +44,21 @@ println result
                     <code language="groovy">
                         <![CDATA[
 
-import org.ow2.proactive.iaas.IaasInstance
-import org.ow2.proactive.iaas.numergy.NumergyAPI
-import net.minidev.json.JSONObject
+import org.ow2.proactive.brokering.occi.client.*
 
-String accessKey = '${numergy.accesskey}'
-String secretKey = '${numergy.secretkey}'
-String tenantId = '${numergy.tenantid}'
-String uri = '${numergy.endpoint}'
-String metadataServer = '${numergy.metadataserver}'
+def occiServerUrl = "${occi.server.endpoint}"
+def client = new org.ow2.proactive.brokering.occi.client.OcciClient(occiServerUrl);
 
-String instanceId = '${occi.compute.vendor.vmpath}'
+def base = new ResourceInstance("${elasticity.platform.base.uuid")
+println "Base: " + base.getLocation()
+def trigger = new ResourceInstance("${elasticity.trigger.uuid")
+println "Trigger: " + trigger.getLocation()
 
-println ">>> Logging to Numergy..."
+ResourceInstance base1 = client.updateResource(base.getCategory(), base.getUuid(), Collections.EMPTY_MAP, "stop");
+ResourceInstance trigger1 = client.updateResource(trigger.getCategory(), trigger.getUuid(), Collections.EMPTY_MAP, "stop");
 
-NumergyAPI api = NumergyAPI.getNumergyAPI(
-        accessKey, secretKey, tenantId,
-        new URI(uri), new URI(metadataServer))
-
-println ">>> Undeploying VM: " + instanceId
-
-api.stopInstance(new IaasInstance(instanceId))
-
-println ">>> VM undeployed"
-
-def json = new net.minidev.json.JSONObject()
-json.put("occi.compute.state", "down")
+def json = new net.minidev.json.JSONObject();
+json.put("occi.paas.status", "down");
 result = json.toJSONString()
 println result
 

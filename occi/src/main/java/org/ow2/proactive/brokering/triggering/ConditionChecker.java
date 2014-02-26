@@ -35,11 +35,16 @@ public class ConditionChecker extends TimerTask {
     @Override
     public void run() {
         try {
-            boolean conditionResult = checkCondition(conditionScript);
+            Boolean conditionResult = checkCondition(conditionScript);
+
+            if (conditionResult == null)
+                return;
+
             if (conditionResult)
                 executeAction(actionCaseTrue);
             else
                 executeAction(actionCaseFalse);
+
         } catch (ScriptException e) {
             logger.debug("Failure in execution of ConditionChecker", e);
         }
@@ -50,7 +55,6 @@ public class ConditionChecker extends TimerTask {
             Condition cond = (Condition) script.newInstance();
             return cond.evaluate(args);
         } catch (Throwable e) {
-            logger.info("Error when checking condition: " + e.getMessage());
             logger.debug("Error when checking condition: " + script, e);
             throw new ScriptException(e);
         }
@@ -64,7 +68,6 @@ public class ConditionChecker extends TimerTask {
             Action cond = (Action) script.newInstance();
             cond.execute(args);
         } catch (Throwable e) {
-            logger.info("Error when executing action: " + e.getMessage());
             logger.warn("Error when executing action: " + script, e);
             throw new ScriptException(e);
         }

@@ -7,106 +7,133 @@ import org.apache.http.client.HttpClient
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.impl.client.DefaultHttpClient
 import org.apache.http.util.EntityUtils
+import org.apache.log4j.Logger
 import org.ow2.proactive.brokering.occi.client.OcciClient
 import org.ow2.proactive.brokering.occi.client.ResourceInstance
 import org.ow2.proactive.brokering.triggering.Condition
-import org.ow2.proactive.brokering.triggering.utils.elasticity.ElasticityUtils
+import static org.ow2.proactive.brokering.triggering.utils.elasticity.ElasticityUtils.*
 
-class ConditionNumergy implements Condition {
+class ConditionNumergy extends Condition {
+
+    private static final Logger logger = Logger.getLogger(ConditionNumergy.class.getName());
 
     private HttpClient httpClient
-
-    public static void main(String[] a) throws Exception {
-        new ConditionNumergy().evaluate(new HashMap<String, String>())
-    }
 
     public ConditionNumergy() {
         httpClient = new DefaultHttpClient()
     }
 
-    public boolean evaluate(Map<String, String> args) {
+    public Boolean evaluate(Map<String, String> args) {
 
-        println ">>>>>>>>>>>>> Condition checking... "
+        def occiServerUrl = getAttribute("occi.server.endpoint", args)
+        def platformBaseUrl = getAttribute("occi.paas.elasticity.base", args)
+        def vmCountMaximum = Integer.parseInt(getAttribute("elasticity.vm.count.maximum", args))
+        def vmCountMinimum = Integer.parseInt(getAttribute("elasticity.vm.count.minimum", args))
 
-        def serverUrl = getAttribute("occi.server.endpoint", args)
-        def platformBaseLocation = getAttribute("occi.paas.elasticity.base", args);
-
-        ResourceInstance esPlatformBaseResource = getEsBaseResource(platformBaseLocation, serverUrl)
+        ResourceInstance esPlatformBaseResource = getResource(platformBaseUrl, occiServerUrl)
 
         String ipBase = getIpCheckValid(esPlatformBaseResource)
+        if (ipBase == null) {
+            logger.debug "SO: +0 (no master yet)"
+            return null
+        }
 
         def url = "http://" + ipBase + ":9200"
         JSONObject esIndices = getEsIndices(url)
-        JSONObject esNodes = getEsNodes(url)
+        JSONObject esNodesAndMaster = getEsNodes(url)
 
-        ElasticityUtils.Vms vms = ElasticityUtils.extractVmsData(args)
-        updateVmsStatus(esNodes, vms)
-        ElasticityUtils.updataVmsData(args, vms);
+        Vms vms = extractVmsData(args)
+        updateVmsStatus(esNodesAndMaster, vms)
+        updataVmsData(args, vms);
 
-        return scaleUpOrDown(esIndices, vms, esNodes)
+        return scaleUpOrDown(esIndices, vms, esNodesAndMaster, vmCountMaximum, vmCountMinimum)
     }
 
     private String getIpCheckValid(ResourceInstance esPlatformBaseResource) {
         def ipBase = esPlatformBaseResource.get("occi.networkinterface.address")
-
-        if (ipBase == null || ipBase.isEmpty())
-            throw new RuntimeException("IP of master not available yet...")
-
-        return ipBase
+        return (ipBase == null || ipBase.isEmpty() ? null : ipBase)
     }
 
-    private boolean scaleUpOrDown(JSONObject esIndices, ElasticityUtils.Vms vms, JSONObject esNodes) {
-        def nroNodesBuilding = vms.getNroVmsBuilding()
-        def nroNodesShuttingDown = vms.getNroVmsShuttingDown()
-        def nroNodesBuildingExpired = vms.getNroVmsBuildingExpired()
-        int missing = esIndices.size() - nroNodesBuilding - esNodes.size()
+    private Boolean scaleUpOrDown(
+                    JSONObject nodesRequired,
+                    Vms metadataVms,
+                    JSONObject nodesUpAndMaster,
+                    Integer maxNodes,
+                    Integer minNodes
+    ) {
 
-        println "   + indices: " + esIndices.size()
-        println "   - building: " + nroNodesBuilding
-        println "   - nodes: " + esNodes.size()
-        println "   = missing: " + missing
-        println ""
-        println "   shutting down: " + nroNodesShuttingDown
-        println "   building (expired): " + nroNodesBuildingExpired
+        def nodesBuilding = metadataVms.getNroVmsBuilding()
+        def nroNodesShuttingDown = metadataVms.getNroVmsShuttingDown()
+        def nroNodesBuildingExpired = metadataVms.getNroVmsBuildingExpired()
+        int nodesMissing = nodesRequired.size() - nodesBuilding - (nodesUpAndMaster.size()-1)
 
+        logger.debug "   + indices: " + nodesRequired.size()
+        logger.debug "   - building: " + nodesBuilding
+        logger.debug "   - nodes: " + (nodesUpAndMaster.size()-1)
+        logger.debug "   = missing: " + nodesMissing
+        logger.debug ""
+        logger.debug "   shutting down: " + nroNodesShuttingDown
+        logger.debug "   building (expired): " + nroNodesBuildingExpired
 
-        if (missing > 0) {
-            println "   scale out -->>"
-            return true;
-        } else  if (missing < 0) {
+        int total = nodesBuilding + (nodesUpAndMaster.size()-1)
 
-            if (nroNodesBuilding != 0) {
-                println "   should scale down, but unstable situation so no scaling"
-                throw new RuntimeException("unstable situation (building in process), no scaling down")
+        if (total < minNodes) {
+            logger.debug "SO: +1 (less than min)"
+            return true
+        }
+
+        if (nodesMissing > 0) {
+
+            if (total >= maxNodes) {
+                logger.debug "SO: +0 (missing but max)"
+                return null
+            } else {
+                logger.debug "SO: +1 (missing and less than max)"
+                return true
             }
 
-            println "   scale down -->>"
-            return false;
+        } else  if (nodesMissing < 0) {
+
+            if (nodesBuilding != 0) {
+                logger.debug "SO: +0 (missing but some building)"
+                return null
+            }
+
+            if (total > minNodes) {
+                logger.debug "SO: -1 (missing no building, tot>min)"
+                return false
+            } else {
+                logger.debug "SO: +0 (missing and no building, tot<=min)"
+                return null
+            }
 
         } else {
-            throw new RuntimeException("all right")
+
+            logger.debug "SO: +0 (all right)"
+            return null
+
         }
 
     }
 
 
-    private ResourceInstance getEsBaseResource(String platformBaseLocation, String serverUrl) {
+    private ResourceInstance getResource(String platformBaseLocation, String serverUrl) {
         def esBaseStub = new ResourceInstance(platformBaseLocation)
         def client = new OcciClient(serverUrl);
         return client.getResource("platform", esBaseStub.getUuid())
     }
 
 
-    private void updateVmsStatus(JSONObject esNodes, ElasticityUtils.Vms vms) {
+    private void updateVmsStatus(JSONObject esNodes, Vms vms) {
         for (String name : esNodes.keySet()) {
             JSONObject node = esNodes.get(name)
             String humanName = node.get("name")
 
-            ElasticityUtils.Vm vm = vms.get(humanName)
+            Vm vm = vms.get(humanName)
             if (vm == null) {
-                println "Vm $humanName not found!!!!"
+                logger.debug "VM $humanName not found in metadata"
             } else {
-                vm.status = ElasticityUtils.VmStatus.READY
+                vm.status = VmStatus.READY
             }
 
         }
@@ -131,14 +158,6 @@ class ConditionNumergy implements Condition {
 
         return EntityUtils.toString(responseStatus.getEntity())
     }
-
-    private String getAttribute(String key, Map<String, String> args) {
-        if (args.containsKey(key))
-            return args.get(key)
-        else
-            throw new RuntimeException("$key argument not given...")
-    }
-
 
 }
 
