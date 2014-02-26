@@ -118,25 +118,7 @@ public class OcciClient {
         return map;
     }
 
-    public static void main(String args[]) throws Exception {
-        OcciClient client = new OcciClient("http://localhost:8081/occi/api/occi");
-
-        Map<String, String> ar = new HashMap<String, String>();
-        //ar.put("rule","numergy");
-        //ar.put("provider","numergy");
-        //ar.put("numergy.vm.name", "vmname-aftermidi");
-        //ar.put("application", "elasticsearch");
-        ar.put("occi.paas.status", "down");
-
-        ResourceInstance base = client.updateResource("platform", "a722403e-9b33-4cdf-82e6-ab6aa6a6da7f", Collections.EMPTY_MAP, "stop");
-        ResourceInstance trigger = client.updateResource("actiontrigger", "c31aa092-df68-4d17-a44d-82df6ced03d0", Collections.EMPTY_MAP, "stop");
-
-        Map<String, String> ar1 = new HashMap<String, String>();
-        ar1.put("occi.paas.status", "down");
-        ResourceInstance platformbig = client.updateResource("platform", "c6dff68a-66e7-46bf-8f65-a0731e6158f2", ar1);
-        //System.out.println(base);
-        //System.out.println(trigger);
-
+    
     }
 
 }

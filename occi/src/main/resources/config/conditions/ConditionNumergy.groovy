@@ -74,6 +74,8 @@ class ConditionNumergy extends Condition {
         logger.debug ""
         logger.debug "   shutting down: " + nroNodesShuttingDown
         logger.debug "   building (expired): " + nroNodesBuildingExpired
+        logger.debug "   max: " + maxNodes
+        logger.debug "   min: " + minNodes
 
         int total = nodesBuilding + (nodesUpAndMaster.size()-1)
 

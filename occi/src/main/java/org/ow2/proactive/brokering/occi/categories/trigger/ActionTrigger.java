@@ -21,8 +21,10 @@ public class ActionTrigger {
 
     public static final String OCCI_MONITORING_PERIODMS = "occi.monitoring.periodms";
     public static final String OCCI_CONDITION_SCRIPT = "occi.monitoring.condition";
+    public static final String OCCI_MONITORING_INITACTION = "occi.monitoring.initaction";
     public static final String OCCI_MONITORING_TRUEACTION = "occi.monitoring.trueaction";
     public static final String OCCI_MONITORING_FALSEACTION = "occi.monitoring.falseaction";
+    public static final String OCCI_MONITORING_STOPACTION = "occi.monitoring.stopaction";
     public static final String OCCI_MONITORING_ACTION = "occi.monitoring.action";
     public static final String OCCI_MONITORING_METADATA = "occi.monitoring.metadata";
 
@@ -97,12 +99,14 @@ public class ActionTrigger {
         References references = new References();
         if (OP_CREATE.equalsIgnoreCase(operation)) {
             if ("scheduleonce".equalsIgnoreCase(action)) {
-                references.add(createOneShotActionTrigger(attributes));
+                references.add(createOneShotActionTrigger(attributes, OCCI_MONITORING_ACTION));
             } else {
+                references.add(createOneShotActionTrigger(attributes, OCCI_MONITORING_INITACTION));
                 references.add(createPeriodicActionTrigger(attributes));
             }
         } else if (OP_UPDATE.equalsIgnoreCase(operation)) {
             if ("delete".equalsIgnoreCase(action) || "stop".equalsIgnoreCase(action)) {
+                references.add(createOneShotActionTrigger(attributes, OCCI_MONITORING_STOPACTION));
                 references.add(removeActionTrigger(attributes));
             }
         }
@@ -141,12 +145,12 @@ public class ActionTrigger {
                 "Timer created", uuid);
     }
 
-    private Reference createOneShotActionTrigger(Map<String, String> attributes) {
+    private Reference createOneShotActionTrigger(Map<String, String> attributes, String key) {
 
         ActionExecutor actionExecutor = null;
         String uuid = null;
         try {
-            actionExecutor = new ActionExecutor(attributes, actions);
+            actionExecutor = new ActionExecutor(attributes, actions, key);
             uuid = getUuid(attributes);
         } catch (ScriptException e) {
             return Reference.buildActionTriggerFailedReference(

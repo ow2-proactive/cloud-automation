@@ -7,12 +7,12 @@
         <!-- Provided by elasticsearch rule -->
         <variable name="occi.server.endpoint"/>
 
-        <variable name="elasticity.vm.count.maximum" value="3"/>
-        <variable name="elasticity.vm.count.minimum" value="1"/>
+        <variable name="elasticity.vm.count.maximum"/>
+        <variable name="elasticity.vm.count.minimum"/>
         <variable name="occi.core.id"/>
 
         <!-- Output -->
-        <variable name="elasticity.platform.base.uuid" value="1"/>
+        <variable name="elasticity.platform.base.uuid" value=""/>
         <variable name="elasticity.trigger.uuid" value=""/>
 
     </variables>
@@ -93,6 +93,7 @@ ar.put("occi.monitoring.periodms", "30000");
 ar.put("occi.monitoring.condition", "ConditionNumergy.groovy")
 ar.put("occi.monitoring.trueaction", "ActionTrueNumergy.groovy")
 ar.put("occi.monitoring.falseaction", "ActionFalseNumergy.groovy")
+ar.put("occi.monitoring.stopaction", "ActionStopNumergy.groovy")
 ar.put("elasticity.vm.count.maximum", "${elasticity.vm.count.maximum}")
 ar.put("elasticity.vm.count.minimum", "${elasticity.vm.count.minimum}")
 ar.put("occi.paas.elasticity.base", basePlatform)

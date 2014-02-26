@@ -75,5 +75,8 @@ public class ResourceInstance extends HashMap<String, String> {
             throw new RuntimeException("Cannot extract location: " + resourceLocationRaw);
     }
 
+    public String toString() {
+        return "Location: " + location + " -> " + super.toString();
+    }
 
 }
