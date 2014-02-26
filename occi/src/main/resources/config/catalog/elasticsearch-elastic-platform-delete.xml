@@ -4,8 +4,9 @@
      name="elasticsearch-elastic-platform-delete" priority="normal" cancelJobOnError="true">
 
     <variables>
-        <variable name="elasticity.platform.base.uuid" value=""/>
-        <variable name="elasticity.trigger.uuid" value=""/>
+        <variable name="occi.paas.elasticity.masterplatform" value=""/>
+        <variable name="occi.paas.elasticity.trigger" value=""/>
+        <variable name="occi.server.endpoint"/>
     </variables>
 
     <genericInformation>
@@ -19,10 +20,7 @@
 
     <taskFlow>
 
-        <task name="undeploy-vm">
-            <depends>
-                <task ref="stop-es"/>
-            </depends>
+        <task name="undeploy-es">
             <scriptExecutable>
                 <script >
                     <code language="groovy">
@@ -33,9 +31,9 @@ import org.ow2.proactive.brokering.occi.client.*
 def occiServerUrl = "${occi.server.endpoint}"
 def client = new org.ow2.proactive.brokering.occi.client.OcciClient(occiServerUrl);
 
-def base = new ResourceInstance("${elasticity.platform.base.uuid")
+def base = new ResourceInstance("${occi.paas.elasticity.masterplatform}")
 println "Base: " + base.getLocation()
-def trigger = new ResourceInstance("${elasticity.trigger.uuid")
+def trigger = new ResourceInstance("${occi.paas.elasticity.trigger}")
 println "Trigger: " + trigger.getLocation()
 
 ResourceInstance base1 = client.updateResource(base.getCategory(), base.getUuid(), Collections.EMPTY_MAP, "stop");

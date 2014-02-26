@@ -17,16 +17,18 @@ class ActionStopNumergy extends Action {
 
         logger.debug("Stopping all")
 
-        while (extractVmsData(args).getNroVmsBuilding() > 0) {
-            logger.debug("Waiting for building to be ready...")
-            Thread.sleep(1000 * 60);
+        if (extractVmsData(args).getNroVmsBuilding() > 0) {
+            logger.warn("Some VMs are building, they will have to be deleted manually.")
+            logger.warn(extractVmsData(args).getVms(VmStatus.BUILDING));
         }
 
         logger.debug("Ready to stop all...")
         Vms allMetadataVms = extractVmsData(args)
 
-        for (Vm vm: allMetadataVms.getVms(VmStatus.READY)) {
-            logger.debug("Shutting down: " + vm.platform)
+        Map<String, Vm> vms = allMetadataVms.getVms(VmStatus.READY)
+        for (String vmName: vms.keySet()) {
+            Vm vm = vms.get(vmName)
+            logger.debug("Shutting down: " + vmName + ":" + vm.platform)
             shutdownVm(occiServerEndpoint, vm.platform)
             vm.status = VmStatus.SHUTTINGDOWN
         }

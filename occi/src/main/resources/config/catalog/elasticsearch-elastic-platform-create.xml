@@ -12,8 +12,8 @@
         <variable name="occi.core.id"/>
 
         <!-- Output -->
-        <variable name="elasticity.platform.base.uuid" value=""/>
-        <variable name="elasticity.trigger.uuid" value=""/>
+        <variable name="occi.paas.elasticity.masterplatform" value=""/>
+        <variable name="occi.paas.elasticity.trigger" value=""/>
 
     </variables>
 
@@ -51,14 +51,14 @@ def resource = client.createResource("platform", ar);
 
 def json = new net.minidev.json.JSONObject();
 json.put("occi.paas.application.endpoints", resource.getLocation())
-json.put("occi.paas.elasticity.base", resource.getLocation());
+json.put("occi.paas.elasticity.masterplatform", resource.getLocation());
 result = json.toJSONString()
 println result
 
 /*
 def json = new net.minidev.json.JSONObject()
 json.put("occi.paas.application.endpoints", "endpoints")
-json.put("occi.paas.elasticity.base", "http://10.200.96.143:8081/occi/api/occi/platform/a722403e-9b33-4cdf-82e6-ab6aa6a6da7f")
+json.put("occi.paas.elasticity.masterplatform", "http://10.200.96.143:8081/occi/api/occi/platform/a722403e-9b33-4cdf-82e6-ab6aa6a6da7f")
 result = json.toJSONString()
 println result
 */
@@ -81,7 +81,7 @@ println result
 import org.ow2.proactive.brokering.occi.client.OcciClient
 
 net.minidev.json.JSONObject json1 = com.jayway.jsonpath.JsonPath.parse(results[0].toString()).json()
-def basePlatform = json1.get("occi.paas.elasticity.base")
+def basePlatform = json1.get("occi.paas.elasticity.masterplatform")
 println "Platform of base: $basePlatform"
 
 def occiServerUrl = "${occi.server.endpoint}"
@@ -96,7 +96,7 @@ ar.put("occi.monitoring.falseaction", "ActionFalseNumergy.groovy")
 ar.put("occi.monitoring.stopaction", "ActionStopNumergy.groovy")
 ar.put("elasticity.vm.count.maximum", "${elasticity.vm.count.maximum}")
 ar.put("elasticity.vm.count.minimum", "${elasticity.vm.count.minimum}")
-ar.put("occi.paas.elasticity.base", basePlatform)
+ar.put("occi.paas.elasticity.masterplatform", basePlatform)
 ar.put("occi.server.endpoint", occiServerUrl)
 
 def resource = client.createResource("actiontrigger", ar);

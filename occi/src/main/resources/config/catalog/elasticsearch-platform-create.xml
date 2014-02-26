@@ -161,7 +161,11 @@ else
 
 // Start ElasticSearch
 
-println "service elasticsearch start".execute().text
+def p = "service elasticsearch start".execute()
+println "stderr: " + p.err.text
+println "stdout: " + p.text
+p.waitFor()
+if (p.exitValue() != 0) throw new RuntimeException("exitValue: " + p.exitValue());
 
 def json = new net.minidev.json.JSONObject()
 json.put("occi.paas.status", "up")

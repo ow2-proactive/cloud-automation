@@ -26,7 +26,7 @@ class ConditionNumergy extends Condition {
     public Boolean evaluate(Map<String, String> args) {
 
         def occiServerUrl = getAttribute("occi.server.endpoint", args)
-        def platformBaseUrl = getAttribute("occi.paas.elasticity.base", args)
+        def platformBaseUrl = getAttribute("occi.paas.elasticity.masterplatform", args)
         def vmCountMaximum = Integer.parseInt(getAttribute("elasticity.vm.count.maximum", args))
         def vmCountMinimum = Integer.parseInt(getAttribute("elasticity.vm.count.minimum", args))
 

@@ -43,7 +43,7 @@ public class Platform {
         // Potential multi-host platform output
         attributeList.add(new Attribute("occi.paas.application.endpoints", mutable, !required));
 
-        attributeList.add(new Attribute("occi.paas.elasticity.base", mutable, !required));
+        attributeList.add(new Attribute("occi.paas.elasticity.masterplatform", mutable, !required));
         attributeList.add(new Attribute("occi.paas.elasticity.trigger", mutable, !required));
 
 

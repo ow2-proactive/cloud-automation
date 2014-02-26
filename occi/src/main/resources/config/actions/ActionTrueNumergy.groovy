@@ -14,7 +14,7 @@ class ActionTrueNumergy extends Action {
     void execute(Map<String, String> args) {
 
         def serverUrl = getAttribute("occi.server.endpoint", args)
-        def platformBaseLocation = getAttribute("occi.paas.elasticity.base", args);
+        def platformBaseLocation = getAttribute("occi.paas.elasticity.masterplatform", args);
 
         ResourceInstance esPlatformBaseResource = getPlatformBaseResource(platformBaseLocation, serverUrl)
 

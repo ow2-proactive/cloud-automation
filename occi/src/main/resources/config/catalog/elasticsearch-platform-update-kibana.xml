@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd"
+     name="elasticsearch-platform-update-kibana" priority="normal" cancelJobOnError="true">
+    <variables>
+        <variable name="occi.compute.hostname"/>
+        <variable name="occi.networkinterface.address"/>
+
+    </variables>
+
+    <genericInformation>
+        <info name="category" value="platform"/>
+        <info name="operation" value="update"/>
+        <info name="action" value="install"/>
+        <info name="provider" value="numergy"/>
+        <info name="rule" value="numergy"/>
+        <info name="application" value="kibana"/>
+    </genericInformation>
+
+    <taskFlow>
+
+        <task name="install-kibana">
+            <genericInformation>
+                <info name="NODE_ACCESS_TOKEN" value="${occi.compute.hostname}"/>
+            </genericInformation>
+            <scriptExecutable>
+                <script >
+                    <code language="groovy">
+                        <![CDATA[
+
+import org.apache.commons.io.FileUtils
+
+def ip = '${occi.networkinterface.address}'
+
+// Start Kibana
+
+def p = "service apache2 start".execute()
+println "stderr: " + p.err.text
+println "stdout: " + p.text
+p.waitFor()
+if (p.exitValue() != 0) throw new RuntimeException("exitValue: " + p.exitValue());
+
+def json = new net.minidev.json.JSONObject()
+json.put("occi.paas.kibana.endpoint", "http://" + ip + ":8090/kibana-latest")
+json.put("occi.paas.kibana.status", "up")
+result = json.toJSONString()
+println result
+
+]]>
+                    </code>
+                </script>
+            </scriptExecutable>
+        </task>
+    </taskFlow>
+</job>
