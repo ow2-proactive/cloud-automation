@@ -1,3 +1,3 @@
 Use JAR-API.
 Make trigger persistent (restart using database information if broker is re-started).
-
+Now commas are the separator for different attributes when doing an HTTP request (POST, PUT, etc.). If one of the attributes contains a comma it cannot be passed. Fix it.

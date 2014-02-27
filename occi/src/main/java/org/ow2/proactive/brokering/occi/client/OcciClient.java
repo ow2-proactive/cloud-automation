@@ -13,7 +13,6 @@ import org.ow2.proactive.workflowcatalog.utils.HttpUtility;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -28,14 +27,19 @@ public class OcciClient {
 
     public OcciClient(String endpoint) throws URISyntaxException {
         this.endpoint = new URI(endpoint);
-        httpClient = HttpUtility.turnClientIntoInsecure(new DefaultHttpClient());
+        this.httpClient = HttpUtility.turnClientIntoInsecure(new DefaultHttpClient());
     }
 
-    public ResourceInstance createResource(String category, Map<String, String> attributes) throws ResourceCreationException {
+    public ResourceInstance createResource(String category, Map<String, String> attributes) throws ResourceCreationException, ResourceReadingException {
         return createResource(category, attributes, null);
     }
 
-    public ResourceInstance createResource(String category, Map<String, String> attributes, String action) throws ResourceCreationException {
+    public ResourceInstance createResource(String category, Map<String, String> attributes, String action) throws ResourceCreationException, ResourceReadingException {
+        String urlRaw = internalCreateResource(category, attributes, action);
+        return new ResourceInstance(urlRaw).updateDownstream(this);
+    }
+
+    private String internalCreateResource(String category, Map<String, String> attributes, String action) throws ResourceCreationException {
         String url = generateUrl(endpoint + "/" + category, action);
 
         HttpPost post = new HttpPost(url);
@@ -45,7 +49,7 @@ public class OcciClient {
             HttpResponse response = httpClient.execute(post);
             if (isSuccessful(response)) {
                 String resourceUrlRaw = getEntityAsString(response);
-                return new ResourceInstance(resourceUrlRaw);
+                return resourceUrlRaw;
             } else {
                 throw new InternalError(getEntityAsString(response));
             }
@@ -54,11 +58,16 @@ public class OcciClient {
         }
     }
 
-    public ResourceInstance updateResource(String category, String uuid, Map<String, String> attributes) throws ResourceCreationException {
+    public ResourceInstance updateResource(String category, String uuid, Map<String, String> attributes) throws ResourceCreationException, ResourceReadingException {
         return updateResource(category, uuid, attributes, null);
     }
 
-    public ResourceInstance updateResource(String category, String uuid, Map<String, String> attributes, String action) throws ResourceCreationException {
+    public ResourceInstance updateResource(String category, String uuid, Map<String, String> attributes, String action) throws ResourceCreationException, ResourceReadingException {
+        String urlRaw = internalUpdateResource(category, uuid, attributes, action);
+        return new ResourceInstance(urlRaw).updateDownstream(this);
+    }
+
+    private String internalUpdateResource(String category, String uuid, Map<String, String> attributes, String action) throws ResourceCreationException {
         String url = generateUrl(endpoint + "/" + category + "/" + uuid, action);
 
         HttpPut put = new HttpPut(url);
@@ -68,7 +77,7 @@ public class OcciClient {
             HttpResponse response = httpClient.execute(put);
             if (isSuccessful(response)) {
                 String resourceUrlRaw = getEntityAsString(response);
-                return new ResourceInstance(resourceUrlRaw);
+                return resourceUrlRaw;
             } else {
                 throw new InternalError(getEntityAsString(response));
             }

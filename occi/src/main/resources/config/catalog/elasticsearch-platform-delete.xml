@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
      xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd"
-     name="elasticsearch-platform-delete" priority="normal" cancelJobOnError="true">
+     name="elasticsearch-platform-delete" priority="normal" cancelJobOnError="false">
     <variables>
 
         <variable name="numergy.accesskey"/>
@@ -46,9 +46,35 @@ println result
             </scriptExecutable>
         </task>
 
-        <task name="undeploy-vm">
+        <task name="stop-rm-node">
+            <genericInformation>
+                <info name="NODE_ACCESS_TOKEN" value="${occi.compute.hostname}"/>
+            </genericInformation>
             <depends>
                 <task ref="stop-es"/>
+            </depends>
+            <scriptExecutable>
+                <script >
+                    <code language="groovy">
+                        <![CDATA[
+// Stop RMNode
+def p = "/home/proactive/stop-node.sh".execute()
+println "stderr: " + p.err.text
+println "stdout: " + p.text
+println "exitvalue: " + p.exitValue()
+
+def json = new net.minidev.json.JSONObject();
+result = json.toJSONString()
+println result
+]]>
+                    </code>
+                </script>
+            </scriptExecutable>
+        </task>
+
+        <task name="undeploy-vm">
+            <depends>
+                <task ref="stop-rm-node"/>
             </depends>
             <scriptExecutable>
                 <script >

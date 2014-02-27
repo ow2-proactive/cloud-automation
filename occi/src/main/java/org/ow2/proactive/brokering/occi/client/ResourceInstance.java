@@ -22,6 +22,20 @@ public class ResourceInstance extends HashMap<String, String> {
             this.location = location.trim();
     }
 
+    public ResourceInstance updateDownstream(OcciClient client) throws ResourceReadingException {
+        ResourceInstance resource = client.getResource(this.getCategory(), this.getUuid());
+        this.clear();
+        this.putAll(resource);
+        return this;
+    }
+
+    public ResourceInstance updateUpstream(OcciClient client, Map<String, String> properties, String action) throws ResourceReadingException, ResourceCreationException {
+        ResourceInstance resource = client.updateResource(this.getCategory(), this.getUuid(), properties, action);
+        this.clear();
+        this.putAll(resource);
+        return this;
+    }
+
     public String getLocation() {
         if (location != null) {
             return location;
@@ -76,7 +90,19 @@ public class ResourceInstance extends HashMap<String, String> {
     }
 
     public String toString() {
-        return "Location: " + location + " -> " + super.toString();
+        StringBuilder builder = new StringBuilder();
+        builder.append("Location: ");
+        builder.append(location);
+        builder.append(" -> [\n");
+        for (String key: super.keySet()) {
+            builder.append("   ");
+            builder.append(key);
+            builder.append(":");
+            builder.append(super.get(key));
+            builder.append("\n");
+        }
+        builder.append("]\n");
+        return builder.toString();
     }
 
 }
