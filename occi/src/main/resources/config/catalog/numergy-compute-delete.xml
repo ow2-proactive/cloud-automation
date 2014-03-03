@@ -10,7 +10,7 @@
         <variable name="numergy.endpoint"/>
         <variable name="numergy.metadataserver"/>
         <variable name="occi.compute.hostname"/>
-        <variable name="occi.compute.vendor.vmpath"/>
+        <variable name="occi.compute.vendor.uuid"/>
 
     </variables>
 
@@ -65,7 +65,7 @@ String tenantId = '${numergy.tenantid}'
 String uri = '${numergy.endpoint}'
 String metadataServer = '${numergy.metadataserver}'
 
-String instanceId = '${occi.compute.vendor.vmpath}'
+String instanceId = '${occi.compute.vendor.uuid}'
 
 println ">>> Logging to Numergy..."
 

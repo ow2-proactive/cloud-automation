@@ -98,7 +98,7 @@ println ">>> VM started correctly."
 result = instance.instanceId
 
 def json = new net.minidev.json.JSONObject();
-json.put("occi.compute.vendor.vmpath", instance.instanceId)
+json.put("occi.compute.vendor.uuid", instance.instanceId)
 json.put("occi.compute.state", "up")
 result = json.toJSONString()
 println result

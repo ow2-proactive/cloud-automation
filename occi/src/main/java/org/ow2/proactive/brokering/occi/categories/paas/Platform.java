@@ -24,7 +24,7 @@ public class Platform {
         attributeList.add(new Attribute("occi.compute.localstorage", !mutable, !required, "20"));
         attributeList.add(new Attribute("occi.compute.organization.name", mutable, !required));
         attributeList.add(new Attribute("occi.compute.vendor.location", mutable, !required));
-        attributeList.add(new Attribute("occi.compute.vendor.vmpath", mutable, !required));
+        attributeList.add(new Attribute("occi.compute.vendor.uuid", mutable, !required));
         attributeList.add(new Attribute("occi.compute.template_name", !mutable, required));
         attributeList.add(new Attribute("occi.compute.password", mutable, !required));
         attributeList.add(new Attribute("occi.compute.lease.stop", mutable, !required, "-1"));
