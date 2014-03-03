@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd"
+     name="numergy-compute-delete" priority="normal" cancelJobOnError="false">
+    <variables>
+
+        <variable name="numergy.accesskey"/>
+        <variable name="numergy.secretkey"/>
+        <variable name="numergy.tenantid"/>
+        <variable name="numergy.endpoint"/>
+        <variable name="numergy.metadataserver"/>
+        <variable name="occi.compute.hostname"/>
+        <variable name="occi.compute.vendor.vmpath"/>
+
+    </variables>
+
+    <genericInformation>
+        <info name="category" value="compute"/>
+        <info name="operation" value="update"/>
+        <info name="action" value="stop"/>
+        <info name="rule" value="numergy"/>
+    </genericInformation>
+
+    <taskFlow>
+
+        <task name="stop-rm-node">
+            <genericInformation>
+                <info name="NODE_ACCESS_TOKEN" value="${occi.compute.hostname}"/>
+            </genericInformation>
+            <scriptExecutable>
+                <script >
+                    <code language="groovy">
+                        <![CDATA[
+// Stop RMNode
+def p = "/home/proactive/stop-node.sh".execute()
+println "stderr: " + p.err.text
+println "stdout: " + p.text
+println "exitvalue: " + p.exitValue()
+
+def json = new net.minidev.json.JSONObject();
+result = json.toJSONString()
+println result
+]]>
+                    </code>
+                </script>
+            </scriptExecutable>
+        </task>
+
+        <task name="undeploy-vm">
+            <depends>
+                <task ref="stop-rm-node"/>
+            </depends>
+            <scriptExecutable>
+                <script >
+                    <code language="groovy">
+                        <![CDATA[
+
+import org.ow2.proactive.iaas.IaasInstance
+import org.ow2.proactive.iaas.numergy.NumergyAPI
+import net.minidev.json.JSONObject
+
+String accessKey = '${numergy.accesskey}'
+String secretKey = '${numergy.secretkey}'
+String tenantId = '${numergy.tenantid}'
+String uri = '${numergy.endpoint}'
+String metadataServer = '${numergy.metadataserver}'
+
+String instanceId = '${occi.compute.vendor.vmpath}'
+
+println ">>> Logging to Numergy..."
+
+NumergyAPI api = NumergyAPI.getNumergyAPI(
+        accessKey, secretKey, tenantId,
+        new URI(uri), new URI(metadataServer))
+
+println ">>> Undeploying VM: " + instanceId
+
+api.stopInstance(new IaasInstance(instanceId))
+
+println ">>> VM undeployed"
+
+def json = new net.minidev.json.JSONObject()
+json.put("occi.compute.state", "down")
+result = json.toJSONString()
+println result
+
+]]>
+                    </code>
+                </script>
+            </scriptExecutable>
+        </task>
+    </taskFlow>
+</job>

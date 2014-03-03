@@ -48,7 +48,7 @@ class ActionTrueNumergy extends Action {
         parameters.put("provider", "numergy");
         parameters.put("application", "elasticsearch");
         parameters.put("flavor", "single");
-        parameters.put("numergy.vm.name", vmName);
+        parameters.put("occi.compute.hostname", vmName);
         parameters.put("paas.elasticsearch.master.ip", ipBase)
         return parameters
     }

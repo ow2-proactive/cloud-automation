@@ -1,41 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd"
-	name="job-deploy-numergy-vm" priority="normal" cancelJobOnError="true">
+     xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd"
+     name="numergy-compute-create" priority="normal" cancelJobOnError="true">
     <variables>
-        <!-- Tools configuration -->
+
+        <!-- Provided by proactive rule -->
+        <variable name="proactive.rm.url"/>
+        <variable name="proactive.protocol"/>
+        <variable name="proactive.router_port"/>
+        <variable name="proactive.router_address"/>
+        <variable name="proactive.credentials"/>
+        <variable name="proactive.node_source_name"/>
+
+        <!-- Provided by numergy rule -->
         <variable name="numergy.accesskey"/>
         <variable name="numergy.secretkey"/>
         <variable name="numergy.tenantid"/>
         <variable name="numergy.endpoint"/>
         <variable name="numergy.metadataserver"/>
         <variable name="numergy.vm.instanceref"/>
-        <variable name="numergy.vm.name"/>
-        <variable name="proactive.rm.url" value="rmi://localhost:1099"/>
-
-        <variable name="proactive.protocol" value="rmi"/>
-        <variable name="proactive.router_port" value=""/>
-        <variable name="proactive.router_address" value=""/>
-        <variable name="proactive.credentials" value=""/>
-        <variable name="proactive.node_source_name" value="NUMERGY"/>
-        <variable name="proactive.node_name" value="nodename"/>
-        <variable name="proactive.token" value="token"/>
-
+        <variable name="occi.compute.hostname"/>
 
     </variables>
+
     <genericInformation>
         <info name="category" value="compute"/>
         <info name="operation" value="create"/>
         <info name="action" value="start"/>
         <info name="provider" value="numergy"/>
+        <info name="rule" value="numergy"/>
     </genericInformation>
 
-
-
-	<taskFlow>
+    <taskFlow>
 
         <task name="deploy-vm">
-            <description>Deploy VM</description>
             <scriptExecutable>
                 <script >
                     <code language="groovy">
@@ -51,7 +49,7 @@ String tenantId = '${numergy.tenantid}'
 String uri = '${numergy.endpoint}'
 String metadataServer = '${numergy.metadataserver}'
 String instanceRef = '${numergy.vm.instanceref}'
-String name = '${numergy.vm.name}'
+String name = '${occi.compute.hostname}'
 
 String rm_url='${proactive.rm.url}'
 String protocol='${proactive.protocol}'
@@ -59,8 +57,8 @@ String router_port='${proactive.router_port}'
 String router_address='${proactive.router_address}'
 String credentials='${proactive.credentials}'
 String node_source_name='${proactive.node_source_name}'
-String node_name='${proactive.node_name}'
-String token='${proactive.token}'
+String node_name = name
+String token = name
 
 def mdmap = new HashMap<String, String>();
 mdmap.put("rm_url", rm_url);
@@ -74,7 +72,6 @@ mdmap.put("token", token);
 def metadata = new JSONObject(mdmap).toJSONString()
 
 println ">>> Logging to Numergy..."
-println "Metadata: " + metadata
 
 NumergyAPI api = NumergyAPI.getNumergyAPI(
         accessKey, secretKey, tenantId,
@@ -86,8 +83,6 @@ map.put("name", name);
 map.put("metadata", metadata);
 
 println ">>> Deploying VM..."
-
-println "Map: " + map
 
 def instance = api.startInstance(map)
 
@@ -102,10 +97,63 @@ println ">>> VM started correctly."
 
 result = instance.instanceId
 
+def json = new net.minidev.json.JSONObject();
+json.put("occi.compute.vendor.vmpath", instance.instanceId)
+json.put("occi.compute.state", "up")
+result = json.toJSONString()
+println result
+
+]]>
+                    </code>
+                </script>
+            </scriptExecutable>
+        </task>
+
+        <task name="update-occi">
+            <genericInformation>
+                <info name="NODE_ACCESS_TOKEN" value="${occi.compute.hostname}"/>
+            </genericInformation>
+            <depends>
+                <task ref="deploy-vm"/>
+            </depends>
+            <scriptExecutable>
+                <script >
+                    <code language="groovy">
+                        <![CDATA[
+
+String name = '${occi.compute.hostname}'
+
+String ifconfig = "ifconfig eth0".execute().text.trim()
+String hostname = "hostname".execute().text.trim()
+
+println "IFCONFIG COMMAND: '$ifconfig'"
+println "HOSTNAME COMMAND: '$hostname'"
+
+def regex = /(?s).*inet addr:(.*?)Bcast:.*/
+def matcher = (ifconfig=~regex)
+
+def ip = "unknownip"
+if (matcher.matches()) {
+    ip = matcher.group(1).trim()
+} else {
+    println("Cannot extract IP")
+}
+
+def json = new net.minidev.json.JSONObject();
+json.put("occi.networkinterface.address", ip.trim())
+json.put("occi.compute.hostname", name.trim())
+json.put("occi.compute.organization.name", hostname.trim())
+json.put("action.state", "done")
+json.put("occi.compute.state", "up")
+json.put("occi.paas.application.endpoints", "http://" + ip.trim() + ":9200")
+result = json.toJSONString()
+println result
+
 ]]>
                     </code>
                 </script>
             </scriptExecutable>
         </task>
     </taskFlow>
+
 </job>

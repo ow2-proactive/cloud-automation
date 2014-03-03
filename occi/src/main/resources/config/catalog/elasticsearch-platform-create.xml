@@ -19,7 +19,7 @@
         <variable name="numergy.endpoint"/>
         <variable name="numergy.metadataserver"/>
         <variable name="numergy.vm.instanceref"/>
-        <variable name="numergy.vm.name"/>
+        <variable name="occi.compute.hostname"/>
 
         <!-- Provided by elasticsearch rule -->
         <variable name="paas.elasticsearch.node.name"/>
@@ -55,7 +55,7 @@ String tenantId = '${numergy.tenantid}'
 String uri = '${numergy.endpoint}'
 String metadataServer = '${numergy.metadataserver}'
 String instanceRef = '${numergy.vm.instanceref}'
-String name = '${numergy.vm.name}'
+String name = '${occi.compute.hostname}'
 
 String rm_url='${proactive.rm.url}'
 String protocol='${proactive.protocol}'
@@ -117,7 +117,7 @@ println result
 
         <task name="start-es">
             <genericInformation>
-                <info name="NODE_ACCESS_TOKEN" value="${numergy.vm.name}"/>
+                <info name="NODE_ACCESS_TOKEN" value="${occi.compute.hostname}"/>
             </genericInformation>
             <depends>
                 <task ref="deploy-vm"/>
@@ -130,7 +130,7 @@ println result
 import org.apache.commons.io.FileUtils
 
 def elasticSearchMasterIp = '${paas.elasticsearch.master.ip}'
-def elasticSearchNodeName = '${numergy.vm.name}'
+def elasticSearchNodeName = '${occi.compute.hostname}'
 
 def SEP = File.separator
 def configFilePath = SEP + "etc" + SEP + "elasticsearch" + SEP + "elasticsearch.yml"
@@ -180,7 +180,7 @@ println result
 
         <task name="update-occi">
             <genericInformation>
-                <info name="NODE_ACCESS_TOKEN" value="${numergy.vm.name}"/>
+                <info name="NODE_ACCESS_TOKEN" value="${occi.compute.hostname}"/>
             </genericInformation>
             <depends>
                 <task ref="deploy-vm"/>
@@ -190,7 +190,7 @@ println result
                     <code language="groovy">
                         <![CDATA[
 
-String name = '${numergy.vm.name}'
+String name = '${occi.compute.hostname}'
 
 String ifconfig = "ifconfig eth0".execute().text.trim()
 String hostname = "hostname".execute().text.trim()

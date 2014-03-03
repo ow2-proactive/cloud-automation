@@ -42,7 +42,7 @@ def client = new org.ow2.proactive.brokering.occi.client.OcciClient(occiServerUr
 Map<String, String> ar = new HashMap<String, String>();
 ar.put("rule","numergy");
 ar.put("provider","numergy");
-ar.put("numergy.vm.name", vmName);
+ar.put("occi.compute.hostname", vmName);
 ar.put("flavor", "single");
 ar.put("application", "elasticsearch");
 
