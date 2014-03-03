@@ -28,25 +28,23 @@ public class Resource {
     private static Map<UUID, Resource> resources = new HashMap<UUID, Resource>();
 
     private UUID uuid;
-    private String host;
     private String category;
     private Map<String, String> attributes;
 
-    private Resource(UUID uuid, String host, String category, Map<String, String> attributes) {
+    private Resource(UUID uuid, String category, Map<String, String> attributes) {
         this.uuid = uuid;
         this.category = category;
         this.attributes = attributes;
-        this.host = host;
     }
 
     public static Map<UUID, Resource> getResources() {
         return resources;
     }
 
-    public static Resource factory(UUID uuid, String host, String category, Map<String, String> attributes) {
+    public static Resource factory(UUID uuid, String category, Map<String, String> attributes) {
         System.out.flush();
         fillAttributes(category, attributes);
-        Resource resource = new Resource(uuid, host, category, attributes);
+        Resource resource = new Resource(uuid, category, attributes);
         resources.put(uuid, resource);
         return resource;
     }
@@ -111,13 +109,9 @@ public class Resource {
         return attributes;
     }
 
-    public String getHost() {
-        return host;
-    }
-
-    public URL getUrl() {
+    public URL getUrl(String prefix) {
         try {
-            return new URL("http://" + host + "/occi/api/occi/" + category + "/" + uuid);
+            return new URL(prefix + category + "/" + uuid);
         } catch (Throwable e) {
             return null;
         }

@@ -44,7 +44,6 @@ public class UpdaterTest {
         Reference jobReference = getJobResultWithJsonTasksOutput();
         Resource resource = Resource.factory(
                 UUID.randomUUID(),
-                HOST,
                 COMPUTE_NAME,
                 getDefaultComputeAttributes());
 
@@ -67,7 +66,6 @@ public class UpdaterTest {
         Reference jobReference = getJobResultWithNonJsonTasksOutput();
         Resource resource = Resource.factory(
                 UUID.randomUUID(),
-                HOST,
                 COMPUTE_NAME,
                 getDefaultComputeAttributes());
 

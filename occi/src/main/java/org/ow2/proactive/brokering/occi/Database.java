@@ -27,7 +27,7 @@ public class Database {
                     try {
                         st = conn.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='resources'");
                         if (!st.step()) {
-                            conn.exec("CREATE TABLE resources (uuid TEXT PRIMARY KEY UNIQUE, url TEXT, category TEXT)");
+                            conn.exec("CREATE TABLE resources (uuid TEXT PRIMARY KEY UNIQUE, category TEXT)");
                         }
                         st.dispose();
                         st = conn.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='attributes'");
@@ -89,7 +89,6 @@ public class Database {
         try {
             logger.info("Resource to store in DB : " + resource.getUuid());
             final String uuid = resource.getUuid().toString();
-            final String host = resource.getHost();
             final String category = resource.getCategory();
             final Map<String, String> attributes = resource.getAttributes();
 
@@ -97,7 +96,7 @@ public class Database {
             dbQueue.execute(new SQLiteJob<Object>() {
                 @Override
                 protected Object job(SQLiteConnection connection) throws Throwable {
-                    connection.prepare("INSERT INTO resources VALUES ('" + uuid + "','" + host + "','" + category + "')").step();
+                    connection.prepare("INSERT INTO resources VALUES ('" + uuid + "','" + category + "')").step();
                     return null;
                 }
             }).complete();
@@ -132,8 +131,7 @@ public class Database {
                     if (!st.step()) {
                         return null;
                     }
-                    String host = st.columnString(1);
-                    String category = st.columnString(2);
+                    String category = st.columnString(1);
                     st.dispose();
                     st = conn.prepare("SELECT * FROM attributes WHERE uuid='" + uuid + "'");
                     Map<String, String> attributes = new HashMap<String, String>();
@@ -143,7 +141,7 @@ public class Database {
                         attributes.put(key, value);
                     }
                     st.dispose();
-                    return Resource.factory(uuid, host, category, attributes);
+                    return Resource.factory(uuid, category, attributes);
                 }
             });
             return job.complete();
@@ -192,8 +190,7 @@ public class Database {
     private Resource internalLoad(SQLiteConnection conn, UUID uuid) throws Exception {
         SQLiteStatement st = conn.prepare("SELECT * FROM resources WHERE uuid='" + uuid + "'");
         st.step();
-        String host = st.columnString(1);
-        String category = st.columnString(2);
+        String category = st.columnString(1);
         st.dispose();
         st = conn.prepare("SELECT * FROM attributes WHERE uuid='" + uuid + "'");
         Map<String, String> attributes = new HashMap<String, String>();
@@ -203,6 +200,6 @@ public class Database {
             attributes.put(key, value);
         }
         st.dispose();
-        return Resource.factory(uuid, host, category, attributes);
+        return Resource.factory(uuid, category, attributes);
     }
 }

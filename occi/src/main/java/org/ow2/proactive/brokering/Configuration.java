@@ -28,6 +28,9 @@ public class Configuration {
     @XmlElement
     public OcciUpdater updater;
 
+    @XmlElement
+    public Server server;
+
     @Override
     public String toString() {
         String result = "Scheduler : " + scheduler.url + " (" + scheduler.username + " / " + scheduler.password + ")\n";
@@ -90,5 +93,10 @@ public class Configuration {
     public static class OcciUpdater {
         @XmlAttribute
         public long refresh;
+    }
+
+    public static class Server {
+        @XmlAttribute
+        public String prefix;
     }
 }

@@ -1,12 +1,14 @@
 package org.ow2.proactive.brokering.occi;
 
 import org.apache.log4j.Logger;
+import org.ow2.proactive.brokering.Configuration;
 import org.ow2.proactive.workflowcatalog.References;
 import org.ow2.proactive.brokering.occi.api.Occi;
 import org.ow2.proactive.brokering.occi.categories.Utils;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.xml.bind.JAXBException;
 import java.util.Map;
 import java.util.UUID;
 
@@ -15,6 +17,7 @@ public class OcciServer implements Occi {
     private static Logger logger = Logger.getLogger(OcciServer.class);
 
     private static Database db;
+    private static String prefixUrl;
 
     // ************* OCCI SERVER MANAGEMENT **************
 
@@ -40,7 +43,7 @@ public class OcciServer implements Occi {
             UUID uuid = UUID.randomUUID();
             attributes += ",action.state=pending,occi.core.id=" + uuid;
             //            attributes += ",action.state=\"pending\", occi.core.id=\"" + uuid + "\"";
-            Resource resource = Resource.factory(uuid, host, category, Utils.buildMap(attributes));
+            Resource resource = Resource.factory(uuid, category, Utils.buildMap(attributes));
             db.store(resource);
 
             References references = resource.create();
@@ -50,9 +53,9 @@ public class OcciServer implements Occi {
             }
 
             Response.ResponseBuilder responseBuilder = Response.status(Response.Status.CREATED);
-            responseBuilder.header("X-OCCI-Location", resource.getUrl());
-            responseBuilder.entity("X-OCCI-Location: " + resource.getUrl() + "\n");
-            logger.debug("Response : [X-OCCI-Location: " + resource.getUrl() + "] CODE:" + Response.Status.CREATED);
+            responseBuilder.header("X-OCCI-Location", resource.getUrl(prefixUrl));
+            responseBuilder.entity("X-OCCI-Location: " + resource.getUrl(prefixUrl) + "\n");
+            logger.debug("Response : [X-OCCI-Location: " + resource.getUrl(prefixUrl) + "] CODE:" + Response.Status.CREATED);
             return responseBuilder.build();
 
         } catch (Throwable e) {
@@ -71,7 +74,7 @@ public class OcciServer implements Occi {
             String locations = "";
             for (Resource resource : Resource.getResources().values()) {
                 if (resource.getCategory().equalsIgnoreCase(category)) {
-                    locations += "X-OCCI-Location: " + resource.getUrl() + "\n";
+                    locations += "X-OCCI-Location: " + resource.getUrl(prefixUrl) + "\n";
                 }
             }
             Response.ResponseBuilder response = Response.status(Response.Status.OK);
@@ -155,9 +158,9 @@ public class OcciServer implements Occi {
                 response = Response.status(Response.Status.OK);
             }
             response.entity(references.getSummary());
-            response.header("X-OCCI-Location", resource.getUrl());
-            response.entity("X-OCCI-Location: " + resource.getUrl() + "\n");
-            logger.debug("Response : [X-OCCI-Location: " + resource.getUrl() + "] CODE:" + Response.Status.OK);
+            response.header("X-OCCI-Location", resource.getUrl(prefixUrl));
+            response.entity("X-OCCI-Location: " + resource.getUrl(prefixUrl) + "\n");
+            logger.debug("Response : [X-OCCI-Location: " + resource.getUrl(prefixUrl) + "] CODE:" + Response.Status.OK);
             return response.build();
 
         } catch (Throwable e) {
@@ -198,9 +201,16 @@ public class OcciServer implements Occi {
 
 
     public OcciServer() {
-        if (db == null)
+        if (db == null) {
             db = Database.getInstance();
 
+            try {
+                Configuration config = Utils.getConfiguration();
+                prefixUrl = config.server.prefix;
+            } catch (JAXBException e) {
+                logger.warn(e);
+            }
+        }
     }
 
     public static void setDatabase(Database db) {
