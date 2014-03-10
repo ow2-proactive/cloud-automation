@@ -22,14 +22,14 @@ public class ResourceInstance extends HashMap<String, String> {
             this.location = location.trim();
     }
 
-    public ResourceInstance updateDownstream(OcciClient client) throws ResourceReadingException {
+    public ResourceInstance refresh(OcciClient client) throws ResourceReadingException {
         ResourceInstance resource = client.getResource(this.getCategory(), this.getUuid());
         this.clear();
         this.putAll(resource);
         return this;
     }
 
-    public ResourceInstance updateUpstream(OcciClient client, Map<String, String> properties, String action) throws ResourceReadingException, ResourceCreationException {
+    public ResourceInstance update(OcciClient client, Map<String, String> properties, String action) throws ResourceReadingException, ResourceCreationException {
         ResourceInstance resource = client.updateResource(this.getCategory(), this.getUuid(), properties, action);
         this.clear();
         this.putAll(resource);

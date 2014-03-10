@@ -28,7 +28,6 @@
         <info name="operation" value="create"/>
         <info name="action" value="start"/>
         <info name="provider" value="numergy"/>
-        <info name="rule" value="numergy"/>
     </genericInformation>
 
     <taskFlow>

@@ -19,6 +19,7 @@
         <info name="operation" value="update"/>
         <info name="action" value="stop"/>
         <info name="rule" value="numergy"/>
+        <info name="flavor" value="single"/>
     </genericInformation>
 
     <taskFlow>

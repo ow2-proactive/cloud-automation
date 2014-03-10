@@ -36,7 +36,7 @@ public class OcciClient {
 
     public ResourceInstance createResource(String category, Map<String, String> attributes, String action) throws ResourceCreationException, ResourceReadingException {
         String urlRaw = internalCreateResource(category, attributes, action);
-        return new ResourceInstance(urlRaw).updateDownstream(this);
+        return new ResourceInstance(urlRaw).refresh(this);
     }
 
     private String internalCreateResource(String category, Map<String, String> attributes, String action) throws ResourceCreationException {
@@ -58,13 +58,21 @@ public class OcciClient {
         }
     }
 
+    public ResourceInstance updateResource(ResourceInstance resource, Map<String, String> attributes) throws ResourceCreationException, ResourceReadingException {
+        return updateResource(resource.getCategory(), resource.getUuid(), attributes, null);
+    }
+
     public ResourceInstance updateResource(String category, String uuid, Map<String, String> attributes) throws ResourceCreationException, ResourceReadingException {
         return updateResource(category, uuid, attributes, null);
     }
 
+    public ResourceInstance updateResource(ResourceInstance resource, Map<String, String> attributes, String action) throws ResourceCreationException, ResourceReadingException {
+        return updateResource(resource.getCategory(), resource.getUuid(), attributes, action);
+    }
+
     public ResourceInstance updateResource(String category, String uuid, Map<String, String> attributes, String action) throws ResourceCreationException, ResourceReadingException {
         String urlRaw = internalUpdateResource(category, uuid, attributes, action);
-        return new ResourceInstance(urlRaw).updateDownstream(this);
+        return new ResourceInstance(urlRaw).refresh(this);
     }
 
     private String internalUpdateResource(String category, String uuid, Map<String, String> attributes, String action) throws ResourceCreationException {

@@ -44,7 +44,6 @@ class ActionTrueNumergy extends Action {
 
     private HashMap<String, String> generateVmParameters(String vmName, String ipBase) {
         Map<String, String> parameters = new HashMap<String, String>();
-        parameters.put("rule", "numergy");
         parameters.put("provider", "numergy");
         parameters.put("application", "elasticsearch");
         parameters.put("flavor", "single");
@@ -55,7 +54,7 @@ class ActionTrueNumergy extends Action {
 
     private String generateSlaveVmName() {
         Random rnd = new Random();
-        String vmName = "Slave-" + Math.abs(rnd.nextInt());
+        String vmName = "EsSlaveE-" + rnd.nextInt(10000);
         return vmName
     }
 

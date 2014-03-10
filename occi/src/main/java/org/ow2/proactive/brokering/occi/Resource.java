@@ -92,7 +92,7 @@ public class Resource {
         boolean mutable = true;
         boolean required = true;
         attributeList.add(new Attribute("occi.core.id", !mutable, required));
-        attributeList.add(new Attribute("occi.core.location", mutable, !required, "Paris1"));
+        attributeList.add(new Attribute("occi.core.location", mutable, !required));
         attributeList.add(new Attribute("action.state", mutable, !required));
         return attributeList;
     }

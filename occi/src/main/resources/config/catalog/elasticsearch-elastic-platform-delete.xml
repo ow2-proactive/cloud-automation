@@ -40,7 +40,7 @@ ResourceInstance base1 = client.updateResource(base.getCategory(), base.getUuid(
 ResourceInstance trigger1 = client.updateResource(trigger.getCategory(), trigger.getUuid(), Collections.EMPTY_MAP, "stop");
 
 def json = new net.minidev.json.JSONObject();
-json.put("occi.paas.status", "down");
+json.put("occi.paas.state", "down");
 result = json.toJSONString()
 println result
 

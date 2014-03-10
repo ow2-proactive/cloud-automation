@@ -3,41 +3,36 @@ package org.ow2.proactive.brokering.occi.client.examples
 import org.ow2.proactive.brokering.occi.client.OcciClient
 import org.ow2.proactive.brokering.occi.client.ResourceInstance
 
-OcciClient client = new OcciClient("http://localhost:8081/occi/api/occi");
+// Instantiate an OCCI client for Cloud Automation API
+OcciClient client = new OcciClient("https://CA-SERVER/ca/");
 
-def bigPlatform = new ResourceInstance("http://localhost:8081/occi/api/occi/platform/6675a9e6-9136-4c04-b343-cc7865342009").updateDownstream(client)
-//def bigPlatform = null
-if (bigPlatform == null) {
-    //Map<String, String> ar = new HashMap<String, String>();
-    def args = new HashMap<String, String>()
-    args.put("provider", "numergy")
-    args.put("rule", "numergy")
-    args.put("elasticity.vm.count.maximum", "3")
-    args.put("elasticity.vm.count.minimum", "2")
-    args.put("application", "elasticsearch")
-    args.put("flavor", "elastic")
-    bigPlatform = client.createResource("platform", args);
-    println "Big platform: " + bigPlatform.getLocation()
+// Create elastic platform
+def argu = ["provider":"numergy","elasticity.vm.count.maximum":"3","elasticity.vm.count.minimum":"1","application":"elasticsearch","flavor":"elastic"]
+def elasticPlatform = client.createResource("platform", argu);
+
+// Wait so that the bitPlatform updates its attributes
+while(!"done".equalsIgnoreCase(elasticPlatform.get("action.state"))) {
+    elasticPlatform.refresh(client)
+    Thread.sleep(1000*2)
 }
 
-Thread.sleep(1000*10) // Wait so that the bitPlatform updates its attributes
+// Get information about resources created
+def masterLocation = elasticPlatform.get("occi.paas.elasticity.masterplatform")
+def masterPlatform = new ResourceInstance(masterLocation).refresh(client)
 
-bigPlatform.updateDownstream(client)
+def triggerLocation = elasticPlatform.get("occi.paas.elasticity.trigger")
+def trigger = new ResourceInstance(triggerLocation).refresh(client)
 
-def masterLocation = bigPlatform.get("occi.paas.elasticity.masterplatform")
-def triggerLocation = bigPlatform.get("occi.paas.elasticity.trigger")
-
-
-def masterPlatform = new ResourceInstance(masterLocation).updateDownstream(client)
-def trigger = new ResourceInstance(triggerLocation).updateDownstream(client)
-
-println "Big platform: " + bigPlatform.toString()
+// Show resources created
+println "Elastic platform: " + elasticPlatform.toString()
 println "Master platform: " + masterPlatform.toString()
 println "Trigger platform: " + trigger.toString()
 
-masterPlatform.updateUpstream(client, [application:"kibana"], "install")
+// Install kibana for elasticsearch in the master node
+masterPlatform.update(client, [application:"kibana"], "install")
 
-platformbig = client.updateResource(bigPlatform.getCategory(), bigPlatform.getUuid(), Collections.EMPTY_MAP, "stop");
+// Shutdown the whole platform
+platformbig = client.updateResource(elasticPlatform, [:], "stop");
 
 
 

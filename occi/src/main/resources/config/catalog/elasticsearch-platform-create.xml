@@ -22,7 +22,6 @@
         <variable name="occi.compute.hostname"/>
 
         <!-- Provided by elasticsearch rule -->
-        <variable name="paas.elasticsearch.node.name"/>
         <variable name="paas.elasticsearch.master.ip" value=""/>
 
     </variables>
@@ -168,7 +167,7 @@ p.waitFor()
 if (p.exitValue() != 0) throw new RuntimeException("exitValue: " + p.exitValue());
 
 def json = new net.minidev.json.JSONObject()
-json.put("occi.paas.status", "up")
+json.put("occi.paas.state", "up")
 result = json.toJSONString()
 println result
 

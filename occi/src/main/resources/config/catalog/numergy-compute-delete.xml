@@ -18,7 +18,7 @@
         <info name="category" value="compute"/>
         <info name="operation" value="update"/>
         <info name="action" value="stop"/>
-        <info name="rule" value="numergy"/>
+        <info name="provider" value="numergy"/>
     </genericInformation>
 
     <taskFlow>
