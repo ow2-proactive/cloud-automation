@@ -10,6 +10,7 @@ import org.ow2.proactive.workflowcatalog.Catalog;
 import org.ow2.proactive.workflowcatalog.Reference;
 import org.ow2.proactive.workflowcatalog.References;
 import org.ow2.proactive.workflowcatalog.Workflow;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.JobSubmissionResponse;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerLoginData;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerProxy;
 import javax.xml.bind.JAXBException;
@@ -124,8 +125,8 @@ public class Broker {
                 logger.debug("Generated job file : " + jobFile.getAbsolutePath());
                 logger.debug(FileUtils.readFileToString(jobFile));
 
-                String output = scheduler.submitJob(jobFile);
-                Reference ref = Reference.buildJobReference(output, workflow.getName());
+                JobSubmissionResponse response = scheduler.submitJob(jobFile);
+                Reference ref = Reference.buildJobReference(workflow.getName(), response);
                 references.add(ref);
                 logger.info(
                         String.format("Workflow '%s' configured ('%d' rules applied) and submitted (Job ID='%s')",

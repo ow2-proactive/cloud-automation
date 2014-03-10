@@ -4,10 +4,8 @@ import java.io.IOException;
 import java.util.*;
 import org.apache.http.auth.AuthenticationException;
 import org.ow2.proactive.workflowcatalog.*;
-import org.ow2.proactive.workflowcatalog.utils.scheduling.JobParsingException;
-import org.ow2.proactive.workflowcatalog.utils.scheduling.JobSubmissionException;
-import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerProxy;
-import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerLoginData;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.*;
+
 import javax.xml.transform.TransformerException;
 
 import static org.ow2.proactive.workflowcatalog.api.utils.ConfigurationHelper.*;
@@ -40,8 +38,8 @@ public class Core {
         Collection<Workflow> workflows = catalog.getWorkflows(data);
         for (Workflow w: workflows) {
             try {
-                String jsonResponse = scheduler.submitJob(w.configure(data.getVariables()));
-                references.add(Reference.buildJobReference(jsonResponse, w.getName()));
+                JobSubmissionResponse jsonResponse = scheduler.submitJob(w.configure(data.getVariables()));
+                references.add(Reference.buildJobReference(w.getName(), jsonResponse));
             } catch (JobParsingException e) {
                 throw new JobSubmissionException("Error parsing", e);
             } catch (AuthenticationException e) {

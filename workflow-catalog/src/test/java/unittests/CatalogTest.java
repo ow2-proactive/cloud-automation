@@ -56,11 +56,7 @@ public class CatalogTest {
     }
 
     private static void waitForUpdate() {
-        try {
-            Thread.sleep(REFRESH_PERIOD_MS * 10);
-        } catch(InterruptedException e) {
-            e.printStackTrace();
-        }
+        catalog.forceUpdate();
     }
 
 }

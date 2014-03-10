@@ -86,20 +86,19 @@ public class SchedulerProxy {
         }
     }
 
-    public String submitJob(File jobFile) throws AuthenticationException, JobSubmissionException {
+    public JobSubmissionResponse submitJob(File jobFile) throws AuthenticationException, JobSubmissionException {
         String endpoint = schedulerLoginData.schedulerUrl + "/scheduler/submit";
         String sessionId = connectToScheduler(schedulerLoginData);
         HttpPost post = buildPostForJobSubmission(sessionId, jobFile, endpoint);
         return executePostForJobSubmission(post);
     }
 
-    private String executePostForJobSubmission(HttpPost post) throws JobSubmissionException {
+    private JobSubmissionResponse executePostForJobSubmission(HttpPost post) throws JobSubmissionException {
         HttpResponse response = null;
         try {
             response = httpClient.execute(post);
-            String result = EntityUtils.toString(response.getEntity());
-            logger.info("Job submitted: " + result);
-            return result;
+            String resultJson = EntityUtils.toString(response.getEntity());
+            return new JobSubmissionResponse(resultJson);
         } catch (IOException e) {
             throw new JobSubmissionException(e);
         } finally {

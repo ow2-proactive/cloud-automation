@@ -10,17 +10,18 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Catalog {
     private static final Logger logger = Logger.getLogger(Catalog.class.getName());
     private final Map<File, Workflow> workflows;
+    private final UpdateTask updateTask;
 
     /**
      * @param path
      * @param refresh in milliseconds
      */
     public Catalog(File path, long refresh) {
-        Timer timer = new Timer();
-        UpdateTask task = new UpdateTask(path);
-        timer.schedule(task, 0, refresh);
+        updateTask = new UpdateTask(path);
         workflows = new ConcurrentHashMap<File, Workflow>();
-        task.run();
+
+        forceUpdate();
+        new Timer().schedule(updateTask, 0, refresh);
     }
 
     public Collection<Workflow> getWorkflows(WorkflowParameters filter) {
@@ -80,6 +81,10 @@ public class Catalog {
                 logger.warn("Catalog not a directory");
             }
         }
+    }
+
+    public void forceUpdate() {
+        updateTask.run();
     }
 }
 

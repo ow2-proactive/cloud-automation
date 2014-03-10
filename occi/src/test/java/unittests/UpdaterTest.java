@@ -10,6 +10,7 @@ import org.ow2.proactive.brokering.occi.OcciServer;
 import org.ow2.proactive.brokering.occi.Resource;
 import org.ow2.proactive.brokering.occi.api.Occi;
 import org.ow2.proactive.brokering.occi.categories.Utils;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.JobSubmissionResponse;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerProxy;
 
 import javax.json.JsonObject;
@@ -111,8 +112,7 @@ public class UpdaterTest {
         // The second tasks results response is a unexpected response, where tasks have results
         // that are non-json formatted.
         for (int i = 1; i <= 2; i++) {
-            Reference jobReference = Reference.buildJobReference(
-                    createSubmitResponse(i, "TestJob" + i), "");
+            Reference jobReference = Reference.buildJobReference("", new JobSubmissionResponse(createSubmitResponse(i, "TestJob" + i)));
             jobReferences.add(jobReference);
             JsonObject taskRes = Utils.convertToJson(restResponses.get(i + "").toString());
             when(scheduler.getAllTaskResultsAsJson(jobReference)).thenReturn(taskRes);

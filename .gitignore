@@ -3,6 +3,7 @@ target/
 .idea/
 .gradle/
 out/
+classes/
 occi/build/
 monitoring/build/
 workflow-catalog/build/

@@ -13,9 +13,13 @@ public class References extends ArrayList<Reference> {
 
     public String getSummary() {
         StringBuilder summary = new StringBuilder();
-        for (Reference r : this) {
-            summary.append(r.toString());
-            summary.append("\n");
+        if (this.isEmpty()) {
+            summary.append("No references");
+        } else {
+            for (Reference r : this) {
+                summary.append(r.toString());
+                summary.append("\n");
+            }
         }
         return summary.toString();
     }

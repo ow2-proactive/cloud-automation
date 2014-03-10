@@ -1,5 +1,7 @@
 package org.ow2.proactive.workflowcatalog;
 
+import org.ow2.proactive.workflowcatalog.utils.scheduling.JobSubmissionResponse;
+
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.stream.JsonParsingException;
@@ -7,14 +9,14 @@ import java.io.StringReader;
 
 public class Reference {
 
-    private SubmissionStatus successfullySubmitted;
+    private SubmissionStatus submissionStatus;
     private String submissionId;
     private String submissionMessage;
     private Nature natureOfReference;
 
-    private Reference(Nature natureOfReference, SubmissionStatus submitted, String message, String id) {
+    public Reference(Nature natureOfReference, SubmissionStatus submissionStatus, String message, String id) {
         this.natureOfReference = natureOfReference;
-        this.successfullySubmitted = submitted;
+        this.submissionStatus = submissionStatus;
         this.submissionMessage = message;
         this.submissionId = id;
     }
@@ -32,35 +34,11 @@ public class Reference {
         return new Reference(Nature.NATURE_JOB, SubmissionStatus.SUBMISSION_NOT_DONE, json, null);
     }
 
-    public static Reference buildJobReference(String json, String info) {
-
-        JsonObject ob;
-        try {
-            ob = Json.createReader(new StringReader(json)).readObject();
-        } catch (JsonParsingException e) {
-            return buildJobFailedReference(info + " : " + json);
-        }
-
-        Boolean isValid = jobSubmittedCorrectly(ob);
-        if (isValid) {
-            String id = ob.getInt("id") + "";
-            String message = info + " : " + ob.getString("readableName");
-            return new Reference(
-                    Nature.NATURE_JOB, SubmissionStatus.SUBMISSION_DONE, message, id);
-        } else {
-            String errorMessage = info + " : " + ob.getString("errorMessage");
-            return new Reference(
-                    Nature.NATURE_JOB, SubmissionStatus.SUBMISSION_NOT_DONE, errorMessage, null);
-        }
-    }
-
-    private static Boolean jobSubmittedCorrectly(JsonObject jsonObject) {
-        try {
-            jsonObject.getInt("id");
-            return true;
-        } catch (NullPointerException e) {
-            return false;
-        }
+    public static Reference buildJobReference(String info, JobSubmissionResponse response) {
+        String message = info + ":" + response.getMessage();
+        String id = response.getId();
+        SubmissionStatus status = (response.getValid()? SubmissionStatus.SUBMISSION_DONE : SubmissionStatus.SUBMISSION_NOT_DONE);
+        return new Reference(Nature.NATURE_JOB, status, message, id);
     }
 
     public String getId() {
@@ -68,23 +46,31 @@ public class Reference {
     }
 
     public Boolean isSuccessfullySubmitted() {
-        return successfullySubmitted == SubmissionStatus.SUBMISSION_DONE;
+        return submissionStatus == SubmissionStatus.SUBMISSION_DONE;
+    }
+
+    public SubmissionStatus getSubmissionStatus() {
+        return submissionStatus;
     }
 
     public String getSubmissionMessage() {
         return submissionMessage;
     }
 
+    public Nature getNatureOfReference() {
+        return natureOfReference;
+    }
+
     public String toString() {
         return
                 "[Reference nature: '" + natureOfReference +
-                        "', submitted: '" + successfullySubmitted +
+                        "', submitted: '" + submissionStatus +
                         "', id: '" + submissionId +
                         "', submissionMessage: '" + submissionMessage +
                         "']";
     }
 
-    static enum Nature {
+    public static enum Nature {
 
         NATURE_UNKNOWN(0), NATURE_JOB(1), NATURE_OTHER(2);
 
@@ -96,7 +82,7 @@ public class Reference {
 
     }
 
-    static enum SubmissionStatus {
+    public static enum SubmissionStatus {
 
         SUBMISSION_UNKNOWN(0), SUBMISSION_DONE(1), SUBMISSION_NOT_DONE(2);
 

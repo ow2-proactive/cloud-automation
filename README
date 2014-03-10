@@ -22,5 +22,5 @@ The Workflow Catalog (WC) is a tool that provides the user with a list of alread
 
    curl -X GET http://localhost:8080/workflow-catalog-rest/api/workflows/
 
-   curl -X POST http://localhost:8080/workflow-catalog-rest/api/workflows/job -d '{"workflowName":"workflow1.xml","variables":{"genericInformation1":"genericInformationValue1", "genericInformation2":"genericInformationValue2", "variable1":"date", "variable2":"not-used"}}'
+   curl -X POST --header "Content-Type: application/json"   http://localhost:8080/workflow-catalog-rest/api/workflows/job -d '{"name":"workflow1.xml","variables":{"genericInformation1":"genericInformationValue1", "genericInformation2":"genericInformationValue2", "variable1":"date", "variable2":"not-used"}}'
 

@@ -26,12 +26,19 @@ public class Workflow {
     private static final Logger logger = Logger.getLogger(Workflow.class.getName());
     private long lastModification;
     private File job;
+    private String name;
     private Map<String, String> genericInfo;
     private Map<String, String> variables;
 
     public Workflow(File job) {
         this.job = job;
+        this.name = job.getName();
         lastModification = job.lastModified();
+        genericInfo = new HashMap<String, String>();
+        variables = new HashMap<String, String>();
+    }
+
+    public Workflow() {
         genericInfo = new HashMap<String, String>();
         variables = new HashMap<String, String>();
     }
@@ -61,11 +68,11 @@ public class Workflow {
     }
 
     public String getName() {
-        return job.getName();
+        return name;
     }
 
     public String toString() {
-        return job.getName();
+        return "['" + name + "', '" + variables + "', '" + genericInfo + "']";
     }
 
     public synchronized void update() {
@@ -74,6 +81,7 @@ public class Workflow {
             extractElementsFromDocument(doc, "genericInformation", genericInfo);
             extractElementsFromDocument(doc, "variables", variables);
             lastModification = job.lastModified();
+            name = job.getName();
         } catch (JobParsingException e) {
             logger.warn("Error updating: " + e.getMessage());
         }

@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<job xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:proactive:jobdescriptor:3.1"
-     xsi:schemaLocation="urn:proactive:jobdescriptor:3.1 http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/3.1/schedulerjob.xsd"
-     name="Workflow1">
+<job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd"
+     name="Workflow1" priority="normal" cancelJobOnError="true">
     <variables>
         <variable name="variable1"/>
         <variable name="variable2"/>
     </variables>
-    <description>Job example number 1</description>
     <genericInformation>
         <info name="genericInformation1" value="genericInformationValue1"/>
         <info name="genericInformation2" value="genericInformationValue2"/>

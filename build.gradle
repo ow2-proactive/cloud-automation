@@ -45,7 +45,7 @@ subprojects {
 
 project(':workflow-catalog') {
     dependencies {
-        compile 'org.jboss.resteasy:resteasy-jaxrs:2.3.5.Final'
+        compile 'org.jboss.resteasy:resteasy-jaxrs:3.0.6.Final'
         compile 'org.apache.httpcomponents:httpmime:4.2.1'
         compile 'javax.json:javax.json-api:1.0'
         testCompile 'com.google.guava:guava:12.0'
@@ -57,24 +57,44 @@ project(':workflow-catalog-rest') {
     apply plugin: 'war'
     apply plugin: 'jetty'
 
-    configurations {
-    }
+    httpPort = 8082
+
+    configurations { }
     dependencies {
-
         compile project(':workflow-catalog')
-
-        compile 'org.jboss.resteasy:resteasy-jaxrs:2.3.5.Final'
-        compile 'org.jboss.resteasy:jaxrs-api:2.3.5.Final'
+        compile 'org.jboss.resteasy:resteasy-jaxrs:3.0.6.Final'
+        compile 'org.jboss.resteasy:jaxrs-api:3.0.6.Final'
         compile 'org.codehaus.jackson:jackson-core-asl:1.9.4'
         compile 'org.apache.httpcomponents:httpmime:4.2.1'
         compile 'org.codehaus.groovy:groovy-all:2.1.2'
         compile 'javax.json:javax.json-api:1.0'
         compile 'com.google.code.gson:gson:2.2.4'
         compile 'org.glassfish:javax.json:1.0.2'
+        compile 'org.jboss.resteasy:resteasy-jackson-provider:3.0.6.Final'
+    }
+}
 
+project(':workflow-catalog-rest-cli') {
+    apply plugin: 'application'
+    mainClassName = "org.ow2.proactive.workflowcatalog.cli.WcEntryPoint" // main class (will be executed with gradle task 'run' and zip scripts)
+    run {
+        run.systemProperties System.properties
     }
 
+    configurations { }
+    dependencies {
+        compile project(':workflow-catalog-rest')
+        compile 'commons-cli:commons-cli:1.2'
+        compile 'commons-io:commons-io:2.4'
+        compile 'jline:jline:1.0'
+        compile 'org.apache.httpcomponents:httpclient:4.2.1'
+        compile 'org.apache.httpcomponents:httpmime:4.2.1'
+        compile 'org.jboss.resteasy:resteasy-jaxrs:3.0.6.Final'
+        compile 'org.jboss.resteasy:jaxrs-api:3.0.6.Final'
+        compile 'org.jboss.resteasy:resteasy-jackson-provider:3.0.6.Final'
+        compile 'org.jboss.resteasy:resteasy-client:3.0.6.Final'
 
+    }
 }
 
 project(':occi') {
@@ -95,8 +115,8 @@ project(':occi') {
         runtime 'com.almworks.sqlite4java:libsqlite4java-linux-i386:0.282'
         runtime 'com.almworks.sqlite4java:libsqlite4java-osx:0.282'
 
-        compile 'org.jboss.resteasy:resteasy-jaxrs:2.3.5.Final'
-        compile 'org.jboss.resteasy:jaxrs-api:2.3.5.Final'
+        compile 'org.jboss.resteasy:resteasy-jaxrs:3.0.6.Final'
+        compile 'org.jboss.resteasy:jaxrs-api:3.0.6.Final'
         compile 'org.codehaus.jackson:jackson-core-asl:1.9.4'
         compile 'org.apache.httpcomponents:httpmime:4.1.2'
         compile 'org.codehaus.groovy:groovy-all:2.1.2'
