@@ -20,15 +20,10 @@ public class RestApiServer implements RestApi {
     }
 
     @Override
-    public ReferencesBean submitJob(WorkflowParametersBean parameters) {
+    public ReferencesBean submitJob(WorkflowParametersBean parameters) throws JobSubmissionException {
         logger.debug(String.format("<<< %s", parameters.toString()));
-        try {
-            Core core = Core.getInstance();
-            return new ReferencesBean(core.executeWorkflow(parameters.generateWorkflowParameters()));
-        } catch (JobSubmissionException e) {
-            logger.warn("Job submission error", e);
-            return new ReferencesBean();
-        }
+        Core core = Core.getInstance();
+        return new ReferencesBean(core.executeWorkflow(parameters.generateWorkflowParameters()));
     }
 
 }

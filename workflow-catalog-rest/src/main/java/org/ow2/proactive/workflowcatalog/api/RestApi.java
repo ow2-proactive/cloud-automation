@@ -1,10 +1,9 @@
 package org.ow2.proactive.workflowcatalog.api;
 
-import org.ow2.proactive.workflowcatalog.References;
-import org.ow2.proactive.workflowcatalog.WorkflowParameters;
 import org.ow2.proactive.workflowcatalog.api.utils.formatter.beans.ReferencesBean;
 import org.ow2.proactive.workflowcatalog.api.utils.formatter.beans.WorkflowBean;
 import org.ow2.proactive.workflowcatalog.api.utils.formatter.beans.WorkflowParametersBean;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.JobSubmissionException;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -23,6 +22,6 @@ public interface RestApi {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("/job/")
-    public ReferencesBean submitJob(WorkflowParametersBean parameters);
+    public ReferencesBean submitJob(WorkflowParametersBean parameters) throws JobSubmissionException;
 
 }

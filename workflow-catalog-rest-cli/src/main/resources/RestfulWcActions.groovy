@@ -53,6 +53,8 @@ void exit() {
 }
 
 void printWelcomeMsg() {
+    print('Loading existing workflows syntax...\r\n');
+    // TODO Load workflows
     print('Type help() for interactive help \r\n');
      if (getUser(currentContext) == null && getCredFile(currentContext) == null) {
         print('Warning: You are not currently logged in.\r\n')
@@ -63,9 +65,9 @@ void execute(cmd) {
     def tryAfterReLogin = false
     try {
         cmd.execute(currentContext)
-    } catch (e) {
-        if (e.javaException instanceof CLIException 
-                && (e.javaException.reason() == CLIException.REASON_UNAUTHORIZED_ACCESS)
+    } catch (Exception e) {
+        if (e instanceof CLIException
+                && (e.reason() == CLIException.REASON_UNAUTHORIZED_ACCESS)
                 && currentContext.getProperty(AbstractLoginCommand.PROP_PERSISTED_SESSION, java.lang.Boolean.TYPE, false)) {
             tryAfterReLogin = true
         } else {
@@ -73,7 +75,7 @@ void execute(cmd) {
         }
     }
     if (tryAfterReLogin) {
-	currentContext.setProperty(AbstractLoginCommand.PROP_RENEW_SESSION, java.lang.Boolean.TRUE)
+	currentContext.setProperty(AbstractLoginCommand.PROP_RENEW_SESSION, Boolean.TRUE)
         try {
             if (getCredFile(currentContext) != null) {
                 execute(new LoginWithCredentialsCommand(getCredFile(currentContext)))
@@ -87,18 +89,18 @@ void execute(cmd) {
     }
 }
 
-void printError(error) {
+void printError(Exception error) {
     print("An error occurred while executing the command:\r\n")
-    if (error.javaException != null) {
-        error.javaException.printStackTrace()
+    if (error != null) {
+        error.printStackTrace()
     }
 }
 
 def getUser(ApplicationContext context) {
-	return context.getProperty(LoginCommand.USERNAME, java.lang.String.class)
+	return context.getProperty(LoginCommand.USERNAME, String.class)
 }
 
 def getCredFile(ApplicationContext context) {
-	return context.getProperty(LoginWithCredentialsCommand.CRED_FILE, java.lang.String.class)
+	return context.getProperty(LoginWithCredentialsCommand.CRED_FILE, String.class)
 }
 

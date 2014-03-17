@@ -43,7 +43,10 @@ import org.ow2.proactive.workflowcatalog.api.utils.formatter.beans.WorkflowParam
 import org.ow2.proactive.workflowcatalog.cli.ApplicationContext;
 import org.ow2.proactive.workflowcatalog.cli.CLIException;
 import org.ow2.proactive.workflowcatalog.cli.rest.WorkflowCatalogClient;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.JobSubmissionException;
 
+import javax.ws.rs.ServerErrorException;
+import javax.ws.rs.core.Response;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -70,11 +73,12 @@ public class SubmitWorkflowCommand extends UseProxyCommand implements Command {
         params.getVariables().putAll(bindings(variables));
         params.getGenericInformation().putAll(bindings(genericInformation));
 
-        System.out.println("DELETE: posting " + params.toString());
-
-        ReferencesBean references = client.getProxy().submitJob(new WorkflowParametersBean(params));
-        writeLine(currentContext, "%s", references.generateReferences().getSummary());
-        // handleError("An error occurred while retrieving nodes:", response, currentContext);
+        try {
+            ReferencesBean references = client.getProxy().submitJob(new WorkflowParametersBean(params));
+            writeLine(currentContext, "%s", references.generateReferences().getSummary());
+        } catch (JobSubmissionException e) {
+            handleError("An error occurred during job submission: ", e, currentContext);
+        }
     }
 
     private Map<String, String> bindings(String bindingString) {

@@ -40,8 +40,11 @@ public class Core {
             try {
                 JobSubmissionResponse jsonResponse = scheduler.submitJob(w.configure(data.getVariables()));
                 references.add(Reference.buildJobReference(w.getName(), jsonResponse));
+
+            } catch (JobCreationException e) {
+                throw new JobSubmissionException("Error creating job", e);
             } catch (JobParsingException e) {
-                throw new JobSubmissionException("Error parsing", e);
+                throw new JobSubmissionException("Error parsing job", e);
             } catch (AuthenticationException e) {
                 throw new JobSubmissionException("Error authenticating", e);
             } catch (TransformerException e) {

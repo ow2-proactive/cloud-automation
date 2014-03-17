@@ -1,6 +1,7 @@
 package org.ow2.proactive.workflowcatalog;
 
 import org.apache.log4j.Logger;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.JobCreationException;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.JobParsingException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -92,10 +93,13 @@ public class Workflow {
     }
 
     public File configure(Map<String, String> attributes)
-            throws IOException, JobParsingException, TransformerException {
+            throws IOException, JobParsingException, TransformerException, JobCreationException {
         Document doc = getJobDocument();
         setJobElementsInDocument(doc, "variables", attributes);
+        verifyAllElementsInDocumentAreSet(doc, "variables");
         setJobElementsInDocument(doc, "genericInformation", attributes);
+        verifyAllElementsInDocumentAreSet(doc, "genericInformation");
+
         File jobFile = buildJobFile(doc);
         logger.debug(String.format("Job file: %s", jobFile));
         return jobFile;
@@ -110,6 +114,23 @@ public class Workflow {
         DOMSource source = new DOMSource(doc);
         transformer.transform(source, result);
         return jobFile;
+    }
+
+    private void verifyAllElementsInDocumentAreSet(Document doc, String tagName) throws JobCreationException {
+        List<String> notDefined = new ArrayList<String>();
+        NodeList vars = doc.getElementsByTagName(tagName).item(0).getChildNodes();
+        for (int n = 0; n < vars.getLength(); n++) {
+            if (vars.item(n).getNodeType() == Node.ELEMENT_NODE) {
+                Element var = (Element) vars.item(n);
+                String varName = var.getAttributes().getNamedItem("name").getNodeValue();
+                Node varValue = var.getAttributes().getNamedItem("value");
+                if (varValue == null) {
+                    notDefined.add(varName);
+                }
+            }
+        }
+        if (!notDefined.isEmpty())
+            throw new JobCreationException("Some '" + tagName + "' are not defined: " + notDefined);
     }
 
     private void setJobElementsInDocument(Document doc, String tagName, Map<String,
