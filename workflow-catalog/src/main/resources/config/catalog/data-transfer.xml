@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd" name="data-transfer" priority="normal" cancelJobOnError="true">
+    <variables>
+
+        <variable name="atob" value="true"/>
+
+        <variable name="wildcard" value=".*\\.log"/>
+        <variable name="recursive" value="false"/>
+        <variable name="detailed" value="true"/>
+
+        <variable name="a.protocol" value="ftp"/>
+        <variable name="a.server" value="192.168.1.158"/>
+        <variable name="a.port" value="21"/>
+        <variable name="a.username" value="user"/>
+        <variable name="a.password" value=""/>
+        <variable name="a.credpath" value="/home/mjost/.ssh/id_rsa"/>
+        <variable name="a.credname" value="ftp-credentials-1.cred"/>
+        <variable name="a.path" value="/.logs/"/>
+
+        <variable name="b.path" value="/tmp/"/>
+
+    </variables>
+
+	<taskFlow>
+        <task name="copy-files-task">
+            <scriptExecutable>
+                <script >
+                    <code language="groovy">
+                        <![CDATA[
+
+import net.minidev.json.*
+import org.apache.commons.vfs2.*
+import org.apache.commons.vfs2.provider.sftp.*
+
+def atob =  "${atob}".toBoolean()
+def wildcard =  "${wildcard}"
+def recursive =  "${recursive}".toBoolean()
+def detailed =  "${detailed}".toBoolean()
+
+def a_protocol = "${a.protocol}"
+def a_server = "${a.server}"
+def a_port =  "${a.port}"
+def a_username =  "${a.username}"
+def a_password =  "${a.password}"
+def a_credpath =  "${a.credpath}"
+def a_credname =  "${a.credname}"
+def a_path =  "${a.path}"
+
+def b_path =  "${b.path}"
+
+println "Initializing A parameters..."
+
+a_password = getPassword(a_password, a_credname)
+
+def a_options = initializePrivateKeyMechanism(a_credpath)
+
+println "Accessing A server..."
+
+FileObject a_root = VFS.getManager().resolveFile(generateUrl(a_protocol, a_username, a_password, a_server, a_port), a_options)
+
+println "Resolving A path..."
+
+FileObject a_base = a_root.resolveFile(a_path)
+
+println "Resolving B path..."
+
+FileObject b_base = VFS.getManager().resolveFile(b_path)
+
+println "Copying..."
+
+if (atob) {
+    b_base.copyFrom(a_base, new CustomFileSelector(wildcard, recursive))
+} else {
+    a_base.copyFrom(b_base, new CustomFileSelector(wildcard, recursive))
+}
+
+println "Generating report..."
+
+def a_files = generateReport(a_base, wildcard, recursive, detailed)
+def b_files = generateReport(b_base, wildcard, recursive, detailed)
+
+def json = new JSONObject()
+
+if (atob) {
+    json.put("source_files_count", a_files.size())
+    json.put("source_files", a_files)
+    json.put("destination_matching_files", b_files)
+} else {
+    json.put("source_files_count", b_files.size())
+    json.put("source_files", b_files)
+    json.put("destination_matching_files", a_files)
+}
+
+result = json.toJSONString()
+
+println "Report: $result"
+
+a_root.close()
+
+////////////////////////////////////////////////////////
+
+def getPassword(String password, String credname) {
+
+    if (password != null && !password.isEmpty()) {
+        println "Using provided password"
+        return password
+    }
+
+    if (credname == null || credname.isEmpty())
+        return null
+
+    def credDir = new File(new File(System.getProperty("user.home")), ".credentials")
+    def credFile = new File(credDir, credname)
+    if (credFile.exists()) {
+        println "Using provided credential file"
+        return credFile.text
+    } else {
+        println "Could not find provided credential file"
+        return null
+    }
+
+}
+
+def generateUrl(String protocol, String username, String password, String server, String port) {
+
+    if (server == null || server.isEmpty())
+        return "file://"
+
+    if (username != null && !username.isEmpty())
+        return protocol + "://" + generateUserPart(username, password) + "@" + generateServerPart(server, port)
+
+    if (username == null || username.isEmpty())
+        return protocol + "://" + generateServerPart(server, port)
+
+    throw new RuntimeException("Unhandled case")
+}
+
+def generateServerPart(String server, String port) {
+    if (port == null || port.isEmpty())
+        return server
+    else
+        return server + ":" + port
+}
+
+def generateUserPart(String user, String pass) {
+    if (pass == null || pass.isEmpty()) {
+        return user
+    } else {
+        return user + ":" + pass
+    }
+}
+
+def initializePrivateKeyMechanism(def openSshPrivateKeyPath) {
+    FileSystemOptions fsOptions = new FileSystemOptions();
+    SftpFileSystemConfigBuilder.getInstance().setStrictHostKeyChecking(fsOptions, "no");
+    SftpFileSystemConfigBuilder.getInstance().setUserDirIsRoot(fsOptions, false);
+    if (openSshPrivateKeyPath != null && !openSshPrivateKeyPath.isEmpty()) {
+        println "Using provided private key"
+        def files = [new File(openSshPrivateKeyPath)] as File[]
+        SftpFileSystemConfigBuilder.getInstance().setIdentities(fsOptions, files);
+    }
+    return fsOptions
+}
+
+class CustomFileSelector implements FileSelector {
+    private Boolean recursive
+    private String wildcard
+    public CustomFileSelector(String wildcard, Boolean recursive) {
+        this.wildcard = wildcard
+        this.recursive = recursive
+    }
+    @Override
+    boolean includeFile(FileSelectInfo fileInfo) throws Exception {
+        return fileInfo.file.getName().path.matches(wildcard)
+    }
+    @Override
+    boolean traverseDescendents(FileSelectInfo fileInfo) throws Exception {
+        return (fileInfo.depth==0?true:recursive)
+    }
+}
+
+def generateReport(FileObject base, String wildcard, Boolean recursive, Boolean detailed) {
+    FileObject[] files = base.findFiles(new CustomFileSelector(wildcard, recursive))
+    if (detailed) {
+        def sourceFiles = new JSONObject()
+        for (FileObject f : files)
+            sourceFiles.put(f.name.path, getFileProperties(f))
+        return sourceFiles
+    } else {
+        def sourceFiles = new JSONArray()
+        for (FileObject f : files)
+            sourceFiles.add(f.name.path)
+        return sourceFiles
+    }
+}
+
+def getFileProperties(FileObject f) {
+    def fileJson = new JSONObject()
+    fileJson.put("path", f.name.path)
+    fileJson.put("baseName", f.name.baseName)
+    fileJson.put("hidden", f.hidden)
+    fileJson.put("readable", f.readable)
+    fileJson.put("writeable", f.writeable)
+    fileJson.put("contentOpen", f.contentOpen)
+    return fileJson
+}
+
+
+]]>
+                    </code>
+                </script>
+            </scriptExecutable>
+        </task>
+    </taskFlow>
+</job>
+

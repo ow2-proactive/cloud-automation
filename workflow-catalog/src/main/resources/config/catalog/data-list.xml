@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd" name="data-list" priority="normal" cancelJobOnError="true">
+    <variables>
+        <variable name="source.protocol" value="ftp"/>
+        <variable name="source.server" value="192.168.1.158"/>
+        <variable name="source.port" value="21"/>
+        <variable name="source.username" value="user"/>
+        <variable name="source.password" value="activeeon"/>
+        <variable name="source.credname" value=""/>
+        <variable name="source.credpath" value=""/>
+
+        <variable name="source.path" value="/.logs/"/>
+        <variable name="source.wildcard" value=".*\\.log"/>
+        <variable name="source.recursive" value="false"/>
+        <variable name="source.detailed" value="false"/>
+    </variables>
+
+	<taskFlow>
+        <task name="list-files-task">
+            <scriptExecutable>
+                <script >
+                    <code language="groovy">
+                        <![CDATA[
+import net.minidev.json.*
+import org.apache.commons.vfs2.*
+
+def remote_protocol = "${source.protocol}"
+def remote_server = "${source.server}"
+def remote_port =  "${source.port}"
+def remote_username =  "${source.username}"
+def remote_password =  "${source.password}"
+def remote_credname =  "${source.credname}"
+def remote_credpath =  "${source.credpath}"
+
+def remote_path =  "${source.path}"
+def the_wildcard =  "${source.wildcard}"
+def recursive =  "${source.recursive}"
+def detailed =  "${source.detailed}"
+
+println "Initializing parameters..."
+
+if (remote_password == null || remote_password.isEmpty()) {
+    remote_password = getCredentials(remote_credname)
+}
+
+
+def fsOptions
+if (remote_password == null || remote_password.isEmpty()) {
+    def fsOptions = initializePrivateKeyMechanism(remote_credpath)
+}
+
+println "Accessing remote server..."
+
+FileObject rootRemote = VFS.getManager().resolveFile(generateUrl(remote_protocol, remote_username, remote_password, remote_server, remote_port))
+
+println "Resolving remote path..."
+
+FileObject baseRemote = rootRemote.resolveFile(remote_path)
+
+println "Generating report..."
+
+FileObject[] files = baseRemote.findFiles(new CustomFileSelector(the_wildcard, recursive.toBoolean()))
+
+def json = new JSONObject()
+if (detailed) {
+    def sourceFiles = new JSONObject()
+    for (FileObject f : files)
+        sourceFiles.put(f.name.path, getFileProperties(f))
+    json.put("source_files", sourceFiles)
+} else {
+    def sourceFiles = new JSONArray()
+    for (FileObject f : files)
+        sourceFiles.add(f.name.path)
+    json.put("source_files", sourceFiles)
+}
+
+result = json.toJSONString()
+
+println "Report: $result"
+
+rootRemote.close()
+
+def getFileProperties(FileObject f) {
+    def fileJson = new JSONObject()
+    fileJson.put("path", f.name.path)
+    fileJson.put("baseName", f.name.baseName)
+    fileJson.put("hidden", f.hidden)
+    fileJson.put("readable", f.readable)
+    fileJson.put("writeable", f.writeable)
+    fileJson.put("contentOpen", f.contentOpen)
+    return fileJson
+}
+
+def getCredentials(credName) {
+    return new File(new File(new File(System.getProperty("user.home")), ".credentials"), credName).text
+}
+
+def generateUrl(String remote_protocol, String remote_username, String remote_password, String remote_server, String remote_port) {
+    return remote_protocol + "://" + remote_username + ":" + remote_password + "@" + remote_server + ":" + remote_port
+}
+
+class CustomFileSelector implements FileSelector {
+    private Boolean recursive
+    private String wildcard
+    public CustomFileSelector(String wildcard, Boolean recursive) {
+        this.wildcard = wildcard
+        this.recursive = recursive
+    }
+    @Override
+    boolean includeFile(FileSelectInfo fileInfo) throws Exception {
+        return fileInfo.file.getName().path.matches(wildcard)
+    }
+    @Override
+    boolean traverseDescendents(FileSelectInfo fileInfo) throws Exception {
+        return (fileInfo.depth==0?true:recursive)
+    }
+}
+
+def FileSystemOptions initializePrivateKeyMechanism(def openSSHPrivateKeyPath) {
+    FileSystemOptions fsOptions = new FileSystemOptions();
+    SftpFileSystemConfigBuilder.getInstance().setStrictHostKeyChecking(fsOptions, "no");
+    SftpFileSystemConfigBuilder.getInstance().setUserDirIsRoot(fsOptions, false);
+    def files = [new File(openSSHPrivateKeyPath)] as File[]
+    SftpFileSystemConfigBuilder.getInstance().setIdentities(fsOptions, files);
+    return fsOptions
+}
+
+]]>
+                    </code>
+                </script>
+            </scriptExecutable>
+        </task>
+    </taskFlow>
+</job>
+
