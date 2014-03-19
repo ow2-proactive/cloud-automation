@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd" name="workflow-nop" priority="normal" cancelJobOnError="true">
+    <variables>
+        <variable name="variable1" value="valueVariable1"/>
+        <variable name="variable2" value="valueVariable2"/>
+    </variables>
+
+	<taskFlow>
+        <task name="nop-task">
+            <scriptExecutable>
+                <script >
+                    <code language="groovy">
+                        <![CDATA[
+import net.minidev.json.*
+
+def variable1 = "${variable1}"
+def variable2 = "${variable2}"
+
+println "Variables provided: "
+println "variable1='$variable1'"
+println "variable2='$variable2'"
+
+def json = new JSONObject()
+json.put("variable1", variable1)
+json.put("variable2", variable2)
+
+result = json.toJSONString()
+
+println "Result: $result"
+
+]]>
+                    </code>
+                </script>
+            </scriptExecutable>
+        </task>
+    </taskFlow>
+</job>
+
