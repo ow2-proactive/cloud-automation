@@ -2,21 +2,56 @@
 <job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd" name="data-transfer" priority="normal" cancelJobOnError="true">
     <variables>
 
+        <!-- A to B : direction of data flow -->
+        <!-- atob can be : true false -->
         <variable name="atob" value="true"/>
 
+        <!-- wildcard : full file path regex to filter files to be copied -->
+        <!-- wildcard can be : .* .*\\.log .*\\.txt .*file.* -->
         <variable name="wildcard" value=".*\\.log"/>
+
+        <!-- recursive : if the copying mechanism will explore directories too -->
+        <!-- recursive can be : true false -->
         <variable name="recursive" value="false"/>
+
+        <!-- detailed : level of verbosity of the report -->
+        <!-- detailed can be : true false -->
         <variable name="detailed" value="true"/>
 
+        <!-- A protocol : protocol to be used to access endpoint A (remote) -->
+        <!-- a.protocol can be: ftp ftps hdfs http https sftp webdav (supported by Apache VFS 2.0) -->
         <variable name="a.protocol" value="ftp"/>
+
+        <!-- A server : server IP address (or name) to be used to access endpoint A (remote) -->
+        <!-- a.server can be : 192.168.0.100 server.org ... -->
         <variable name="a.server" value="192.168.1.158"/>
+
+        <!-- A port : port number to be used to access endpoint A (remote) -->
+        <!-- a.port can be: 21 22 ... -->
         <variable name="a.port" value="21"/>
+
+        <!-- A username : username to be used to access endpoint A (remote) -->
+        <!-- a.username can be: user admin root ... -->
         <variable name="a.username" value="user"/>
+
+        <!-- A password : password to be used to access endpoint A (remote) -->
+        <!-- a.password can be: toto passwd ... -->
         <variable name="a.password" value=""/>
+
+        <!-- A credpath : private key path to be used to access endpoint A (remote) -->
+        <!-- a.credpath can be: /home/user/.ssh/id_rsa ... -->
         <variable name="a.credpath" value="/home/mjost/.ssh/id_rsa"/>
+
+        <!-- A credname : credential file name to be used that contains password to access endpoint A (remote), it must be in $HOME/.credentials -->
+        <!-- a.credname can be: ftp-credentials-1.cred ... -->
         <variable name="a.credname" value="ftp-credentials-1.cred"/>
+
+        <!-- A path : path to be used for endpoint A (remote) -->
+        <!-- a.path can be: /remote-path/ ... -->
         <variable name="a.path" value="/.logs/"/>
 
+        <!-- B path : path to be used for endpoint B (local) -->
+        <!-- b.path can be: /tmp/ ... -->
         <variable name="b.path" value="/tmp/"/>
 
     </variables>
@@ -50,7 +85,7 @@ def b_path =  "${b.path}"
 
 println "Initializing A parameters..."
 
-a_password = getPassword(a_password, a_credname)
+a_password = getCredentials(a_password, a_credname)
 
 def a_options = initializePrivateKeyMechanism(a_credpath)
 
@@ -99,7 +134,7 @@ a_root.close()
 
 ////////////////////////////////////////////////////////
 
-def getPassword(String password, String credname) {
+def getCredentials(String password, String credname) {
 
     if (password != null && !password.isEmpty()) {
         println "Using provided password"

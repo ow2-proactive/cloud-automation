@@ -1,18 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd" name="data-list" priority="normal" cancelJobOnError="true">
     <variables>
-        <variable name="source.protocol" value="ftp"/>
-        <variable name="source.server" value="192.168.1.158"/>
-        <variable name="source.port" value="21"/>
-        <variable name="source.username" value="user"/>
-        <variable name="source.password" value="activeeon"/>
-        <variable name="source.credname" value=""/>
-        <variable name="source.credpath" value=""/>
 
-        <variable name="source.path" value="/.logs/"/>
-        <variable name="source.wildcard" value=".*\\.log"/>
-        <variable name="source.recursive" value="false"/>
-        <variable name="source.detailed" value="false"/>
+        <!-- wildcard : full file path regex to filter files to be listed -->
+        <!-- wildcard can be : .* .*\\.log .*\\.txt .*file.* -->
+        <variable name="wildcard" value=".*\\.log"/>
+
+        <!-- recursive : if the copying mechanism will explore directories too -->
+        <!-- recursive can be : true false -->
+        <variable name="recursive" value="true"/>
+
+        <!-- detailed : level of verbosity of the report -->
+        <!-- detailed can be : true false -->
+        <variable name="detailed" value="true"/>
+
+        <!-- A protocol : protocol to be used to access endpoint A (remote) -->
+        <!-- a.protocol can be: ftp ftps hdfs http https sftp webdav (supported by Apache VFS 2.0) -->
+        <variable name="a.protocol" value="ftp"/>
+
+        <!-- A server : server IP address (or name) to be used to access endpoint A (remote) -->
+        <!-- a.server can be : 192.168.0.100 server.org ... -->
+        <variable name="a.server" value="192.168.1.158"/>
+
+        <!-- A port : port number to be used to access endpoint A (remote) -->
+        <!-- a.port can be: 21 22 ... -->
+        <variable name="a.port" value="21"/>
+
+        <!-- A username : username to be used to access endpoint A (remote) -->
+        <!-- a.username can be: user admin root ... -->
+        <variable name="a.username" value="user"/>
+
+        <!-- A password : password to be used to access endpoint A (remote) -->
+        <!-- a.password can be: toto passwd ... -->
+        <variable name="a.password" value="activeeon"/>
+
+        <!-- A credpath : private key path to be used to access endpoint A (remote) -->
+        <!-- a.credpath can be: /home/user/.ssh/id_rsa ... -->
+        <variable name="a.credpath" value=""/>
+
+        <!-- A credname : credential file name to be used that contains password to access endpoint A (remote), it must be in $HOME/.credentials -->
+        <!-- a.credname can be: ftp-credentials-1.cred ... -->
+        <variable name="a.credname" value=""/>
+
+        <!-- A path : path to be used for endpoint A (remote) -->
+        <!-- a.path can be: /remote-path/ ... -->
+        <variable name="a.path" value="/.logs/"/>
+
     </variables>
 
 	<taskFlow>
@@ -23,43 +56,38 @@
                         <![CDATA[
 import net.minidev.json.*
 import org.apache.commons.vfs2.*
+import org.apache.commons.vfs2.provider.sftp.*
 
-def remote_protocol = "${source.protocol}"
-def remote_server = "${source.server}"
-def remote_port =  "${source.port}"
-def remote_username =  "${source.username}"
-def remote_password =  "${source.password}"
-def remote_credname =  "${source.credname}"
-def remote_credpath =  "${source.credpath}"
+def a_protocol = "${a.protocol}"
+def a_server = "${a.server}"
+def a_port =  "${a.port}"
+def a_username =  "${a.username}"
+def a_password =  "${a.password}"
+def a_credname =  "${a.credname}"
+def a_credpath =  "${a.credpath}"
+def a_path =  "${a.path}"
 
-def remote_path =  "${source.path}"
-def the_wildcard =  "${source.wildcard}"
-def recursive =  "${source.recursive}"
-def detailed =  "${source.detailed}"
+def wildcard =  "${wildcard}"
+def recursive =  "${recursive}".toBoolean()
+def detailed =  "${detailed}".toBoolean()
 
 println "Initializing parameters..."
 
-if (remote_password == null || remote_password.isEmpty()) {
-    remote_password = getCredentials(remote_credname)
-}
+a_password = getCredentials(a_password, a_credname)
 
+def a_options = initializePrivateKeyMechanism(a_credpath)
 
-def fsOptions
-if (remote_password == null || remote_password.isEmpty()) {
-    def fsOptions = initializePrivateKeyMechanism(remote_credpath)
-}
+println "Accessing A server..."
 
-println "Accessing remote server..."
+FileObject a_root = VFS.getManager().resolveFile(generateUrl(a_protocol, a_username, a_password, a_server, a_port), a_options)
 
-FileObject rootRemote = VFS.getManager().resolveFile(generateUrl(remote_protocol, remote_username, remote_password, remote_server, remote_port))
+println "Resolving A path..."
 
-println "Resolving remote path..."
-
-FileObject baseRemote = rootRemote.resolveFile(remote_path)
+FileObject a_base = a_root.resolveFile(a_path)
 
 println "Generating report..."
 
-FileObject[] files = baseRemote.findFiles(new CustomFileSelector(the_wildcard, recursive.toBoolean()))
+FileObject[] files = a_base.findFiles(new CustomFileSelector(wildcard, recursive))
 
 def json = new JSONObject()
 if (detailed) {
@@ -78,7 +106,9 @@ result = json.toJSONString()
 
 println "Report: $result"
 
-rootRemote.close()
+a_root.close()
+
+////////////////////////////////////////////////////////
 
 def getFileProperties(FileObject f) {
     def fileJson = new JSONObject()
@@ -91,12 +121,30 @@ def getFileProperties(FileObject f) {
     return fileJson
 }
 
-def getCredentials(credName) {
-    return new File(new File(new File(System.getProperty("user.home")), ".credentials"), credName).text
+def getCredentials(String password, String credname) {
+
+    if (password != null && !password.isEmpty()) {
+        println "Using provided password"
+        return password
+    }
+
+    if (credname == null || credname.isEmpty())
+        return null
+
+    def credDir = new File(new File(System.getProperty("user.home")), ".credentials")
+    def credFile = new File(credDir, credname)
+    if (credFile.exists()) {
+        println "Using provided credential file"
+        return credFile.text
+    } else {
+        println "Could not find provided credential file"
+        return null
+    }
+
 }
 
-def generateUrl(String remote_protocol, String remote_username, String remote_password, String remote_server, String remote_port) {
-    return remote_protocol + "://" + remote_username + ":" + remote_password + "@" + remote_server + ":" + remote_port
+def generateUrl(String a_protocol, String a_username, String a_password, String a_server, String a_port) {
+    return a_protocol + "://" + a_username + ":" + a_password + "@" + a_server + ":" + a_port
 }
 
 class CustomFileSelector implements FileSelector {
