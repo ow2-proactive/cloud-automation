@@ -1,17 +1,16 @@
 package org.ow2.proactive.workflowcatalog.cli;
 
-import static org.ow2.proactive.workflowcatalog.cli.CLIException.REASON_OTHER;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
 import javax.script.ScriptEngine;
-import javax.script.ScriptEngineFactory;
 import javax.script.ScriptEngineManager;
 
-import org.codehaus.jackson.map.ObjectMapper;
 import org.ow2.proactive.workflowcatalog.cli.console.AbstractDevice;
+import org.codehaus.jackson.map.ObjectMapper;
+
+import static org.ow2.proactive.workflowcatalog.cli.CLIException.REASON_OTHER;
 
 public class ApplicationContextImpl implements ApplicationContext {
 
@@ -28,7 +27,7 @@ public class ApplicationContextImpl implements ApplicationContext {
     private String restServerUrl;
     //private SchedulerRestClient restClient;
     private boolean insecureAccess;
-    private String resourceType;
+    private String resourceType = "api";
     private boolean forced;
     private boolean silent = false;
     private Map<String, Object> properties = new HashMap<String, Object>();
@@ -52,7 +51,11 @@ public class ApplicationContextImpl implements ApplicationContext {
 
     @Override
     public void setRestServerUrl(String restServerUrl) {
-        this.restServerUrl = restServerUrl;
+        if (restServerUrl.endsWith("/")) {
+            this.restServerUrl = restServerUrl.substring(0, restServerUrl.length() - 1);
+        } else {
+            this.restServerUrl = restServerUrl;
+        }
     }
 
     /*

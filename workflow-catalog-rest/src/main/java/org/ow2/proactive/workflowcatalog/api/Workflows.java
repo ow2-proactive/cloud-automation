@@ -1,11 +1,10 @@
 /*
- * ################################################################
- *
+ *  *
  * ProActive Parallel Suite(TM): The Java(TM) library for
  *    Parallel, Distributed, Multi-Core Computing for
  *    Enterprise Grids & Clouds
  *
- * Copyright (C) 1997-2012 INRIA/University of
+ * Copyright (C) 1997-2014 INRIA/University of
  *                 Nice-Sophia Antipolis/ActiveEon
  * Contact: proactive@ow2.org or contact@activeeon.com
  *
@@ -31,27 +30,35 @@
  *                        http://proactive.inria.fr/team_members.htm
  *  Contributor(s):
  *
- * ################################################################
- * $$ACTIVEEON_INITIAL_DEV$$
+ *  * $$PROACTIVE_INITIAL_DEV$$
  */
+package org.ow2.proactive.workflowcatalog.api;
 
-package org.ow2.proactive.workflowcatalog.cli.cmd;
+import java.util.Collection;
 
-import org.ow2.proactive.workflowcatalog.cli.ApplicationContext;
-import org.ow2.proactive.workflowcatalog.cli.CLIException;
-import org.ow2.proactive.workflowcatalog.cli.rest.WorkflowCatalogClient;
-import org.ow2.proactive.workflowcatalog.cli.rest.WorkflowCatalogRestClient;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 
-public abstract class UseProxyCommand extends AbstractCommand implements Command {
+import org.ow2.proactive.workflowcatalog.api.utils.formatter.beans.ReferencesBean;
+import org.ow2.proactive.workflowcatalog.api.utils.formatter.beans.WorkflowBean;
+import org.ow2.proactive.workflowcatalog.api.utils.formatter.beans.WorkflowParametersBean;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.JobSubmissionException;
 
-    protected WorkflowCatalogClient getClient(ApplicationContext currentContext) {
-        WorkflowCatalogClient client = WorkflowCatalogRestClient.createInstance();
-        try {
-            client.init(currentContext.getRestServerUrl() + "/" + currentContext.getResourceType(), currentContext.getSessionId());
-        } catch (Exception e) {
-            throw new CLIException(CLIException.REASON_OTHER, "Initialization error", e);
-        }
-        return client;
-    }
+@Path("/workflows")
+public interface Workflows {
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("/")
+    Collection<WorkflowBean> getWorkflowList();
 
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("/job/")
+    ReferencesBean submitJob(WorkflowParametersBean parameters) throws JobSubmissionException;
 }

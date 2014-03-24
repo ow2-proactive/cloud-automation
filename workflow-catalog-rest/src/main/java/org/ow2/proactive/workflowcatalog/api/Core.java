@@ -1,14 +1,24 @@
 package org.ow2.proactive.workflowcatalog.api;
 
 import java.io.IOException;
-import java.util.*;
-import org.apache.http.auth.AuthenticationException;
-import org.ow2.proactive.workflowcatalog.*;
-import org.ow2.proactive.workflowcatalog.utils.scheduling.*;
+import java.util.Collection;
 
 import javax.xml.transform.TransformerException;
 
-import static org.ow2.proactive.workflowcatalog.api.utils.ConfigurationHelper.*;
+import org.ow2.proactive.workflowcatalog.Catalog;
+import org.ow2.proactive.workflowcatalog.Reference;
+import org.ow2.proactive.workflowcatalog.References;
+import org.ow2.proactive.workflowcatalog.Workflow;
+import org.ow2.proactive.workflowcatalog.WorkflowParameters;
+import org.ow2.proactive.workflowcatalog.security.SchedulerRestSession;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.JobCreationException;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.JobParsingException;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.JobSubmissionException;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerProxy;
+import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobIdData;
+
+import static org.ow2.proactive.workflowcatalog.api.utils.ConfigurationHelper.getCatalogPath;
+import static org.ow2.proactive.workflowcatalog.api.utils.ConfigurationHelper.getConfiguration;
 
 public class Core {
 
@@ -19,13 +29,10 @@ public class Core {
         return instance;
     }
 
-    private SchedulerProxy scheduler;
     private Catalog catalog;
 
     private Core() {
         Configuration config = getConfiguration();
-        SchedulerLoginData loginData = getSchedulerLoginData(config);
-        scheduler = new SchedulerProxy(loginData);
         catalog = new Catalog(getCatalogPath(config), config.catalog.refresh * 1000);
     }
 
@@ -38,15 +45,13 @@ public class Core {
         Collection<Workflow> workflows = catalog.getWorkflows(data);
         for (Workflow w: workflows) {
             try {
-                JobSubmissionResponse jsonResponse = scheduler.submitJob(w.configure(data.getVariables()));
+                JobIdData jsonResponse = getScheduler().submitJob(w.configure(data.getVariables()));
                 references.add(Reference.buildJobReference(w.getName(), jsonResponse));
 
             } catch (JobCreationException e) {
                 throw new JobSubmissionException("Error creating job", e);
             } catch (JobParsingException e) {
                 throw new JobSubmissionException("Error parsing job", e);
-            } catch (AuthenticationException e) {
-                throw new JobSubmissionException("Error authenticating", e);
             } catch (TransformerException e) {
                 throw new JobSubmissionException("Unexpected error", e);
             } catch (IOException e) {
@@ -55,6 +60,10 @@ public class Core {
         }
 
         return references;
+    }
+
+    private SchedulerProxy getScheduler() {
+        return SchedulerRestSession.getScheduler();
     }
 
 }

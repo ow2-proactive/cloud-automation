@@ -1,19 +1,30 @@
 package org.ow2.proactive.workflowcatalog.api.exceptions;
 
-import javax.ws.rs.core.Response;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
+
 import org.jboss.resteasy.specimpl.ResponseBuilderImpl;
+
 import static javax.ws.rs.core.Response.ResponseBuilder;
 
 public class ExceptionFormatterUtils {
 
     public static Response createResponse(Exception exception) {
         ResponseBuilder builder = new ResponseBuilderImpl();
-        return builder
-                .status(555)
-                .entity(new ExceptionBean(exception))
-                .build();
+        if (exception instanceof WebApplicationException) {
+            return builder
+              .status(((WebApplicationException) exception).getResponse().getStatusInfo())
+              .entity(new ExceptionBean(exception))
+              .build();
+        } else {
+            return builder
+              .status(555)
+              .entity(new ExceptionBean(exception))
+              .build();
+        }
     }
 
     public static Throwable createException(Response response) {

@@ -1,21 +1,26 @@
 package unittests;
 
-import junit.framework.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.ow2.proactive.workflowcatalog.Reference;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
 import org.ow2.proactive.brokering.Updater;
 import org.ow2.proactive.brokering.occi.Database;
 import org.ow2.proactive.brokering.occi.OcciServer;
 import org.ow2.proactive.brokering.occi.Resource;
 import org.ow2.proactive.brokering.occi.api.Occi;
-import org.ow2.proactive.brokering.occi.categories.Utils;
-import org.ow2.proactive.workflowcatalog.utils.scheduling.JobSubmissionResponse;
+import org.ow2.proactive.workflowcatalog.Reference;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.JobNotFinishedException;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.JobStatusRetrievalException;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerProxy;
-
-import javax.json.JsonObject;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobIdData;
+import junit.framework.Assert;
+import org.apache.http.auth.AuthenticationException;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -104,20 +109,30 @@ public class UpdaterTest {
     private static SchedulerProxy createMockOfSchedulerProxy() throws Exception {
         SchedulerProxy scheduler = mock(SchedulerProxy.class);
 
-        Properties restResponses = new Properties();
-        restResponses.load(UpdaterTest.class.getResourceAsStream("/properties/updater.properties"));
-
         // The first tasks results response is a expected response, where tasks have results
         // that are json formatted.
         // The second tasks results response is a unexpected response, where tasks have results
         // that are non-json formatted.
-        for (int i = 1; i <= 2; i++) {
-            Reference jobReference = Reference.buildJobReference("", new JobSubmissionResponse(createSubmitResponse(i, "TestJob" + i)));
-            jobReferences.add(jobReference);
-            JsonObject taskRes = Utils.convertToJson(restResponses.get(i + "").toString());
-            when(scheduler.getAllTaskResultsAsJson(jobReference)).thenReturn(taskRes);
-        }
+        Map<String, String> goodTaskResults = new HashMap<String, String>();
+        goodTaskResults.put("task1", "{\"occi.compute.state\":\"up\",\"occi.compute.hostname\":\"pepa\"}");
+        goodTaskResults.put("task2", "{\"occi.compute.cores\":\"1\",\"occi.compute.memory\":\"1024\"}");
+        mockJobResults(scheduler, 1, goodTaskResults);
+
+        Map<String, String> badTaskResults = new HashMap<String, String>();
+        badTaskResults.put("task1", "nonJsonTaskResult1");
+        badTaskResults.put("task2", "nonJsonTaskResult2");
+        mockJobResults(scheduler, 2, badTaskResults);
         return scheduler;
+    }
+
+    private static void mockJobResults(SchedulerProxy scheduler,
+      int jobId, Map<String, String> taskResults) throws AuthenticationException, JobNotFinishedException, JobStatusRetrievalException {
+        JobIdData jobIdData = new JobIdData();
+        jobIdData.setId(jobId);
+        jobIdData.setReadableName("TestJob" + jobId);
+        Reference jobReference = Reference.buildJobReference("", jobIdData);
+        jobReferences.add(jobReference);
+        when(scheduler.getAllTaskResults(jobReference)).thenReturn(taskResults);
     }
 
     private Map<String, String> getDefaultComputeAttributes() {
@@ -133,10 +148,6 @@ public class UpdaterTest {
         Assert.assertTrue(resource.getAttributes().get("occi.compute.cores").equalsIgnoreCase("1"));
         Assert.assertTrue(resource.getAttributes().get("occi.compute.memory").equalsIgnoreCase("1024"));
         Assert.assertTrue(resource.getAttributes().get("occi.compute.hostname").equalsIgnoreCase("pepa"));
-    }
-
-    public static String createSubmitResponse(int jobId, String readableName) {
-        return "{\"id\":" + jobId + ",\"readableName\":\"" + readableName + "\"}";
     }
 
 }

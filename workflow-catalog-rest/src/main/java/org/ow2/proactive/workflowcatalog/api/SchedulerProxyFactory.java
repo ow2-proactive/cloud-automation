@@ -1,11 +1,10 @@
 /*
- * ################################################################
- *
+ *  *
  * ProActive Parallel Suite(TM): The Java(TM) library for
  *    Parallel, Distributed, Multi-Core Computing for
  *    Enterprise Grids & Clouds
  *
- * Copyright (C) 1997-2012 INRIA/University of
+ * Copyright (C) 1997-2014 INRIA/University of
  *                 Nice-Sophia Antipolis/ActiveEon
  * Contact: proactive@ow2.org or contact@activeeon.com
  *
@@ -31,27 +30,23 @@
  *                        http://proactive.inria.fr/team_members.htm
  *  Contributor(s):
  *
- * ################################################################
- * $$ACTIVEEON_INITIAL_DEV$$
+ *  * $$PROACTIVE_INITIAL_DEV$$
  */
+package org.ow2.proactive.workflowcatalog.api;
 
-package org.ow2.proactive.workflowcatalog.cli.cmd;
+import javax.security.auth.login.LoginException;
 
-import org.ow2.proactive.workflowcatalog.cli.ApplicationContext;
-import org.ow2.proactive.workflowcatalog.cli.CLIException;
-import org.ow2.proactive.workflowcatalog.cli.rest.WorkflowCatalogClient;
-import org.ow2.proactive.workflowcatalog.cli.rest.WorkflowCatalogRestClient;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerLoginData;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerProxy;
+import org.ow2.proactive_grid_cloud_portal.scheduler.exception.SchedulerRestException;
 
-public abstract class UseProxyCommand extends AbstractCommand implements Command {
 
-    protected WorkflowCatalogClient getClient(ApplicationContext currentContext) {
-        WorkflowCatalogClient client = WorkflowCatalogRestClient.createInstance();
-        try {
-            client.init(currentContext.getRestServerUrl() + "/" + currentContext.getResourceType(), currentContext.getSessionId());
-        } catch (Exception e) {
-            throw new CLIException(CLIException.REASON_OTHER, "Initialization error", e);
-        }
-        return client;
+/**
+ * For testing
+ */
+public class SchedulerProxyFactory {
+
+    public SchedulerProxy create(SchedulerLoginData loginData) throws LoginException, SchedulerRestException {
+        return new SchedulerProxy(loginData);
     }
-
 }

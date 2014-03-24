@@ -1,17 +1,25 @@
 package org.ow2.proactive.workflowcatalog.cli.rest;
 
+import java.io.IOException;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+
+import javax.ws.rs.ServerErrorException;
+import javax.ws.rs.client.ClientRequestContext;
+import javax.ws.rs.client.ClientRequestFilter;
+
+import org.ow2.proactive.workflowcatalog.api.Workflows;
+import org.ow2.proactive.workflowcatalog.api.exceptions.ExceptionFormatterUtils;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
-import org.ow2.proactive.workflowcatalog.api.RestApi;
-import org.ow2.proactive.workflowcatalog.api.exceptions.ExceptionFormatterUtils;
 
-import javax.ws.rs.ServerErrorException;
-import java.lang.reflect.*;
 
 public class WorkflowCatalogRestClient extends ClientBase implements WorkflowCatalogClient {
 
-    private RestApi proxy;
+    private Workflows proxy;
 
     private WorkflowCatalogRestClient() {}
 
@@ -20,23 +28,25 @@ public class WorkflowCatalogRestClient extends ClientBase implements WorkflowCat
     }
 
     public void init(String url, String login, String password) throws Exception {
-        proxy = createRestApi(url, null);
+
+        String sessionId = "123"; // TODO login
+        proxy = createRestApi(url, sessionId);
     }
 
     @Override
     public void init(String url, String sessionId) throws Exception {
-        init(url, null, null);
+        proxy = createRestApi(url, sessionId);
     }
 
-    public RestApi getProxy() {
+    public Workflows getProxy() {
         return proxy;
     }
 
     static class Handler implements InvocationHandler {
 
-        public RestApi api;
+        public Object api;
 
-        public Handler(RestApi api) {
+        public Handler(Object api) {
             this.api = api;
         }
 
@@ -48,8 +58,6 @@ public class WorkflowCatalogRestClient extends ClientBase implements WorkflowCat
                     throw ex.getTargetException();
                 } catch (ServerErrorException e) {
                     throw reconstructExceptionFromEmbeddedException(e);
-                } catch (Exception e) {
-                    throw e;
                 }
             }
         }
@@ -59,18 +67,22 @@ public class WorkflowCatalogRestClient extends ClientBase implements WorkflowCat
         }
     }
 
-    private RestApi createRestApi(String url, String sessionId) {
+    private Workflows createRestApi(String url, final String sessionId) {
 
-        ResteasyClient client = new ResteasyClientBuilder().build();
+        ResteasyClient client = new ResteasyClientBuilder().register(new ClientRequestFilter() {
+            @Override
+            public void filter(ClientRequestContext requestContext) throws IOException {
+                requestContext.getHeaders().add("sessionid", sessionId);
+            }
+        }).build();
         ResteasyWebTarget target = client.target(url);
-        RestApi proxy = target.proxy(RestApi.class);
+        Workflows proxy = target.proxy(Workflows.class);
 
         Handler handler = new Handler(proxy);
-        Class[] interfacesArray = new Class[] {RestApi.class};
+        Class[] interfacesArray = new Class[] { Workflows.class };
 
-        return (RestApi) Proxy.newProxyInstance(RestApi.class.getClassLoader(), interfacesArray, handler);
+        return (Workflows) Proxy.newProxyInstance(Workflows.class.getClassLoader(), interfacesArray, handler);
     }
-
 
 
 }

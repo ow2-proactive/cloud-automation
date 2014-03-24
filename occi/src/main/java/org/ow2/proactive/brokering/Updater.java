@@ -1,6 +1,16 @@
 package org.ow2.proactive.brokering;
 
-import org.apache.log4j.Logger;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.UUID;
+import java.util.concurrent.LinkedBlockingQueue;
+
+import javax.json.stream.JsonParsingException;
+import javax.ws.rs.core.Response;
+
 import org.ow2.proactive.brokering.occi.OcciServer;
 import org.ow2.proactive.brokering.occi.Resource;
 import org.ow2.proactive.brokering.occi.api.Occi;
@@ -9,12 +19,7 @@ import org.ow2.proactive.workflowcatalog.Reference;
 import org.ow2.proactive.workflowcatalog.utils.HttpUtility;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.JobNotFinishedException;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerProxy;
-
-import javax.json.JsonObject;
-import javax.json.stream.JsonParsingException;
-import javax.ws.rs.core.Response;
-import java.util.*;
-import java.util.concurrent.LinkedBlockingQueue;
+import org.apache.log4j.Logger;
 
 public class Updater {
 
@@ -88,11 +93,9 @@ public class Updater {
         }
 
         private void updateOcciResource(UpdateUnit u) {
-
             try {
-
-                JsonObject taskResults = scheduler.getAllTaskResultsAsJson(u.reference);
-                String attributes = extractAllJsonAttributesFromAllJsonTaskResults(taskResults);
+                Map<String, String> taskResults = scheduler.getAllTaskResults(u.reference);
+                String attributes = flattenTaskResultsAndConvertJsonTaskResultsToMap(taskResults);
 
                 Response r = occi.updateResource(
                         u.resource.getCategory(), u.resource.getUuid().toString(),
@@ -124,14 +127,13 @@ public class Updater {
             queue.remove(u);
         }
 
-        private String extractAllJsonAttributesFromAllJsonTaskResults(JsonObject taskResults) throws JsonParsingException {
-            Map<String, String> allProperties = new HashMap<String, String>();
-            for (String taskName : taskResults.keySet()) {
-                String aTaskResult = taskResults.getString(taskName);
-                JsonObject taskResultProperties = Utils.convertToJson(aTaskResult);
-                allProperties.putAll(Utils.convertToMap(taskResultProperties));
+        private String flattenTaskResultsAndConvertJsonTaskResultsToMap(
+          Map<String, String> allProperties) throws JsonParsingException {
+            Map<String, String> flattenTaskResults = new HashMap<String, String>();
+            for (Map.Entry<String, String> mapEntry : allProperties.entrySet()) {
+                flattenTaskResults.putAll(Utils.convertToMap(Utils.convertToJson(mapEntry.getValue())));
             }
-            return Utils.buildString(allProperties);
+            return Utils.buildString(flattenTaskResults);
         }
     }
 

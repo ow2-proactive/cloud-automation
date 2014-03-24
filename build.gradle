@@ -45,6 +45,8 @@ subprojects {
 
 project(':workflow-catalog') {
     dependencies {
+        compile 'org.ow2.proactive_grid_cloud_portal:rest-api:1.5.0-SNAPSHOT'
+
         compile 'org.jboss.resteasy:resteasy-jaxrs:3.0.6.Final'
         compile 'org.apache.httpcomponents:httpmime:4.2.1'
         compile 'javax.json:javax.json-api:1.0'
@@ -59,7 +61,6 @@ project(':workflow-catalog-rest') {
 
     httpPort = 8082
 
-    configurations { }
     dependencies {
         compile project(':workflow-catalog')
         compile 'org.jboss.resteasy:resteasy-jaxrs:3.0.6.Final'
@@ -71,6 +72,12 @@ project(':workflow-catalog-rest') {
         compile 'com.google.code.gson:gson:2.2.4'
         compile 'org.glassfish:javax.json:1.0.2'
         compile 'org.jboss.resteasy:resteasy-jackson-provider:3.0.6.Final'
+
+        compile 'org.apache.shiro:shiro-core:1.2.2'
+        compile 'org.apache.shiro:shiro-web:1.2.2'
+        compile 'javax.servlet:servlet-api:2.5'
+
+        testCompile 'org.mortbay.jetty:jetty:6.1.26'
     }
 }
 
@@ -81,7 +88,6 @@ project(':workflow-catalog-rest-cli') {
         run.systemProperties System.properties
     }
 
-    configurations { }
     dependencies {
         compile project(':workflow-catalog-rest')
         compile 'commons-cli:commons-cli:1.2'
@@ -103,8 +109,6 @@ project(':occi') {
 
     httpPort = 8081
 
-    configurations {
-    }
     dependencies {
 
         compile project(':workflow-catalog')

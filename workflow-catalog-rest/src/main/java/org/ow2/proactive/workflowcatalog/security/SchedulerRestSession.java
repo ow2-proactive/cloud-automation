@@ -1,11 +1,10 @@
 /*
- * ################################################################
- *
+ *  *
  * ProActive Parallel Suite(TM): The Java(TM) library for
  *    Parallel, Distributed, Multi-Core Computing for
  *    Enterprise Grids & Clouds
  *
- * Copyright (C) 1997-2012 INRIA/University of
+ * Copyright (C) 1997-2014 INRIA/University of
  *                 Nice-Sophia Antipolis/ActiveEon
  * Contact: proactive@ow2.org or contact@activeeon.com
  *
@@ -31,27 +30,20 @@
  *                        http://proactive.inria.fr/team_members.htm
  *  Contributor(s):
  *
- * ################################################################
- * $$ACTIVEEON_INITIAL_DEV$$
+ *  * $$PROACTIVE_INITIAL_DEV$$
  */
+package org.ow2.proactive.workflowcatalog.security;
 
-package org.ow2.proactive.workflowcatalog.cli.cmd;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerProxy;
+import org.apache.shiro.SecurityUtils;
 
-import org.ow2.proactive.workflowcatalog.cli.ApplicationContext;
-import org.ow2.proactive.workflowcatalog.cli.CLIException;
-import org.ow2.proactive.workflowcatalog.cli.rest.WorkflowCatalogClient;
-import org.ow2.proactive.workflowcatalog.cli.rest.WorkflowCatalogRestClient;
 
-public abstract class UseProxyCommand extends AbstractCommand implements Command {
+public class SchedulerRestSession {
 
-    protected WorkflowCatalogClient getClient(ApplicationContext currentContext) {
-        WorkflowCatalogClient client = WorkflowCatalogRestClient.createInstance();
-        try {
-            client.init(currentContext.getRestServerUrl() + "/" + currentContext.getResourceType(), currentContext.getSessionId());
-        } catch (Exception e) {
-            throw new CLIException(CLIException.REASON_OTHER, "Initialization error", e);
-        }
-        return client;
+    public static final String SCHEDULER_SESSION_KEY = "scheduler";
+
+    public static SchedulerProxy getScheduler() {
+        return (SchedulerProxy) SecurityUtils.getSubject().getSession().getAttribute(SCHEDULER_SESSION_KEY);
     }
 
 }

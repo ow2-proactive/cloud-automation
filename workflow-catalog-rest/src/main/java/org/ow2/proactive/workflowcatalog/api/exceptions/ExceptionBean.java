@@ -1,10 +1,6 @@
 package org.ow2.proactive.workflowcatalog.api.exceptions;
 
-import org.codehaus.jackson.annotate.JsonProperty;
-
 import java.io.Serializable;
-
-
 
 import javax.ws.rs.Produces;
 import javax.xml.bind.annotation.XmlAccessType;

@@ -1,11 +1,6 @@
 package org.ow2.proactive.workflowcatalog;
 
-import org.ow2.proactive.workflowcatalog.utils.scheduling.JobSubmissionResponse;
-
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.stream.JsonParsingException;
-import java.io.StringReader;
+import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobIdData;
 
 public class Reference {
 
@@ -34,10 +29,16 @@ public class Reference {
         return new Reference(Nature.NATURE_JOB, SubmissionStatus.SUBMISSION_NOT_DONE, json, null);
     }
 
-    public static Reference buildJobReference(String info, JobSubmissionResponse response) {
-        String message = info + ":" + response.getMessage();
-        String id = response.getId();
-        SubmissionStatus status = (response.getValid()? SubmissionStatus.SUBMISSION_DONE : SubmissionStatus.SUBMISSION_NOT_DONE);
+    public static Reference buildJobReference(String info, JobIdData response) {
+        String message = info + ":" + response.getReadableName();
+        String id = null;
+        SubmissionStatus status;
+        try {
+            id = Long.toString(response.getId());
+            status = SubmissionStatus.SUBMISSION_DONE;
+        } catch (Exception e) {
+            status = SubmissionStatus.SUBMISSION_NOT_DONE;
+        }
         return new Reference(Nature.NATURE_JOB, status, message, id);
     }
 

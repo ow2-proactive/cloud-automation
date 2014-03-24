@@ -1,11 +1,10 @@
 /*
- * ################################################################
- *
+ *  *
  * ProActive Parallel Suite(TM): The Java(TM) library for
  *    Parallel, Distributed, Multi-Core Computing for
  *    Enterprise Grids & Clouds
  *
- * Copyright (C) 1997-2012 INRIA/University of
+ * Copyright (C) 1997-2014 INRIA/University of
  *                 Nice-Sophia Antipolis/ActiveEon
  * Contact: proactive@ow2.org or contact@activeeon.com
  *
@@ -31,27 +30,28 @@
  *                        http://proactive.inria.fr/team_members.htm
  *  Contributor(s):
  *
- * ################################################################
- * $$ACTIVEEON_INITIAL_DEV$$
+ *  * $$PROACTIVE_INITIAL_DEV$$
  */
+package org.ow2.proactive.workflowcatalog.security;
 
-package org.ow2.proactive.workflowcatalog.cli.cmd;
+import java.io.IOException;
 
-import org.ow2.proactive.workflowcatalog.cli.ApplicationContext;
-import org.ow2.proactive.workflowcatalog.cli.CLIException;
-import org.ow2.proactive.workflowcatalog.cli.rest.WorkflowCatalogClient;
-import org.ow2.proactive.workflowcatalog.cli.rest.WorkflowCatalogRestClient;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletResponse;
 
-public abstract class UseProxyCommand extends AbstractCommand implements Command {
+import org.apache.shiro.web.filter.authz.RolesAuthorizationFilter;
+import org.apache.shiro.web.util.WebUtils;
 
-    protected WorkflowCatalogClient getClient(ApplicationContext currentContext) {
-        WorkflowCatalogClient client = WorkflowCatalogRestClient.createInstance();
-        try {
-            client.init(currentContext.getRestServerUrl() + "/" + currentContext.getResourceType(), currentContext.getSessionId());
-        } catch (Exception e) {
-            throw new CLIException(CLIException.REASON_OTHER, "Initialization error", e);
-        }
-        return client;
+
+/**
+ * Returns 401 error code instead of redirecting to login.jsp webpage.
+ */
+public class RolesAuthorizationFilter401 extends RolesAuthorizationFilter {
+
+    @Override
+    protected boolean onAccessDenied(ServletRequest request, ServletResponse response) throws IOException {
+        WebUtils.toHttp(response).sendError(HttpServletResponse.SC_UNAUTHORIZED);
+        return false;
     }
-
 }

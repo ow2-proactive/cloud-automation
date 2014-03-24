@@ -8,3 +8,4 @@ occi/build/
 monitoring/build/
 workflow-catalog/build/
 workflow-catalog-rest/build/
+build/

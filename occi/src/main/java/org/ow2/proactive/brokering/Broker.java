@@ -1,8 +1,11 @@
 package org.ow2.proactive.brokering;
 
-import groovy.lang.GroovyClassLoader;
-import org.apache.commons.io.FileUtils;
-import org.apache.log4j.Logger;
+import java.io.File;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.UUID;
+
 import org.ow2.proactive.brokering.occi.Resource;
 import org.ow2.proactive.brokering.occi.categories.Utils;
 import org.ow2.proactive.brokering.occi.categories.trigger.ActionTrigger;
@@ -10,15 +13,12 @@ import org.ow2.proactive.workflowcatalog.Catalog;
 import org.ow2.proactive.workflowcatalog.Reference;
 import org.ow2.proactive.workflowcatalog.References;
 import org.ow2.proactive.workflowcatalog.Workflow;
-import org.ow2.proactive.workflowcatalog.utils.scheduling.JobSubmissionResponse;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerLoginData;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerProxy;
-import javax.xml.bind.JAXBException;
-import java.io.File;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.UUID;
+import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobIdData;
+import groovy.lang.GroovyClassLoader;
+import org.apache.commons.io.FileUtils;
+import org.apache.log4j.Logger;
 
 
 public class Broker {
@@ -50,10 +50,8 @@ public class Broker {
             rules = new Rules(rulesPath, config.rules.refresh * 1000);
             updater = new Updater(new SchedulerProxy(loginData), config.updater.refresh * 1000);
 
-        } catch (JAXBException e) {
-
+        } catch (Exception e) {
             logger.error("Could not initialize server", e);
-
         }
     }
 
@@ -125,7 +123,7 @@ public class Broker {
                 logger.debug("Generated job file : " + jobFile.getAbsolutePath());
                 logger.debug(FileUtils.readFileToString(jobFile));
 
-                JobSubmissionResponse response = scheduler.submitJob(jobFile);
+                JobIdData response = scheduler.submitJob(jobFile);
                 Reference ref = Reference.buildJobReference(workflow.getName(), response);
                 references.add(ref);
                 logger.info(
