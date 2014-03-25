@@ -52,7 +52,7 @@
 
         <!-- B path : path to be used for endpoint B (local) -->
         <!-- b.path can be: /tmp/ ... -->
-        <variable name="b.path" value="/tmp/"/>
+        <variable name="b.path" value="/tmp/output/"/>
 
     </variables>
 
