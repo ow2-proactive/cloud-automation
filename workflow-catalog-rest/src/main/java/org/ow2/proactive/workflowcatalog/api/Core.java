@@ -2,19 +2,14 @@ package org.ow2.proactive.workflowcatalog.api;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Map;
 
+import javax.json.JsonObject;
 import javax.xml.transform.TransformerException;
 
-import org.ow2.proactive.workflowcatalog.Catalog;
-import org.ow2.proactive.workflowcatalog.Reference;
-import org.ow2.proactive.workflowcatalog.References;
-import org.ow2.proactive.workflowcatalog.Workflow;
-import org.ow2.proactive.workflowcatalog.WorkflowParameters;
+import org.ow2.proactive.workflowcatalog.*;
 import org.ow2.proactive.workflowcatalog.security.SchedulerRestSession;
-import org.ow2.proactive.workflowcatalog.utils.scheduling.JobCreationException;
-import org.ow2.proactive.workflowcatalog.utils.scheduling.JobParsingException;
-import org.ow2.proactive.workflowcatalog.utils.scheduling.JobSubmissionException;
-import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerProxy;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.*;
 import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobIdData;
 
 import static org.ow2.proactive.workflowcatalog.api.utils.ConfigurationHelper.getCatalogPath;
@@ -64,6 +59,15 @@ public class Core {
 
     private SchedulerProxy getScheduler() {
         return SchedulerRestSession.getScheduler();
+    }    
+
+    public JobResult getJobResult(Reference reference) throws JobStatusRetrievalException {
+        try {
+            Map<String, String> jsonResponse = getScheduler().getAllTaskResults(reference);
+            return new JobResult(reference, jsonResponse);
+        } catch (JobNotFinishedException e) {
+            throw new JobStatusRetrievalException("Job '" + reference.getId() + "' not finished yet", e);
+        }
     }
 
 }

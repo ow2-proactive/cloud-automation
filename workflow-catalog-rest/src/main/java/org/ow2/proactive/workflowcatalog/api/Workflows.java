@@ -36,16 +36,14 @@ package org.ow2.proactive.workflowcatalog.api;
 
 import java.util.Collection;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 
+import org.ow2.proactive.workflowcatalog.JobResult;
 import org.ow2.proactive.workflowcatalog.api.utils.formatter.beans.ReferencesBean;
 import org.ow2.proactive.workflowcatalog.api.utils.formatter.beans.WorkflowBean;
 import org.ow2.proactive.workflowcatalog.api.utils.formatter.beans.WorkflowParametersBean;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.JobStatusRetrievalException;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.JobSubmissionException;
 
 @Path("/workflows")
@@ -61,4 +59,11 @@ public interface Workflows {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("/job/")
     ReferencesBean submitJob(WorkflowParametersBean parameters) throws JobSubmissionException;
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("/job/{jobid}")
+    public JobResult getJobResult(@PathParam("jobid") String jobId) throws JobStatusRetrievalException;
+
 }

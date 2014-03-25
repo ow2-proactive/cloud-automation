@@ -38,6 +38,14 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import org.ow2.proactive.workflowcatalog.JobResult;
+import org.ow2.proactive.workflowcatalog.api.utils.formatter.beans.ReferencesBean;
+import org.ow2.proactive.workflowcatalog.api.utils.formatter.beans.WorkflowBean;
+import org.ow2.proactive.workflowcatalog.api.utils.formatter.beans.WorkflowParametersBean;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.JobStatusRetrievalException;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.JobSubmissionException;
+
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 
 @Path("/")
@@ -51,4 +59,5 @@ public interface RestApi {
     @POST
     @Path("/logout")
     void logout();
+
 }

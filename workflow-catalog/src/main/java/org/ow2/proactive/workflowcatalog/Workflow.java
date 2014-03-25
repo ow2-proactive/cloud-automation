@@ -164,7 +164,7 @@ public class Workflow {
                 }
             }
         } catch (Throwable e) {
-            logger.warn("Error extracting: " + getName() + ", " + e.getMessage());
+            logger.warn("Cannot extract " + tagName + " from " + getName() + ": " + e.getMessage());
         }
     }
 

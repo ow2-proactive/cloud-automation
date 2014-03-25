@@ -13,24 +13,24 @@ import javax.xml.bind.annotation.XmlRootElement;
 @Produces("application/json")
 public class ExceptionBean implements Serializable {
 
-    private String message;
-    private String className;
+    private String exceptionMessage;
+    private String exceptionClassName;
     private Throwable throwable;
 
     public ExceptionBean() { }
 
     public ExceptionBean(Throwable e) {
-        this.message = e.getMessage();
-        this.className = e.getClass().getName();
+        this.exceptionMessage = e.getMessage();
+        this.exceptionClassName = e.getClass().getName();
         this.throwable = e;
     }
 
-    public String getClassName() {
-        return className;
+    public String getExceptionClassName() {
+        return exceptionClassName;
     }
 
-    public String getMessage() {
-        return message;
+    public String getExceptionMessage() {
+        return exceptionMessage;
     }
 
     public Throwable getThrowable() {

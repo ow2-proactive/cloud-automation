@@ -34,8 +34,8 @@ public class ExceptionFormatterUtils {
 
     private static Throwable rebuildThrowableFromBean(ExceptionBean bean) {
         Throwable serverException = bean.getThrowable();
-        String exceptionClassName = bean.getClassName();
-        String errMsg = (bean.getMessage()==null?"An error has occurred":bean.getMessage());
+        String exceptionClassName = bean.getExceptionClassName();
+        String errMsg = (bean.getExceptionMessage()==null?"An error has occurred":bean.getExceptionMessage());
 
         if (serverException == null || exceptionClassName == null)
             throw new RuntimeException("Bad exception bean");
