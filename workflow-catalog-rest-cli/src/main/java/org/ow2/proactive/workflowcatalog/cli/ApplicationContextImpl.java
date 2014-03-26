@@ -27,7 +27,6 @@ public class ApplicationContextImpl implements ApplicationContext {
     private String restServerUrl;
     //private SchedulerRestClient restClient;
     private boolean insecureAccess;
-    private String resourceType = "api";
     private boolean forced;
     private boolean silent = false;
     private Map<String, Object> properties = new HashMap<String, Object>();
@@ -78,9 +77,7 @@ public class ApplicationContextImpl implements ApplicationContext {
 
     @Override
     public String getResourceUrl(String resource) {
-        return (new StringBuilder()).append(getRestServerUrl()).append('/')
-                .append(getResourceType()).append('/').append(resource)
-                .toString();
+        return (new StringBuilder()).append(getRestServerUrl()).append('/').append(resource).toString();
     }
 
     @Override
@@ -134,16 +131,6 @@ public class ApplicationContextImpl implements ApplicationContext {
             setProperty(SCRIPT_ENGINE, engine);
         }
         return engine;
-    }
-
-    @Override
-    public void setResourceType(String resourceType) {
-        this.resourceType = resourceType;
-    }
-
-    @Override
-    public String getResourceType() {
-        return resourceType;
     }
 
     @Override

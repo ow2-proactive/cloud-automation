@@ -143,7 +143,6 @@ public abstract class AbstractLoginCommand extends AbstractCommand implements
     private File sessionFile(ApplicationContext currentContext) {
         String filename = (new StringBuilder())
                 .append(getAlias(currentContext)).append('-')
-                .append(currentContext.getResourceType())
                 .append(DFLT_SESSION_FILE_EXT).toString();
         return new File(DFLT_SESSION_DIR, filename);
     }

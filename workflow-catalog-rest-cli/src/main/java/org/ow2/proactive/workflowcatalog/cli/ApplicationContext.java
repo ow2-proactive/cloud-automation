@@ -71,10 +71,6 @@ public interface ApplicationContext {
 
     public ScriptEngine getEngine();
 
-    public void setResourceType(String resourceType);
-    
-    public String getResourceType();
-
     public void setProperty(String key, Object value);
 
     public <T> T getProperty(String key, Class<T> type);

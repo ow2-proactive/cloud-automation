@@ -50,6 +50,7 @@ public class StringUtility {
         builder.append(workflow.name);
         builder.append(" (\n");
         builder.append(string(workflow.variables));
+        builder.append("\n");
         builder.append(string(workflow.genericInformation));
         builder.append("\n   )\n");
         return builder.toString();
@@ -71,7 +72,7 @@ public class StringUtility {
             builder.append("\n");
         }
         String ret = builder.toString();
-        return ret.substring(0, ret.length() - 1);
+        return ret.substring(0, (ret.isEmpty()?0:ret.length()-1));
     }
 
 }

@@ -47,7 +47,7 @@ public abstract class UseProxyCommand extends AbstractCommand implements Command
     protected WorkflowCatalogClient getClient(ApplicationContext currentContext) {
         WorkflowCatalogClient client = WorkflowCatalogRestClient.createInstance();
         try {
-            client.init(currentContext.getRestServerUrl() + "/" + currentContext.getResourceType(), currentContext.getSessionId());
+            client.init(currentContext.getRestServerUrl() + "/", currentContext.getSessionId());
         } catch (Exception e) {
             throw new CLIException(CLIException.REASON_OTHER, "Initialization error", e);
         }

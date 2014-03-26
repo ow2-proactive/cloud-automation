@@ -66,6 +66,7 @@ public class LoginCommand extends AbstractLoginCommand implements Command {
         if (password == null) {
             password = new String(readPassword(currentContext, "password:"));
         }
+
         HttpPost request = new HttpPost(currentContext.getResourceUrl("login"));
         StringEntity entity = new StringEntity("username=" + username
                 + "&password=" + password, APPLICATION_FORM_URLENCODED);
