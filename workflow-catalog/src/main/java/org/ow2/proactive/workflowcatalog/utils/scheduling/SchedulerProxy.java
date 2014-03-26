@@ -66,8 +66,6 @@ public class SchedulerProxy {
               "Error getting result for " +
                 "JobId=" + r.getId() + " : " + e.getMessage()
             );
-        } finally {
-            disconnectFromScheduler();
         }
     }
 
