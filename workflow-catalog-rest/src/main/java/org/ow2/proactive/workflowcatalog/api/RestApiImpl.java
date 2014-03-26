@@ -13,6 +13,7 @@ import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerProxy;
 import org.ow2.proactive_grid_cloud_portal.scheduler.exception.SchedulerRestException;
 import org.apache.log4j.Logger;
 import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.session.mgt.DefaultSessionContext;
@@ -35,22 +36,30 @@ public class RestApiImpl implements RestApi {
 
             try {
                 return internalLogin(username, password, scheduler, sessionId);
-            } catch (Exception e) {
-                logger.warn("Could not login", e);
-                throw new WebApplicationException(Response.Status.UNAUTHORIZED);
-            } finally {
+            } catch (AuthenticationException e) {
+                // Shiro failed login because of invalid credentials
                 scheduler.disconnectFromScheduler();
+                throw logAndThrowHttpException(e, Response.Status.UNAUTHORIZED);
+            } catch (Exception e) {
+                scheduler.disconnectFromScheduler();
+                logger.warn("Could not login", e);
+                throw logAndThrowHttpException(e, Response.Status.INTERNAL_SERVER_ERROR);
             }
 
         } catch (LoginException e) {
             logger.warn("Could not login", e);
-            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+            throw logAndThrowHttpException(e, Response.Status.UNAUTHORIZED);
         } catch (WebApplicationException e) {
             throw e;
         } catch (Exception e) {
             logger.warn("Could not login", e);
-            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+            throw logAndThrowHttpException(e, Response.Status.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    private WebApplicationException logAndThrowHttpException(Exception exception, Response.Status httpError) {
+        logger.warn("Could not login", exception);
+        return new WebApplicationException(httpError);
     }
 
     private SchedulerProxy loginToSchedulerRestApi(String username,
