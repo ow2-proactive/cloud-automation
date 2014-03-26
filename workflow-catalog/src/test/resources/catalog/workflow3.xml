@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:proactive:jobdescriptor:3.1"
+     xsi:schemaLocation="urn:proactive:jobdescriptor:3.1 http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/3.1/schedulerjob.xsd"
+     name="ProactiveJob">
+
+    <taskFlow>
+        <task name="Task">
+            <nativeExecutable>
+                <staticCommand value="date">
+                </staticCommand>
+            </nativeExecutable>
+        </task>
+    </taskFlow>
+</job>
