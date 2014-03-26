@@ -1,12 +1,18 @@
 package unittests;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Map;
 import org.junit.Test;
 import org.junit.BeforeClass;
 import junit.framework.Assert;
 import org.ow2.proactive.workflowcatalog.Workflow;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.JobCreationException;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.JobParsingException;
+
+import javax.xml.transform.TransformerException;
 
 public class WorkflowTest {
 
@@ -17,6 +23,14 @@ public class WorkflowTest {
         URL url = WorkflowTest.class.getClass().getResource("/catalog/workflow1.xml");
         workflow = new Workflow(new File(url.getFile()));
         workflow.update();
+    }
+
+    @Test
+    public void parseNoArgumentsWorkflow_Test() throws Exception {
+        URL url = WorkflowTest.class.getClass().getResource("/catalog/workflow3.xml");
+        Workflow workflow = new Workflow(new File(url.getFile()));
+        workflow.update();
+        workflow.configure(new HashMap<String, String>());
     }
 
     @Test

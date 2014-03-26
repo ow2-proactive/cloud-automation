@@ -116,9 +116,22 @@ public class Workflow {
         return jobFile;
     }
 
+    private NodeList getNodeList(Document doc, String tagName) {
+        NodeList tag = doc.getElementsByTagName(tagName);
+        Node node = tag.item(0);
+        if (node == null)
+            return null;
+        return node.getChildNodes();
+    }
+
     private void verifyAllElementsInDocumentAreSet(Document doc, String tagName) throws JobCreationException {
         List<String> notDefined = new ArrayList<String>();
-        NodeList vars = doc.getElementsByTagName(tagName).item(0).getChildNodes();
+
+        NodeList vars = getNodeList(doc,tagName);
+
+        if (vars == null)
+            return;
+
         for (int n = 0; n < vars.getLength(); n++) {
             if (vars.item(n).getNodeType() == Node.ELEMENT_NODE) {
                 Element var = (Element) vars.item(n);
@@ -135,7 +148,12 @@ public class Workflow {
 
     private void setJobElementsInDocument(Document doc, String tagName, Map<String,
             String> attributes) {
-        NodeList vars = doc.getElementsByTagName(tagName).item(0).getChildNodes();
+
+        NodeList vars = getNodeList(doc,tagName);
+
+        if (vars == null)
+            return;
+
         for (int n = 0; n < vars.getLength(); n++) {
             if (vars.item(n).getNodeType() == Node.ELEMENT_NODE) {
                 Element var = (Element) vars.item(n);

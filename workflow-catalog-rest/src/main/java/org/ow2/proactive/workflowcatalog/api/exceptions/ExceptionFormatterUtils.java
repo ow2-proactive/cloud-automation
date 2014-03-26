@@ -45,14 +45,20 @@ public class ExceptionFormatterUtils {
         if (exceptionClass == null)
             throw new RuntimeException("Cannot find class: " + exceptionClassName);
 
-        Constructor<?> constructor = getConstructor(exceptionClass, String.class, Throwable.class);
+        Constructor<?> constructorStr = getConstructor(exceptionClass, String.class);
+        Constructor<?> constructorStrThr = getConstructor(exceptionClass, String.class, Throwable.class);
 
-        if (constructor == null)
-            throw new RuntimeException("Cannot find constructor: " + exceptionClassName);
+        if (constructorStrThr == null && constructorStr == null)
+            throw new RuntimeException("Cannot find constructors: " + exceptionClassName);
 
         Throwable built = null;
         try {
-            built = (Throwable) constructor.newInstance(errMsg, serverException);
+
+            if (constructorStrThr != null)
+                built = (Throwable) constructorStrThr.newInstance(errMsg, serverException);
+            else
+                built = (Throwable) constructorStr.newInstance(errMsg);
+
         } catch (InstantiationException e) {
             throw new RuntimeException("Cannot instantiate: " + exceptionClassName, e);
         } catch (IllegalAccessException e) {
