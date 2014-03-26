@@ -1,7 +1,7 @@
 package org.ow2.proactive.workflowcatalog;
 
-import javax.json.*;
 import java.util.Map;
+import java.util.HashMap;
 
 public class JobResult {
 
@@ -12,7 +12,8 @@ public class JobResult {
 
     public JobResult(Reference reference, Map<String, String> taskResults) {
         this.jobId = reference.getId();
-        this.taskResults = taskResults;
+        this.taskResults = new HashMap<String, String>();
+        this.taskResults.putAll(taskResults);
     }
 
 }

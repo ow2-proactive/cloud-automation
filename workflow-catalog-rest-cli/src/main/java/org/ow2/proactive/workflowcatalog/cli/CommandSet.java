@@ -153,7 +153,16 @@ public class CommandSet {
             .jsCommand("submitworkflow(workflowname, variables, genericInformation)")
             .commandClass(SubmitWorkflowCommand.class).entry();
 
-    public static final CommandSet.Entry RM_IMODE = CommandSetEntryBuilder
+    public static final CommandSet.Entry GET_JOB_RESULT = CommandSetEntryBuilder
+            .newInstance().opt("rr").longOpt("getjobresult")
+            .description("Get the result of the job")
+            .hasArgs(true)
+            .numOfArgs(1)
+            .argNames("jobid")
+            .jsCommand("getjobresult(jobid)")
+            .commandClass(GetJobResultCommand.class).entry();
+
+    public static final CommandSet.Entry WC_IMODE = CommandSetEntryBuilder
             .newInstance().opt("i").longOpt("interactive")
             .description("Interactive mode of REST CLI")
             .commandClass(WcImodeCommand.class).entry();
@@ -180,7 +189,7 @@ public class CommandSet {
 
     /** CommandSet.Entry objects which are specific to Resource Manager CLI */
     public static final CommandSet.Entry[] RM_ONLY = new CommandSet.Entry[] {
-            LOGIN, WORKFLOWS_LIST, SUBMIT_WORKFLOW, RM_IMODE, RM_HELP, RM_JS_HELP};
+            LOGIN, WORKFLOWS_LIST, SUBMIT_WORKFLOW, GET_JOB_RESULT, WC_IMODE, RM_HELP, RM_JS_HELP};
 
     private CommandSet() {
     }

@@ -5,6 +5,7 @@ import java.io.StringWriter;
 import java.util.Map;
 
 import org.apache.commons.codec.binary.StringUtils;
+import org.ow2.proactive.workflowcatalog.JobResult;
 import org.ow2.proactive.workflowcatalog.api.utils.formatter.beans.WorkflowBean;
 
 public class StringUtility {
@@ -33,20 +34,31 @@ public class StringUtility {
         return out.toString();
     }
 
+    public static String string(JobResult jobResult) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("   ");
+        builder.append(jobResult.jobId);
+        builder.append(" (\n");
+        builder.append(string(jobResult.taskResults));
+        builder.append("\n   )\n");
+        return builder.toString();
+    }
+
     public static String string(WorkflowBean workflow) {
         StringBuilder builder = new StringBuilder();
+        builder.append("   ");
         builder.append(workflow.name);
-        builder.append("(");
+        builder.append(" (\n");
         builder.append(string(workflow.variables));
         builder.append(string(workflow.genericInformation));
-        builder.append(")");
+        builder.append("\n   )\n");
         return builder.toString();
     }
 
     public static String string(Map<String, String> map) {
         StringBuilder builder = new StringBuilder();
         for (Map.Entry<String, String> entry: map.entrySet()) {
-            builder.append("'");
+            builder.append("      '");
             builder.append(entry.getKey());
             builder.append("'=");
             if (entry.getValue() == null) {
@@ -56,9 +68,10 @@ public class StringUtility {
                 builder.append(entry.getValue());
                 builder.append("'");
             }
-            builder.append(" ");
+            builder.append("\n");
         }
-        return builder.toString();
+        String ret = builder.toString();
+        return ret.substring(0, ret.length() - 1);
     }
 
 }

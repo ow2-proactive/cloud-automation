@@ -37,26 +37,38 @@
 
 package org.ow2.proactive.workflowcatalog.cli.cmd;
 
-import org.ow2.proactive.workflowcatalog.api.utils.formatter.beans.WorkflowBean;
+import org.ow2.proactive.workflowcatalog.JobResult;
+import org.ow2.proactive.workflowcatalog.WorkflowParameters;
+import org.ow2.proactive.workflowcatalog.api.utils.formatter.beans.ReferencesBean;
+import org.ow2.proactive.workflowcatalog.api.utils.formatter.beans.WorkflowParametersBean;
 import org.ow2.proactive.workflowcatalog.cli.ApplicationContext;
 import org.ow2.proactive.workflowcatalog.cli.CLIException;
 import org.ow2.proactive.workflowcatalog.cli.rest.WorkflowCatalogClient;
 import org.ow2.proactive.workflowcatalog.cli.utils.StringUtility;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.JobStatusRetrievalException;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.JobSubmissionException;
 
-import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
-public class ListWorkflowsCommand extends UseProxyCommand implements Command {
 
-    public ListWorkflowsCommand() {}
+public class GetJobResultCommand extends UseProxyCommand implements Command {
+
+    private String jobId;
+
+    public GetJobResultCommand(String jobId) {
+        this.jobId = jobId;
+    }
 
     @Override
     public void execute(ApplicationContext currentContext) throws CLIException {
         WorkflowCatalogClient client = getClient(currentContext);
-
-        Collection<WorkflowBean> workflows = client.getProxy().getWorkflowList();
-        for (WorkflowBean workflow: workflows) {
-            writeLine(currentContext, "%s", StringUtility.string(workflow));
+        try {
+            JobResult result = client.getProxy().getJobResult(jobId);
+            writeLine(currentContext, "%s", StringUtility.string(result));
+        } catch (JobStatusRetrievalException e) {
+            handleError("An error occurred during job output retrieval: ", e, currentContext);
         }
     }
-
 }

@@ -2,6 +2,7 @@ import org.ow2.proactive.workflowcatalog.cli.ApplicationContext
 import org.ow2.proactive.workflowcatalog.cli.ApplicationContextImpl
 import org.ow2.proactive.workflowcatalog.cli.CLIException
 import org.ow2.proactive.workflowcatalog.cli.cmd.AbstractLoginCommand
+import org.ow2.proactive.workflowcatalog.cli.cmd.GetJobResultCommand
 import org.ow2.proactive.workflowcatalog.cli.cmd.ListWorkflowsCommand
 import org.ow2.proactive.workflowcatalog.cli.cmd.SubmitWorkflowCommand
 import org.ow2.proactive.workflowcatalog.cli.cmd.LoginCommand
@@ -30,6 +31,10 @@ void login(user) {
 void loginwithcredentials(pathname) {
     currentContext.setProperty('org.ow2.proactive.workflowcatalog.cli.cmd.AbstractLoginCommand.renewSession', true)
     execute(new LoginWithCredentialsCommand('' + pathname))
+}
+
+void getjobresult(jobId) {
+    execute(new GetJobResultCommand(jobId))
 }
 
 void listworkflows() {

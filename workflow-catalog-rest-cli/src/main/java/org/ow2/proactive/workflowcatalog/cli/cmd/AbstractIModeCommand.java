@@ -67,6 +67,8 @@ public abstract class AbstractIModeCommand extends AbstractCommand implements
 
         while (!currentContext.getProperty(TERMINATE, Boolean.TYPE, false)) {
             try {
+
+
                 String command = readLine(currentContext, "> ");
                 if (command == null) {
                     break; // EOF, exit interactive shell
@@ -81,4 +83,6 @@ public abstract class AbstractIModeCommand extends AbstractCommand implements
     }
 
     protected abstract InputStream script();
+
+
 }
