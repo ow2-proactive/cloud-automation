@@ -1,6 +1,7 @@
 include 'occi'
 include 'monitoring'
 include 'workflow-catalog'
-include 'workflow-catalog-rest'
+include 'workflow-catalog-rest-api'
+include 'workflow-catalog-rest-server'
 include 'workflow-catalog-rest-cli'
 

@@ -1,11 +1,12 @@
 package org.ow2.proactive.workflowcatalog.api.utils.formatter.beans;
 
-import com.google.gson.Gson;
-import org.ow2.proactive.workflowcatalog.Reference;
-import org.ow2.proactive.workflowcatalog.References;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import org.ow2.proactive.workflowcatalog.Reference;
+import org.ow2.proactive.workflowcatalog.References;
+import com.google.gson.Gson;
 
 public class ReferencesBean {
 

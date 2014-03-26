@@ -55,7 +55,15 @@ project(':workflow-catalog') {
 
 }
 
-project(':workflow-catalog-rest') {
+project(':workflow-catalog-rest-api') {
+    dependencies {
+        compile project(':workflow-catalog')
+        compile 'org.jboss.resteasy:jaxrs-api:3.0.6.Final'
+        compile 'com.google.code.gson:gson:2.2.4'
+    }
+}
+
+project(':workflow-catalog-rest-server') {
     apply plugin: 'war'
     apply plugin: 'jetty'
 
@@ -63,6 +71,7 @@ project(':workflow-catalog-rest') {
 
     dependencies {
         compile project(':workflow-catalog')
+        compile project(':workflow-catalog-rest-api')
         compile 'org.jboss.resteasy:resteasy-jaxrs:3.0.6.Final'
         compile 'org.jboss.resteasy:jaxrs-api:3.0.6.Final'
         compile 'org.codehaus.jackson:jackson-core-asl:1.9.4'
@@ -83,13 +92,14 @@ project(':workflow-catalog-rest') {
 
 project(':workflow-catalog-rest-cli') {
     apply plugin: 'application'
-    mainClassName = "org.ow2.proactive.workflowcatalog.cli.WcEntryPoint" // main class (will be executed with gradle task 'run' and zip scripts)
+    mainClassName = "org.ow2.proactive.workflowcatalog.cli.WcEntryPoint"
+    // main class (will be executed with gradle task 'run' and zip scripts)
     run {
         run.systemProperties System.properties
     }
 
     dependencies {
-        compile project(':workflow-catalog-rest')
+        compile project(':workflow-catalog-rest-api')
         compile 'commons-cli:commons-cli:1.2'
         compile 'commons-io:commons-io:2.4'
         compile 'jline:jline:1.0'

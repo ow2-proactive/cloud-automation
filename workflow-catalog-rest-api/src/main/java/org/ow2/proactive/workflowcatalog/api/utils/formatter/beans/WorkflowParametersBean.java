@@ -1,8 +1,9 @@
 package org.ow2.proactive.workflowcatalog.api.utils.formatter.beans;
 
-import org.ow2.proactive.workflowcatalog.WorkflowParameters;
 import java.util.Collections;
 import java.util.Map;
+
+import org.ow2.proactive.workflowcatalog.WorkflowParameters;
 
 public class WorkflowParametersBean {
 
