@@ -37,27 +37,29 @@
 
 package org.ow2.proactive.workflowcatalog.cli.cmd;
 
-import static org.ow2.proactive.workflowcatalog.cli.CLIException.REASON_IO_ERROR;
-import static org.ow2.proactive.workflowcatalog.cli.CLIException.REASON_UNAUTHORIZED_ACCESS;
-import static org.ow2.proactive.workflowcatalog.cli.HttpResponseStatus.FORBIDDEN;
-
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.Stack;
 
+import org.ow2.proactive.workflowcatalog.api.exceptions.ExceptionBean;
+import org.ow2.proactive.workflowcatalog.cli.ApplicationContext;
+import org.ow2.proactive.workflowcatalog.cli.CLIException;
+import org.ow2.proactive.workflowcatalog.cli.HttpResponseStatus;
+import org.ow2.proactive.workflowcatalog.cli.utils.HttpResponseWrapper;
+import org.ow2.proactive.workflowcatalog.cli.utils.HttpUtility;
+import org.ow2.proactive.workflowcatalog.cli.utils.StringUtility;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.codehaus.jackson.type.TypeReference;
-import org.ow2.proactive.workflowcatalog.cli.ApplicationContext;
-import org.ow2.proactive.workflowcatalog.cli.CLIException;
-import org.ow2.proactive.workflowcatalog.cli.HttpResponseStatus;
-import org.ow2.proactive.workflowcatalog.cli.json.ErrorView;
-import org.ow2.proactive.workflowcatalog.cli.utils.HttpResponseWrapper;
-import org.ow2.proactive.workflowcatalog.cli.utils.HttpUtility;
-import org.ow2.proactive.workflowcatalog.cli.utils.StringUtility;
+
+import static org.ow2.proactive.workflowcatalog.cli.CLIException.REASON_IO_ERROR;
+import static org.ow2.proactive.workflowcatalog.cli.CLIException.REASON_UNAUTHORIZED_ACCESS;
+import static org.ow2.proactive.workflowcatalog.cli.HttpResponseStatus.FORBIDDEN;
+
 
 public abstract class AbstractCommand implements Command {
 
@@ -69,29 +71,8 @@ public abstract class AbstractCommand implements Command {
         return response.getStatusCode();
     }
 
-    protected <T> T readValue(HttpResponseWrapper response, Class<T> valueType,
-            ApplicationContext currentContext) {
-        try {
-            return currentContext.getObjectMapper().readValue(
-                    response.getContent(), valueType);
-        } catch (IOException ioe) {
-            throw new CLIException(REASON_IO_ERROR, ioe);
-        }
-    }
-
-    protected <T> T readValue(HttpResponseWrapper response,
-            TypeReference<T> valueType, ApplicationContext currentContext) {
-        try {
-            return currentContext.getObjectMapper().readValue(
-                    response.getContent(), valueType);
-        } catch (IOException ioe) {
-            throw new CLIException(REASON_IO_ERROR, ioe);
-        }
-
-    }
-
     protected void writeLine(ApplicationContext currentContext, String format,
-            Object... args) {
+      Object... args) {
         if (!currentContext.isSilent()) {
             try {
                 currentContext.getDevice().writeLine(format, args);
@@ -102,7 +83,7 @@ public abstract class AbstractCommand implements Command {
     }
 
     protected String readLine(ApplicationContext currentContext, String format,
-            Object... args) {
+      Object... args) {
         try {
             return currentContext.getDevice().readLine(format, args);
         } catch (IOException ioe) {
@@ -111,7 +92,7 @@ public abstract class AbstractCommand implements Command {
     }
 
     protected char[] readPassword(ApplicationContext currentContext,
-            String format, Object... args) {
+      String format, Object... args) {
         try {
             return currentContext.getDevice().readPassword(format, args);
         } catch (IOException ioe) {
@@ -120,7 +101,7 @@ public abstract class AbstractCommand implements Command {
     }
 
     protected HttpResponseWrapper execute(HttpUriRequest request,
-            ApplicationContext currentContext) {
+      ApplicationContext currentContext) {
         String sessionId = currentContext.getSessionId();
         if (sessionId != null) {
             request.setHeader("sessionid", sessionId);
@@ -128,7 +109,7 @@ public abstract class AbstractCommand implements Command {
         HttpClient client = HttpUtility.threadSafeClient();
         try {
             if ("https".equals(request.getURI().getScheme())
-                    && currentContext.canInsecureAccess()) {
+              && currentContext.canInsecureAccess()) {
                 HttpUtility.setInsecureAccess(client);
             }
             HttpResponse response = client.execute(request);
@@ -143,13 +124,13 @@ public abstract class AbstractCommand implements Command {
 
     @SuppressWarnings("unchecked")
     protected void handleError(String errorMessage,
-            HttpResponseWrapper response, ApplicationContext currentContext) {
+      HttpResponseWrapper response, ApplicationContext currentContext) {
         String responseContent = StringUtility.responseAsString(response);
         Stack resultStack = resultStack(currentContext);
-        ErrorView errorView = null;
+        ExceptionBean errorView = null;
         try {
             errorView = currentContext.getObjectMapper().readValue(
-                    responseContent.getBytes(), ErrorView.class);
+              responseContent.getBytes(), ExceptionBean.class);
             resultStack.push(errorView);
 
         } catch (Throwable error) {
@@ -158,7 +139,7 @@ public abstract class AbstractCommand implements Command {
             // process the response as a string
         }
         if (errorView != null) {
-            writeError(errorMessage, errorView, currentContext);
+            writeError(errorMessage, errorView, currentContext, response.getStatusCode());
         } else {
             writeError(errorMessage, responseContent, currentContext);
         }
@@ -166,7 +147,7 @@ public abstract class AbstractCommand implements Command {
 
     @SuppressWarnings("unchecked")
     protected void handleError(String errorMessage,
-                               Exception error, ApplicationContext currentContext) {
+      Exception error, ApplicationContext currentContext) {
         Stack resultStack = resultStack(currentContext);
         resultStack.push(error);
 
@@ -179,24 +160,25 @@ public abstract class AbstractCommand implements Command {
 
         writeLine(currentContext, errorMessage);
         Throwable cause = error.getCause();
-        
+
         writeLine(currentContext, "%nError Message: %s",
-                (cause == null) ? error.getMessage() : cause.getMessage());
+          (cause == null) ? error.getMessage() : cause.getMessage());
 
         writeLine(currentContext, "%nStack Track: %s",
-                StringUtility.stackTraceAsString((cause == null) ? error
-                        : cause));
+          StringUtility.stackTraceAsString((cause == null) ? error
+            : cause)
+        );
     }
 
     private void writeError(String errorMsg, String responseContent,
-            ApplicationContext currentContext) {
+      ApplicationContext currentContext) {
         writeLine(currentContext, errorMsg);
 
         String errorMessage = null, errorCode = null;
         BufferedReader reader = new BufferedReader(new StringReader(
-                responseContent));
+          responseContent));
 
-        String line = null;
+        String line;
         try {
             while ((line = reader.readLine()) != null) {
                 if (line.startsWith("errorMessage:")) {
@@ -238,7 +220,7 @@ public abstract class AbstractCommand implements Command {
 
         if (errorCode == null && errorMessage == null) {
             writeLine(currentContext, "%s%n%s", "Error Message:",
-                    responseContent);
+              responseContent);
         }
     }
 
@@ -246,19 +228,27 @@ public abstract class AbstractCommand implements Command {
         return currentContext.resultStack();
     }
 
-    private void writeError(String errorMessage, ErrorView error,
-            ApplicationContext currentContext) {
-        if (statusCode(FORBIDDEN) == error.getHttpErrorCode()) {
+    private void writeError(String errorMessage, ExceptionBean error,
+      ApplicationContext currentContext, int httpErrorCode) {
+        if (statusCode(FORBIDDEN) == httpErrorCode) {
             // this exception would be handled at an upper level ..
             throw new CLIException(REASON_UNAUTHORIZED_ACCESS,
-                    error.getErrorMessage());
+              error.getExceptionMessage());
         }
         writeLine(currentContext, errorMessage);
         writeLine(currentContext, "%s %s", "HTTP Error Code:",
-                error.getHttpErrorCode());
+          httpErrorCode);
         writeLine(currentContext, "%s %s", "Error Message:",
-                error.getErrorMessage());
+          error.getExceptionMessage());
+
         writeLine(currentContext, "%s%n%s", "Stack Trace:",
-                error.getStackTrace());
+          stackTraceToString(error.getThrowable()));
+    }
+
+    private String stackTraceToString(Throwable throwable) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        throwable.printStackTrace(pw);
+        return sw.toString();
     }
 }
