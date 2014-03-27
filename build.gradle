@@ -76,7 +76,6 @@ project(':workflow-catalog-rest-server') {
         compile 'org.jboss.resteasy:jaxrs-api:3.0.6.Final'
         compile 'org.codehaus.jackson:jackson-core-asl:1.9.4'
         compile 'org.apache.httpcomponents:httpmime:4.2.1'
-        compile 'org.codehaus.groovy:groovy-all:2.1.2'
         compile 'javax.json:javax.json-api:1.0'
         compile 'com.google.code.gson:gson:2.2.4'
         compile 'org.glassfish:javax.json:1.0.2'
@@ -110,6 +109,7 @@ project(':workflow-catalog-rest-cli') {
         compile 'org.jboss.resteasy:resteasy-jackson-provider:3.0.6.Final'
         compile 'org.jboss.resteasy:resteasy-client:3.0.6.Final'
 
+        runtime 'org.codehaus.groovy:groovy-all:2.1.2'
     }
 }
 
