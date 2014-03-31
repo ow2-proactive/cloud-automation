@@ -8,7 +8,7 @@
 
         <!-- wildcard : full file path regex to filter files to be copied -->
         <!-- wildcard can be : .* .*\\.log .*\\.txt .*file.* -->
-        <variable name="wildcard" value=".*\\.log"/>
+        <variable name="wildcard" value=".*"/>
 
         <!-- recursive : if the copying mechanism will explore directories too -->
         <!-- recursive can be : true false -->
@@ -16,23 +16,23 @@
 
         <!-- detailed : level of verbosity of the report -->
         <!-- detailed can be : true false -->
-        <variable name="detailed" value="true"/>
+        <variable name="detailed" value="false"/>
 
         <!-- A protocol : protocol to be used to access endpoint A (remote) -->
         <!-- a.protocol can be: ftp ftps hdfs http https sftp webdav (supported by Apache VFS 2.0) -->
-        <variable name="a.protocol" value="ftp"/>
+        <variable name="a.protocol" value=""/>
 
         <!-- A server : server IP address (or name) to be used to access endpoint A (remote) -->
         <!-- a.server can be : 192.168.0.100 server.org ... -->
-        <variable name="a.server" value="192.168.1.158"/>
+        <variable name="a.server" value=""/>
 
         <!-- A port : port number to be used to access endpoint A (remote) -->
         <!-- a.port can be: 21 22 ... -->
-        <variable name="a.port" value="21"/>
+        <variable name="a.port" value=""/>
 
         <!-- A username : username to be used to access endpoint A (remote) -->
         <!-- a.username can be: user admin root ... -->
-        <variable name="a.username" value="user"/>
+        <variable name="a.username" value=""/>
 
         <!-- A password : password to be used to access endpoint A (remote) -->
         <!-- a.password can be: toto passwd ... -->
@@ -40,19 +40,19 @@
 
         <!-- A credpath : private key path to be used to access endpoint A (remote) -->
         <!-- a.credpath can be: /home/user/.ssh/id_rsa ... -->
-        <variable name="a.credpath" value="/home/mjost/.ssh/id_rsa"/>
+        <variable name="a.credpath" value=""/>
 
         <!-- A credname : credential file name to be used that contains password to access endpoint A (remote), it must be in $HOME/.credentials -->
         <!-- a.credname can be: ftp-credentials-1.cred ... -->
-        <variable name="a.credname" value="ftp-credentials-1.cred"/>
+        <variable name="a.credname" value=""/>
 
         <!-- A path : path to be used for endpoint A (remote) -->
         <!-- a.path can be: /remote-path/ ... -->
-        <variable name="a.path" value="/.logs/"/>
+        <variable name="a.path" value=""/>
 
         <!-- B path : path to be used for endpoint B (local) -->
         <!-- b.path can be: /tmp/ ... -->
-        <variable name="b.path" value="/tmp/output/"/>
+        <variable name="b.path" value=""/>
 
     </variables>
 

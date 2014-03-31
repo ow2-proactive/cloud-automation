@@ -7,8 +7,8 @@
         <variable name="variable2"/>
     </variables>
     <genericInformation>
-        <info name="genericInformation1" value="genericInformationValue1"/>
-        <info name="genericInformation2" value="genericInformationValue2"/>
+        <info name="genericInformation1" value=""/>
+        <info name="genericInformation2" value=""/>
     </genericInformation>
 
     <taskFlow>

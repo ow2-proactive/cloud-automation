@@ -4,19 +4,19 @@
 
         <!-- A path : path to be used -->
         <!-- a.path can be: /tmp/ ... -->
-        <variable name="a.path" value="/tmp/New Folder/"/>
+        <variable name="a.path" value=""/>
 
         <!-- wildcard : full file path regex to apply chmod to -->
         <!-- wildcard can be : .* .*\\.log .*\\.txt .*file.* -->
-        <variable name="wildcard" value=".*\\.log"/>
+        <variable name="wildcard" value=".*"/>
 
         <!-- recursive : if the chmod will be applied recursively -->
         <!-- recursive can be : true false -->
-        <variable name="recursive" value="true"/>
+        <variable name="recursive" value="false"/>
 
         <!-- chmod flags : flags for chmod Linux utility -->
         <!-- flags can be: a+rx a+x o-x ... -->
-        <variable name="flags" value="a+rx"/>
+        <variable name="flags" value="u+r"/>
 
     </variables>
 
