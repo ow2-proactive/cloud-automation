@@ -11,6 +11,7 @@ import org.ow2.proactive.workflowcatalog.*;
 import org.ow2.proactive.workflowcatalog.security.SchedulerRestSession;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.*;
 import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobIdData;
+import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobStateData;
 
 import static org.ow2.proactive.workflowcatalog.api.utils.ConfigurationHelper.getCatalogPath;
 import static org.ow2.proactive.workflowcatalog.api.utils.ConfigurationHelper.getConfiguration;
@@ -42,7 +43,6 @@ public class Core {
             try {
                 JobIdData jsonResponse = getScheduler().submitJob(w.configure(data.getVariables()));
                 references.add(Reference.buildJobReference(w.getName(), jsonResponse));
-
             } catch (JobCreationException e) {
                 throw new JobSubmissionException("Error creating job", e);
             } catch (JobParsingException e) {
@@ -66,7 +66,9 @@ public class Core {
             Map<String, String> jsonResponse = getScheduler().getAllTaskResults(jobId);
             return new JobResult(jobId, jsonResponse);
         } catch (JobNotFinishedException e) {
-            throw new JobStatusRetrievalException("Job '" + jobId + "' not finished yet", e);
+            JobStateData jobState = getScheduler().getJobStatus(jobId);
+            String status = jobState.getJobInfo().getStatus().toString();
+            throw new JobStatusRetrievalException("Job '" + jobId + "' did not finish, it is in status: " + status, e);
         }
     }
 

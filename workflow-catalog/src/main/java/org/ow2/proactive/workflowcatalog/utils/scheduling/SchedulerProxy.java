@@ -10,6 +10,7 @@ import org.ow2.proactive.workflowcatalog.Reference;
 import org.ow2.proactive.workflowcatalog.utils.HttpUtility;
 import org.ow2.proactive_grid_cloud_portal.scheduler.client.SchedulerRestClient;
 import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobIdData;
+import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobStateData;
 import org.ow2.proactive_grid_cloud_portal.scheduler.exception.SchedulerRestException;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.client.HttpClient;
@@ -45,22 +46,30 @@ public class SchedulerProxy {
         sessionId = connectToScheduler(schedulerLoginData);
     }
 
+    public JobStateData getJobStatus(String jobId) throws JobStatusRetrievalException {
+        try {
+            return restClient.getScheduler().listJobs(sessionId, jobId);
+        } catch (Exception e) {
+            throw new JobStatusRetrievalException("Error getting state for job " + jobId + " : " + e.getMessage());
+        }
+    }
+
     public Map<String, String> getAllTaskResults(String jobId)
       throws JobNotFinishedException, JobStatusRetrievalException {
 
+        Map<String, String> jobResultValue = null;
         try {
-            Map<String, String> jobResultValue = restClient.getScheduler().jobResultValue(sessionId, jobId);
-            if (jobResultValue == null)
-                throw new JobNotFinishedException(
-                  "No result for JobId=" + jobId + " available yet.");
-            return jobResultValue;
-
+            jobResultValue = restClient.getScheduler().jobResultValue(sessionId, jobId);
         } catch (Exception e) {
             throw new JobStatusRetrievalException(
-              "Error getting result for " +
-                "JobId=" + jobId + " : " + e.getMessage()
-            );
+                "Error getting result for job " + jobId + " : " + e.getMessage());
         }
+
+        if (jobResultValue == null)
+            throw new JobNotFinishedException("No result for job " + jobId + " is available yet.");
+
+        return jobResultValue;
+
     }
 
     public JobIdData submitJob(File jobFile) throws JobSubmissionException {
@@ -93,4 +102,5 @@ public class SchedulerProxy {
     public String getSessionId() {
         return sessionId;
     }
+
 }
