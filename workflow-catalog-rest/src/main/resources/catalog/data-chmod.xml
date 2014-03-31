@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd" name="data-chmod" priority="normal" cancelJobOnError="true">
+    <variables>
+
+        <!-- A path : path to be used -->
+        <!-- a.path can be: /tmp/ ... -->
+        <variable name="a.path" value="/tmp/New Folder/"/>
+
+        <!-- wildcard : full file path regex to apply chmod to -->
+        <!-- wildcard can be : .* .*\\.log .*\\.txt .*file.* -->
+        <variable name="wildcard" value=".*\\.log"/>
+
+        <!-- recursive : if the chmod will be applied recursively -->
+        <!-- recursive can be : true false -->
+        <variable name="recursive" value="true"/>
+
+        <!-- chmod flags : flags for chmod Linux utility -->
+        <!-- flags can be: a+rx a+x o-x ... -->
+        <variable name="flags" value="a+rx"/>
+
+    </variables>
+
+	<taskFlow>
+        <task name="list-files-task">
+            <scriptExecutable>
+                <script >
+                    <code language="groovy">
+                        <![CDATA[
+import net.minidev.json.*
+import org.apache.commons.vfs2.*
+import org.apache.commons.vfs2.provider.sftp.*
+
+def a_path =  "${a.path}"
+def flags = "${flags}"
+
+def wildcard =  "${wildcard}"
+def recursive =  "${recursive}".toBoolean()
+
+println "Resolving A path..."
+
+FileObject a_base = VFS.getManager().resolveFile(a_path)
+
+println "Generating report..."
+
+FileObject[] files = a_base.findFiles(new CustomFileSelector(wildcard, recursive))
+
+def json = new JSONObject()
+def sourceFiles = new JSONObject()
+for (FileObject f : files) {
+    def changes = applyChanges(f.name.path, flags)
+    sourceFiles.put(f.name.path, changes)
+}
+
+json.put("source_files_count", sourceFiles.size())
+json.put("source_files", sourceFiles)
+
+result = json.toJSONString()
+
+println "Report: $result"
+
+a_base.close()
+
+////////////////////////////////////////////////////////
+
+def applyChanges(String filename, String flags) {
+    def fileJson = new JSONObject()
+
+    def cmd = ["chmod", flags, filename]
+    def proc = cmd.execute()
+    proc.waitFor()
+    fileJson.put("cmd", cmd)
+    fileJson.put("stderr", proc.err.text)
+    fileJson.put("stdout", proc.in.text)
+    fileJson.put("errcode", proc.exitValue())
+
+    return fileJson
+}
+
+class CustomFileSelector implements FileSelector {
+    private Boolean recursive
+    private String wildcard
+    public CustomFileSelector(String wildcard, Boolean recursive) {
+        this.wildcard = wildcard
+        this.recursive = recursive
+    }
+    @Override
+    boolean includeFile(FileSelectInfo fileInfo) throws Exception {
+        return fileInfo.file.getName().path.matches(wildcard)
+    }
+    @Override
+    boolean traverseDescendents(FileSelectInfo fileInfo) throws Exception {
+        return (fileInfo.depth==0?true:recursive)
+    }
+}
+
+]]>
+                    </code>
+                </script>
+            </scriptExecutable>
+        </task>
+    </taskFlow>
+</job>
+

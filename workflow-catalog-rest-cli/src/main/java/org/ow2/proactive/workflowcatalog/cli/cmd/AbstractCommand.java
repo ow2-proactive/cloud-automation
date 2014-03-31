@@ -164,10 +164,9 @@ public abstract class AbstractCommand implements Command {
         writeLine(currentContext, "%nError Message: %s",
           (cause == null) ? error.getMessage() : cause.getMessage());
 
-        writeLine(currentContext, "%nStack Track: %s",
-          StringUtility.stackTraceAsString((cause == null) ? error
-            : cause)
-        );
+        writeLine(currentContext, "%nStack Trace: %s",
+                StringUtility.stackTraceAsString((cause == null) ? error
+                        : cause));
     }
 
     private void writeError(String errorMsg, String responseContent,
