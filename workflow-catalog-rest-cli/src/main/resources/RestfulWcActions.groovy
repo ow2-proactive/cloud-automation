@@ -46,11 +46,11 @@ void submitworkflow(name, variables, genericInformation) {
 }
 
 void submitworkflow(name, variables) {
-    submitworkflow(name, variables, '')
+    submitworkflow(name, variables, [:])
 }
 
 void submitworkflow(name) {
-    submitworkflow(name, '', '')
+    submitworkflow(name, [:], [:])
 }
 
 void exit() {

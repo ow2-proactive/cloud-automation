@@ -44,21 +44,16 @@ import org.ow2.proactive.workflowcatalog.cli.ApplicationContext;
 import org.ow2.proactive.workflowcatalog.cli.CLIException;
 import org.ow2.proactive.workflowcatalog.cli.rest.WorkflowCatalogClient;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.JobSubmissionException;
-
-import javax.ws.rs.ServerErrorException;
-import javax.ws.rs.core.Response;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 
 public class SubmitWorkflowCommand extends UseProxyCommand implements Command {
 
     private String workflowName;
-    private String variables;
-    private String genericInformation;
+    private Map<String, String> variables;
+    private Map<String, String> genericInformation;
 
-    public SubmitWorkflowCommand(String workflowName, String variables, String genericInformation) {
+    public SubmitWorkflowCommand(String workflowName, Map<String, String> variables, Map<String, String> genericInformation) {
         this.workflowName = workflowName;
         this.variables = variables;
         this.genericInformation = genericInformation;
@@ -70,8 +65,12 @@ public class SubmitWorkflowCommand extends UseProxyCommand implements Command {
 
         WorkflowParameters params = new WorkflowParameters();
         params.setName(workflowName);
-        params.getVariables().putAll(bindings(variables));
-        params.getGenericInformation().putAll(bindings(genericInformation));
+
+        if (variables != null)
+            params.getVariables().putAll(variables);
+
+        if (genericInformation != null)
+            params.getGenericInformation().putAll(genericInformation);
 
         try {
             ReferencesBean references = client.getProxy().submitJob(new WorkflowParametersBean(params));
@@ -79,21 +78,5 @@ public class SubmitWorkflowCommand extends UseProxyCommand implements Command {
         } catch (JobSubmissionException e) {
             handleError("An error occurred during job submission: ", e, currentContext);
         }
-    }
-
-    private Map<String, String> bindings(String bindingString) {
-
-        if (bindingString == null || bindingString.isEmpty())
-            return Collections.EMPTY_MAP;
-
-        Map<String, String> bindings = new HashMap<String, String>();
-        String[] pairs = bindingString.split(",");
-        for (String pair : pairs) {
-            String[] nameValue = pair.split("=");
-            bindings.put(nameValue[0], nameValue[1]);
-        }
-
-        return bindings;
-
     }
 }
