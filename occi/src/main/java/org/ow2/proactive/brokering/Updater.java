@@ -94,7 +94,7 @@ public class Updater {
 
         private void updateOcciResource(UpdateUnit u) {
             try {
-                Map<String, String> taskResults = scheduler.getAllTaskResults(u.reference);
+                Map<String, String> taskResults = scheduler.getAllTaskResults(u.reference.getId());
                 String attributes = flattenTaskResultsAndConvertJsonTaskResultsToMap(taskResults);
 
                 Response r = occi.updateResource(

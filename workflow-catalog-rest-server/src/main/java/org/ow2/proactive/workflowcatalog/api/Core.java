@@ -61,12 +61,12 @@ public class Core {
         return SchedulerRestSession.getScheduler();
     }    
 
-    public JobResult getJobResult(Reference reference) throws JobStatusRetrievalException {
+    public JobResult getJobResult(String jobId) throws JobStatusRetrievalException {
         try {
-            Map<String, String> jsonResponse = getScheduler().getAllTaskResults(reference);
-            return new JobResult(reference, jsonResponse);
+            Map<String, String> jsonResponse = getScheduler().getAllTaskResults(jobId);
+            return new JobResult(jobId, jsonResponse);
         } catch (JobNotFinishedException e) {
-            throw new JobStatusRetrievalException("Job '" + reference.getId() + "' not finished yet", e);
+            throw new JobStatusRetrievalException("Job '" + jobId + "' not finished yet", e);
         }
     }
 

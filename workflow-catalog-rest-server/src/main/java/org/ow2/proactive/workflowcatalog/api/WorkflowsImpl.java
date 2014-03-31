@@ -35,8 +35,7 @@ public class WorkflowsImpl implements Workflows {
     @Override
     public JobResult getJobResult(@PathParam("jobid") String jobId) throws JobStatusRetrievalException {
         Core core = Core.getInstance();
-        Reference reference = new Reference(Reference.Nature.NATURE_JOB, Reference.SubmissionStatus.SUBMISSION_UNKNOWN, jobId, jobId);
-        return core.getJobResult(reference);
+        return core.getJobResult(jobId);
     }
 
 }

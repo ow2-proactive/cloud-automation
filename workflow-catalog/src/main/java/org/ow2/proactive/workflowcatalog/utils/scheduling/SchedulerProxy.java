@@ -45,26 +45,20 @@ public class SchedulerProxy {
         sessionId = connectToScheduler(schedulerLoginData);
     }
 
-    public String getTaskResult(Reference r, String task)
-      throws AuthenticationException, JobNotFinishedException, JobStatusRetrievalException {
-        return getAllTaskResults(r).get(task);
-    }
-
-    public Map<String, String> getAllTaskResults(Reference r)
+    public Map<String, String> getAllTaskResults(String jobId)
       throws JobNotFinishedException, JobStatusRetrievalException {
 
         try {
-            Map<String, String> jobResultValue = restClient.getScheduler().jobResultValue(sessionId,
-              r.getId());
+            Map<String, String> jobResultValue = restClient.getScheduler().jobResultValue(sessionId, jobId);
             if (jobResultValue == null)
                 throw new JobNotFinishedException(
-                  "No result for JobId=" + r.getId() + " available yet.");
+                  "No result for JobId=" + jobId + " available yet.");
             return jobResultValue;
 
         } catch (Exception e) {
             throw new JobStatusRetrievalException(
               "Error getting result for " +
-                "JobId=" + r.getId() + " : " + e.getMessage()
+                "JobId=" + jobId + " : " + e.getMessage()
             );
         }
     }

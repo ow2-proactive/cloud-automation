@@ -132,7 +132,7 @@ public class UpdaterTest {
         jobIdData.setReadableName("TestJob" + jobId);
         Reference jobReference = Reference.buildJobReference("", jobIdData);
         jobReferences.add(jobReference);
-        when(scheduler.getAllTaskResults(jobReference)).thenReturn(taskResults);
+        when(scheduler.getAllTaskResults(jobReference.getId())).thenReturn(taskResults);
     }
 
     private Map<String, String> getDefaultComputeAttributes() {
