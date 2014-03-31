@@ -143,9 +143,35 @@ def getCredentials(String password, String credname) {
 
 }
 
-def generateUrl(String a_protocol, String a_username, String a_password, String a_server, String a_port) {
-    return a_protocol + "://" + a_username + ":" + a_password + "@" + a_server + ":" + a_port
+def generateUrl(String protocol, String username, String password, String server, String port) {
+
+    if (server == null || server.isEmpty())
+        return "file://"
+
+    if (username != null && !username.isEmpty())
+        return protocol + "://" + generateUserPart(username, password) + "@" + generateServerPart(server, port)
+
+    if (username == null || username.isEmpty())
+        return protocol + "://" + generateServerPart(server, port)
+
+    throw new RuntimeException("Unhandled case")
 }
+
+def generateServerPart(String server, String port) {
+    if (port == null || port.isEmpty())
+        return server
+    else
+        return server + ":" + port
+}
+
+def generateUserPart(String user, String pass) {
+    if (pass == null || pass.isEmpty()) {
+        return user
+    } else {
+        return user + ":" + pass
+    }
+}
+
 
 class CustomFileSelector implements FileSelector {
     private Boolean recursive
