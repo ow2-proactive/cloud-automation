@@ -110,17 +110,6 @@ a_root.close()
 
 ////////////////////////////////////////////////////////
 
-def getFileProperties(FileObject f) {
-    def fileJson = new JSONObject()
-    fileJson.put("path", f.name.path)
-    fileJson.put("baseName", f.name.baseName)
-    fileJson.put("hidden", f.hidden)
-    fileJson.put("readable", f.readable)
-    fileJson.put("writeable", f.writeable)
-    fileJson.put("contentOpen", f.contentOpen)
-    return fileJson
-}
-
 def getCredentials(String password, String credname) {
 
     if (password != null && !password.isEmpty()) {
@@ -198,6 +187,24 @@ def FileSystemOptions initializePrivateKeyMechanism(def openSSHPrivateKeyPath) {
     SftpFileSystemConfigBuilder.getInstance().setIdentities(fsOptions, files);
     return fsOptions
 }
+
+def getFileProperties(FileObject f) {
+    def fileJson = new JSONObject()
+    fileJson.put("path", f.name.path)
+    fileJson.put("type", f.getType().toString())
+    if (f.getType() == FileType.FILE) {
+        fileJson.put("size", f.content.size)
+        fileJson.put("contentInfo", f.content.getContentInfo())
+    }
+    fileJson.put("lastModifiedTime", f.content.lastModifiedTime)
+    fileJson.put("attributes", f.content.getAttributes())
+    fileJson.put("baseName", f.name.baseName)
+    fileJson.put("hidden", f.hidden)
+    fileJson.put("readable", f.readable)
+    fileJson.put("writeable", f.writeable)
+    return fileJson
+}
+
 
 ]]>
                     </code>

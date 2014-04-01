@@ -232,14 +232,19 @@ def generateReport(FileObject base, String wildcard, Boolean recursive, Boolean 
 def getFileProperties(FileObject f) {
     def fileJson = new JSONObject()
     fileJson.put("path", f.name.path)
+    fileJson.put("type", f.getType().toString())
+    if (f.getType() == FileType.FILE) {
+        fileJson.put("size", f.content.size)
+        fileJson.put("contentInfo", f.content.getContentInfo())
+    }
+    fileJson.put("lastModifiedTime", f.content.lastModifiedTime)
+    fileJson.put("attributes", f.content.getAttributes())
     fileJson.put("baseName", f.name.baseName)
     fileJson.put("hidden", f.hidden)
     fileJson.put("readable", f.readable)
     fileJson.put("writeable", f.writeable)
-    fileJson.put("contentOpen", f.contentOpen)
     return fileJson
 }
-
 
 ]]>
                     </code>
