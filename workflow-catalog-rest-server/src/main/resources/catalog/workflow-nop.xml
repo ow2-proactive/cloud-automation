@@ -4,6 +4,10 @@
         <variable name="variable1" value=""/>
         <variable name="variable2" value=""/>
     </variables>
+    <genericInformation>
+        <info name="genericInformation1" value=""/>
+        <info name="genericInformation2" value=""/>
+    </genericInformation>
 
 	<taskFlow>
         <task name="nop-task">
