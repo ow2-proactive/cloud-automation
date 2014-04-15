@@ -104,7 +104,7 @@ public class IntegrationTest {
 
     @Test
     public void access_to_protected_resource_is_denied() throws Exception {
-        Response response = httpGet("/wc/workflows");
+        Response response = httpGet("/wc/workflow");
 
         assertEquals(401, response.getStatus());
     }
@@ -118,7 +118,7 @@ public class IntegrationTest {
         assertEquals(200, login.getStatus());
         assertEquals("abcd", login.readEntity(String.class));
 
-        Response workflows = httpGet("/wc/workflows", "abcd");
+        Response workflows = httpGet("/wc/workflow", "abcd");
 
         assertEquals(200, workflows.getStatus());
     }
@@ -150,7 +150,7 @@ public class IntegrationTest {
         Response logout = httpPost("/wc/logout", "abcd");
         assertEquals(204, logout.getStatus());
 
-        Response workflows = httpGet("/wc/workflows", "abcd");
+        Response workflows = httpGet("/wc/workflow", "abcd");
         assertEquals(401, workflows.getStatus());
     }
 

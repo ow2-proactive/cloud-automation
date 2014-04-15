@@ -44,12 +44,12 @@ import org.ow2.proactive.workflowcatalog.api.utils.formatter.beans.WorkflowBean;
 import org.ow2.proactive.workflowcatalog.api.utils.formatter.beans.WorkflowParametersBean;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.JobSubmissionException;
 
-@Path("/workflows")
+@Path("/")
 public interface Workflows {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Path("/")
+    @Path("/workflow/")
     Collection<WorkflowBean> getWorkflowList();
 
     @POST
