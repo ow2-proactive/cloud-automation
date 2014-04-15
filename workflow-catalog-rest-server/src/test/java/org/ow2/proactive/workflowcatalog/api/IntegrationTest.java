@@ -104,7 +104,7 @@ public class IntegrationTest {
 
     @Test
     public void access_to_protected_resource_is_denied() throws Exception {
-        Response response = httpGet("/api/workflows");
+        Response response = httpGet("/wc/workflows");
 
         assertEquals(401, response.getStatus());
     }
@@ -118,7 +118,7 @@ public class IntegrationTest {
         assertEquals(200, login.getStatus());
         assertEquals("abcd", login.readEntity(String.class));
 
-        Response workflows = httpGet("/api/workflows", "abcd");
+        Response workflows = httpGet("/wc/workflows", "abcd");
 
         assertEquals(200, workflows.getStatus());
     }
@@ -147,10 +147,10 @@ public class IntegrationTest {
         assertEquals(200, login.getStatus());
         assertEquals("abcd", login.readEntity(String.class));
 
-        Response logout = httpPost("/api/logout", "abcd");
+        Response logout = httpPost("/wc/logout", "abcd");
         assertEquals(204, logout.getStatus());
 
-        Response workflows = httpGet("/api/workflows", "abcd");
+        Response workflows = httpGet("/wc/workflows", "abcd");
         assertEquals(401, workflows.getStatus());
     }
 
@@ -158,7 +158,7 @@ public class IntegrationTest {
         Form form = new Form();
         form.param("username", username);
         form.param("password", password);
-        return request("/api/login").
+        return request("/wc/login").
           post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
     }
 

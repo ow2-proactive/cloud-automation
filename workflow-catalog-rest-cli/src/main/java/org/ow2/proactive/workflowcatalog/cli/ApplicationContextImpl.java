@@ -103,7 +103,7 @@ public class ApplicationContextImpl implements ApplicationContext {
     }
 
     private String getWcUrl() {
-        return restServerUrl + "/api";
+        return restServerUrl + "/wc";
     }
 
     @Override
