@@ -17,7 +17,7 @@ public class Configuration {
 
     @Override
     public String toString() {
-        String result = "Scheduler : " + scheduler.url + " (" + scheduler.username + " / " + scheduler.password + ")\n";
+        String result = "Scheduler : " + scheduler.url + "\n";
         result += "Catalog : " + catalog.path + "\n";
         result += "Security : " + security.insecuremode + "\n";
         return result;
@@ -29,12 +29,6 @@ public class Configuration {
     }
 
     public static class Scheduler {
-        @XmlAttribute
-        public String username;
-
-        @XmlAttribute
-        public String password;
-
         @XmlAttribute
         public String url;
     }

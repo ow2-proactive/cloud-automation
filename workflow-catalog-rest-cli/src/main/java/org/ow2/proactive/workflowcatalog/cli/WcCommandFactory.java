@@ -38,7 +38,7 @@
 package org.ow2.proactive.workflowcatalog.cli;
 
 import static org.ow2.proactive.workflowcatalog.cli.CommandSet.OUTPUT;
-import static org.ow2.proactive.workflowcatalog.cli.CommandSet.RM_HELP;
+import static org.ow2.proactive.workflowcatalog.cli.CommandSet.WC_HELP;
 
 import java.util.Collection;
 import java.util.List;
@@ -59,7 +59,7 @@ class WcCommandFactory extends CommandFactory {
             CommandFactory.supportedCommandMap());
 
     static {
-        for (CommandSet.Entry entry : CommandSet.RM_ONLY) {
+        for (CommandSet.Entry entry : CommandSet.COMMON_COMMANDS) {
             wcSupportedCmdMap.put(opt(entry), entry);
         }
     }
@@ -72,7 +72,7 @@ class WcCommandFactory extends CommandFactory {
         List<Command> commandList = getCommandList(cli, commands,
                 currentContext);
 
-        if (cli.hasOption(opt(RM_HELP))) {
+        if (cli.hasOption(opt(WC_HELP))) {
             commandList.add(new WcHelpCommand());
             return commandList;
         }

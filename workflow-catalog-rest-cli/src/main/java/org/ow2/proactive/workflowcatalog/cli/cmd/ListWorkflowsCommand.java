@@ -45,15 +45,15 @@ import org.ow2.proactive.workflowcatalog.cli.utils.StringUtility;
 
 import java.util.Collection;
 
-public class ListWorkflowsCommand extends UseProxyCommand implements Command {
+public class ListWorkflowsCommand extends AbstractCommand implements Command {
 
     public ListWorkflowsCommand() {}
 
     @Override
     public void execute(ApplicationContext currentContext) throws CLIException {
-        WorkflowCatalogClient client = getClient(currentContext);
+        WorkflowCatalogClient client = currentContext.getWorkflowCatalogClient();
 
-        Collection<WorkflowBean> workflows = client.getProxy().getWorkflowList();
+        Collection<WorkflowBean> workflows = client.getWorkflowsProxy().getWorkflowList();
         for (WorkflowBean workflow: workflows) {
             writeLine(currentContext, "%s", StringUtility.string(workflow));
         }

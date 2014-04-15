@@ -40,11 +40,7 @@ package org.ow2.proactive.workflowcatalog.cli.utils;
 import static org.ow2.proactive.workflowcatalog.cli.CLIException.REASON_IO_ERROR;
 import static org.ow2.proactive.workflowcatalog.cli.CLIException.REASON_OTHER;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
+import java.io.*;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
@@ -111,6 +107,25 @@ public class FileUtility {
                     // ignore
                 }
             }
+        }
+    }
+
+    public static OutputStream buildOutputStream(File file) throws IllegalArgumentException {
+        if (file.exists() && !file.delete()) {
+            throw new RuntimeException("Cannot delete the existent output file. " + file.getAbsolutePath());
+        } else {
+            File parentFile = file.getParentFile();
+            if (parentFile == null) {
+                throw new IllegalArgumentException("Invalid pathname. Cannot determine the parent directory. " + file.getAbsolutePath());
+            }
+            if (!(parentFile.exists() || parentFile.mkdirs())) {
+                throw new IllegalArgumentException("Cannot create the non-existent parent directory of the file. " + file.getAbsolutePath());
+            }
+        }
+        try {
+            return new FileOutputStream(file, true);
+        } catch (FileNotFoundException e) {
+            throw new IllegalArgumentException(e);
         }
     }
 

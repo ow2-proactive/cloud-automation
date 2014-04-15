@@ -33,7 +33,7 @@ public class LoginWithCredentialsCommand extends AbstractLoginCommand implements
             throw new CLIException(REASON_INVALID_ARGUMENTS, String.format(
                     "File does not exist: %s", credentials.getAbsolutePath()));
         }
-        HttpPost request = new HttpPost(currentContext.getResourceUrl("login"));
+        HttpPost request = new HttpPost(currentContext.getWcResourceUrl("login"));
         MultipartEntity entity = new MultipartEntity();
         entity.addPart("credential",
                 new ByteArrayBody(FileUtility.byteArray(credentials),

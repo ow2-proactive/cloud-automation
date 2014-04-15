@@ -44,6 +44,8 @@ import java.util.Stack;
 import javax.script.ScriptEngine;
 
 import org.codehaus.jackson.map.ObjectMapper;
+import org.ow2.proactive.workflowcatalog.cli.rest.WorkflowCatalogClient;
+import org.ow2.proactive_grid_cloud_portal.scheduler.client.SchedulerRestClient;
 
 public interface ApplicationContext {
 
@@ -53,9 +55,9 @@ public interface ApplicationContext {
 
     public void setRestServerUrl(String restServerUrl);
 
-    public String getRestServerUrl();
+    public String getWcResourceUrl(String resource);
 
-    public String getResourceUrl(String resource);
+    public String getSchedulingResourceUrl(String resource);
 
     public void setObjectMapper(ObjectMapper mapper);
 
@@ -88,5 +90,7 @@ public interface ApplicationContext {
     @SuppressWarnings("rawtypes")
     public Stack resultStack();
 
-    //SchedulerRestClient getRestClient();
+    public WorkflowCatalogClient getWorkflowCatalogClient();
+
+    public SchedulerRestClient getSchedulerClient();
 }

@@ -3,8 +3,6 @@ package org.ow2.proactive.workflowcatalog.api;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
-
-import javax.json.JsonObject;
 import javax.xml.transform.TransformerException;
 
 import org.ow2.proactive.workflowcatalog.*;
@@ -60,17 +58,6 @@ public class Core {
     private SchedulerProxy getScheduler() {
         return SchedulerRestSession.getScheduler();
     }    
-
-    public JobResult getJobResult(String jobId) throws JobStatusRetrievalException {
-        try {
-            Map<String, String> jsonResponse = getScheduler().getAllTaskResults(jobId);
-            return new JobResult(jobId, jsonResponse);
-        } catch (JobNotFinishedException e) {
-            JobStateData jobState = getScheduler().getJobStatus(jobId);
-            String status = jobState.getJobInfo().getStatus().toString();
-            throw new JobStatusRetrievalException("Job '" + jobId + "' did not finish, it is in status: " + status, e);
-        }
-    }
 
 }
 

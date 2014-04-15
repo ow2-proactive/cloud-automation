@@ -37,29 +37,54 @@
 
 package org.ow2.proactive.workflowcatalog.cli.cmd;
 
-import org.ow2.proactive.workflowcatalog.cli.ApplicationContext;
+import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
 import org.ow2.proactive.workflowcatalog.cli.CLIException;
-import org.ow2.proactive.workflowcatalog.cli.utils.StringUtility;
-import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobResultData;
+import org.ow2.proactive.workflowcatalog.cli.ApplicationContext;
 import org.ow2.proactive_grid_cloud_portal.scheduler.client.SchedulerRestClient;
 
-public class GetJobResultCommand extends AbstractCommand implements Command {
+import static org.apache.commons.io.IOUtils.copy;
+import static org.apache.commons.io.IOUtils.closeQuietly;
+import static org.ow2.proactive.workflowcatalog.cli.utils.FileUtility.buildOutputStream;
 
-    private String jobId;
+public class DownloadFileCommand extends AbstractCommand implements Command {
 
-    public GetJobResultCommand(String jobId) {
-        this.jobId = jobId;
+    private String spaceName;
+    private String pathName;
+    private String localFile;
+
+    public DownloadFileCommand(
+            String srcSpaceName, String srcPathName, String dstFileName) {
+        this.spaceName = srcSpaceName;
+        this.pathName = srcPathName;
+        this.localFile = dstFileName;
     }
 
     @Override
     public void execute(ApplicationContext currentContext) throws CLIException {
         SchedulerRestClient client = currentContext.getSchedulerClient();
+        InputStream in = null;
+        OutputStream out = null;
         try {
-            JobResultData result = client.getScheduler().jobResult(
-                    currentContext.getSessionId(), jobId);
-            writeLine(currentContext, "%s", StringUtility.string(result));
-        } catch (Exception e) {
-            handleError("An error occurred during job output retrieval: ", e, currentContext);
+            in = client.getScheduler().pullFile(currentContext.getSessionId(),
+                                                spaceName, pathName);
+            out = buildOutputStream(new File(localFile));
+            copy(in, out);
+            resultStack(currentContext).push(true);
+            writeLine(currentContext, "'%s:%s' successfully downloaded to '%s'",
+                      spaceName, pathName, localFile);
+        } catch (Exception error) {
+            handleError("An error occurred while downloading the file " + localFile,
+                        error, currentContext);
+        } finally {
+            if (in != null) {
+                closeQuietly(in);
+            }
+            if (out != null) {
+                closeQuietly(out);
+            }
         }
     }
+
 }

@@ -47,7 +47,7 @@ import org.ow2.proactive.workflowcatalog.utils.scheduling.JobSubmissionException
 import java.util.Map;
 
 
-public class SubmitWorkflowCommand extends UseProxyCommand implements Command {
+public class SubmitWorkflowCommand extends AbstractCommand implements Command {
 
     private String workflowName;
     private Map<String, String> variables;
@@ -61,7 +61,7 @@ public class SubmitWorkflowCommand extends UseProxyCommand implements Command {
 
     @Override
     public void execute(ApplicationContext currentContext) throws CLIException {
-        WorkflowCatalogClient client = getClient(currentContext);
+        WorkflowCatalogClient client = currentContext.getWorkflowCatalogClient();
 
         WorkflowParameters params = new WorkflowParameters();
         params.setName(workflowName);
@@ -73,7 +73,7 @@ public class SubmitWorkflowCommand extends UseProxyCommand implements Command {
             params.getGenericInformation().putAll(genericInformation);
 
         try {
-            ReferencesBean references = client.getProxy().submitJob(new WorkflowParametersBean(params));
+            ReferencesBean references = client.getWorkflowsProxy().submitJob(new WorkflowParametersBean(params));
             writeLine(currentContext, "%s", references.generateReferences().getSummary());
         } catch (JobSubmissionException e) {
             handleError("An error occurred during job submission: ", e, currentContext);

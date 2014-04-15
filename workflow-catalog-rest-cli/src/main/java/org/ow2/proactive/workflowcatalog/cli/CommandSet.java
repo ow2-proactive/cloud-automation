@@ -167,7 +167,7 @@ public class CommandSet {
             .description("Interactive mode of REST CLI")
             .commandClass(WcImodeCommand.class).entry();
 
-    public static final CommandSet.Entry RM_HELP = CommandSetEntryBuilder
+    public static final CommandSet.Entry WC_HELP = CommandSetEntryBuilder
             .newInstance()
             .opt("h")
             .longOpt("help")
@@ -175,21 +175,34 @@ public class CommandSet {
                     "Prints the usage of REST command-line client for Resource Manager")
             .commandClass(WcHelpCommand.class).entry();
 
-    public static final CommandSet.Entry RM_JS_HELP = CommandSetEntryBuilder
+    public static final CommandSet.Entry WC_JS_HELP = CommandSetEntryBuilder
             .newInstance().opt("").longOpt("").description("Interactive help")
             .jsCommand("help()").commandClass(WcJsHelpCommand.class).entry();
 
+    public static final CommandSet.Entry UPLOAD_FILE = CommandSetEntryBuilder
+            .newInstance().opt("pf")
+            .longOpt("uploadfile")
+            .description("Push the specified file to the specified location of the server").hasArgs(
+                    true)
+            .numOfArgs(4).argNames("local-file space-name file-path file-name")
+            .jsCommand("uploadfile(local-file,space-name,file-path,file-name)")
+            .commandClass(UploadFileCommand.class).entry();
+
+    public static final CommandSet.Entry DOWNLOAD_FILE = CommandSetEntryBuilder.newInstance().opt("gf")
+            .longOpt("downloadfile")
+            .description("Retrieves the specified file from the server and stores it locally.").hasArgs(true)
+            .numOfArgs(3).argNames("space-name path-name local-file")
+            .jsCommand("downloadfile(space-name,path-name,local-file)")
+            .commandClass(DownloadFileCommand.class).entry();
+
     /**
-     * CommandSet.Entry objects which are common to both Scheduler and Resource
-     * Manager CLIs
+     * CommandSet.Entry objects for this CLI.
      */
     public static final CommandSet.Entry[] COMMON_COMMANDS = new CommandSet.Entry[] {
             URL, SESSION, PASSWORD, CREDENTIALS, INSECURE,
-            CACERTS, CACERTS_PASSWORD, EVAL, SILENT, OUTPUT };
-
-    /** CommandSet.Entry objects which are specific to Resource Manager CLI */
-    public static final CommandSet.Entry[] RM_ONLY = new CommandSet.Entry[] {
-            LOGIN, WORKFLOWS_LIST, SUBMIT_WORKFLOW, GET_JOB_RESULT, WC_IMODE, RM_HELP, RM_JS_HELP};
+            CACERTS, CACERTS_PASSWORD, EVAL, SILENT, OUTPUT,
+            LOGIN, WORKFLOWS_LIST, SUBMIT_WORKFLOW, GET_JOB_RESULT,
+            WC_IMODE, WC_HELP, WC_JS_HELP, DOWNLOAD_FILE, UPLOAD_FILE};
 
     private CommandSet() {
     }

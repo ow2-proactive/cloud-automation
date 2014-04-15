@@ -2,8 +2,10 @@ import org.ow2.proactive.workflowcatalog.cli.ApplicationContext
 import org.ow2.proactive.workflowcatalog.cli.ApplicationContextImpl
 import org.ow2.proactive.workflowcatalog.cli.CLIException
 import org.ow2.proactive.workflowcatalog.cli.cmd.AbstractLoginCommand
+import org.ow2.proactive.workflowcatalog.cli.cmd.DownloadFileCommand
 import org.ow2.proactive.workflowcatalog.cli.cmd.GetJobResultCommand
 import org.ow2.proactive.workflowcatalog.cli.cmd.ListWorkflowsCommand
+import org.ow2.proactive.workflowcatalog.cli.cmd.UploadFileCommand
 import org.ow2.proactive.workflowcatalog.cli.cmd.SubmitWorkflowCommand
 import org.ow2.proactive.workflowcatalog.cli.cmd.LoginCommand
 import org.ow2.proactive.workflowcatalog.cli.cmd.AbstractIModeCommand
@@ -51,6 +53,26 @@ void submitworkflow(name, variables) {
 
 void submitworkflow(name) {
     submitworkflow(name, [:], [:])
+}
+
+void uploadfile(srcFilePath, dstFileName) {
+    uploadfile(srcFilePath, 'USERSPACE', '/', dstFileName)
+}
+
+void uploadfile(srcFilePath, dstFilePath, dstFileName) {
+    uploadfile(srcFilePath, 'USERSPACE', dstFilePath, dstFileName)
+}
+
+void uploadfile(srcFilePath, dstSpaceName, dstFilePath, dstFileName) {
+    execute(new UploadFileCommand(srcFilePath, dstSpaceName, dstFilePath, dstFileName))
+}
+
+void downloadfile(srcPathName, dstFileName) {
+    downloadfile('USERSPACE', srcPathName, dstFileName)
+}
+
+void downloadfile(srcSpaceName, srcPathName, dstFileName) {
+    execute(new DownloadFileCommand(srcSpaceName, srcPathName, dstFileName))
 }
 
 void exit() {

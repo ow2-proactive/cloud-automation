@@ -3,12 +3,20 @@ package org.ow2.proactive.workflowcatalog.cli;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
-
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
-
 import org.ow2.proactive.workflowcatalog.cli.console.AbstractDevice;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.ow2.proactive.workflowcatalog.cli.rest.WorkflowCatalogClient;
+import org.ow2.proactive.workflowcatalog.cli.rest.WorkflowCatalogRestClient;
+import org.ow2.proactive_grid_cloud_portal.scheduler.client.SchedulerRestClient;
+import org.ow2.proactive.workflowcatalog.utils.HttpUtility;
+import org.apache.http.client.HttpClient;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.PoolingClientConnectionManager;
+import org.apache.http.params.HttpParams;
+import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient4Engine;
 
 import static org.ow2.proactive.workflowcatalog.cli.CLIException.REASON_OTHER;
 
@@ -17,15 +25,12 @@ public class ApplicationContextImpl implements ApplicationContext {
     private static final String DEVICE = "org.ow2.proactive.workflowcatalog.cli.ApplicationContextImpl.deviceImpl";
     private static final String SCRIPT_ENGINE = "org.ow2.proactive.workflowcatalog.cli.ApplicationContextImpl.scriptEngine";
     private static final String OBJECT_MAPPER = "org.ow2.proactive.workflowcatalog.cli.ApplicationContextImpl.objectMapper";
-    private static final String INFRASTRUCTURES = "org.ow2.proactive.workflowcatalog.cli.ApplicationContextImpl.infrastructures";
-    private static final String POLICIES = "org.ow2.proactive.workflowcatalog.cli.ApplicationContextImpl.policies";
     private static final String RESULT_STACK = "org.ow2.proactive.workflowcatalog.cli.ApplicationContextImpl.resultStack";
 
     private static final ApplicationContextHolder threadLocalContext = new ApplicationContextHolder();
 
     private String sessionId = "";
     private String restServerUrl;
-    //private SchedulerRestClient restClient;
     private boolean insecureAccess;
     private boolean forced;
     private boolean silent = false;
@@ -57,32 +62,48 @@ public class ApplicationContextImpl implements ApplicationContext {
         }
     }
 
-    /*
 	@Override
-	public SchedulerRestClient getRestClient() {
-		HttpClient client = HttpUtility.threadSafeClient();
-		if (canInsecureAccess()) {
-			try {
-				HttpUtility.setInsecureAccess(client);
-			} catch (Exception e) {
-				throw new CLIException(REASON_OTHER,
-						"Cannot disable SSL verification.", e);
-			}
-		}
-		restClient = new SchedulerRestClient(restServerUrl,
-				new ApacheHttpClient4Executor(client));
-		return restClient;
-	}
-    */
-
-    @Override
-    public String getResourceUrl(String resource) {
-        return (new StringBuilder()).append(getRestServerUrl()).append('/').append(resource).toString();
+    public WorkflowCatalogClient getWorkflowCatalogClient() {
+        WorkflowCatalogClient client = WorkflowCatalogRestClient.createInstance();
+        try {
+            client.init(getWcUrl(), sessionId);
+        } catch (Exception e) {
+            throw new CLIException(CLIException.REASON_OTHER, "Initialization error", e);
+        }
+        return client;
     }
 
     @Override
-    public String getRestServerUrl() {
-        return restServerUrl;
+    public SchedulerRestClient getSchedulerClient() {
+        HttpClient httpClient = new DefaultHttpClient();
+        ClientConnectionManager mgr = httpClient.getConnectionManager();
+        HttpParams params = httpClient.getParams();
+        httpClient = new DefaultHttpClient(new PoolingClientConnectionManager(
+                mgr.getSchemeRegistry()), params);
+
+        if (canInsecureAccess())
+            httpClient = HttpUtility.turnClientIntoInsecure(httpClient);
+
+        SchedulerRestClient client = new SchedulerRestClient(getSchedulingUrl(), new ApacheHttpClient4Engine(httpClient));
+        return client;
+    }
+
+    @Override
+    public String getWcResourceUrl(String resource) {
+        return (new StringBuilder()).append(getWcUrl()).append('/').append(resource).toString();
+    }
+
+    @Override
+    public String getSchedulingResourceUrl(String resource) {
+        return (new StringBuilder()).append(getSchedulingUrl()).append('/').append(resource).toString();
+    }
+
+    private String getSchedulingUrl() {
+        return restServerUrl + "/scheduling";
+    }
+
+    private String getWcUrl() {
+        return restServerUrl + "/api";
     }
 
     @Override

@@ -18,4 +18,12 @@ public class SchedulerLoginData {
 
     }
 
+    public SchedulerLoginData(
+            String schedulerUrl, Boolean insecureMode) {
+
+        this.schedulerUrl = schedulerUrl;
+        this.insecureMode = insecureMode;
+
+    }
+
 }

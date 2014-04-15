@@ -37,29 +37,55 @@
 
 package org.ow2.proactive.workflowcatalog.cli.cmd;
 
-import org.ow2.proactive.workflowcatalog.cli.ApplicationContext;
+import java.io.FileInputStream;
 import org.ow2.proactive.workflowcatalog.cli.CLIException;
-import org.ow2.proactive.workflowcatalog.cli.utils.StringUtility;
-import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobResultData;
+import org.ow2.proactive.workflowcatalog.cli.ApplicationContext;
 import org.ow2.proactive_grid_cloud_portal.scheduler.client.SchedulerRestClient;
 
-public class GetJobResultCommand extends AbstractCommand implements Command {
+import static org.apache.commons.io.IOUtils.closeQuietly;
 
-    private String jobId;
+public class UploadFileCommand extends AbstractCommand implements Command {
 
-    public GetJobResultCommand(String jobId) {
-        this.jobId = jobId;
+    private String spaceName;
+    private String filePath;
+    private String fileName;
+    private String localFile;
+
+    public UploadFileCommand(
+            String srcFilePath, String dstSpaceName,
+            String dstFilePath, String dstFileName) {
+        this.localFile = srcFilePath;
+        this.spaceName = dstSpaceName;
+        this.filePath = dstFilePath;
+        this.fileName = dstFileName;
     }
 
     @Override
     public void execute(ApplicationContext currentContext) throws CLIException {
         SchedulerRestClient client = currentContext.getSchedulerClient();
+        FileInputStream fileStream = null;
         try {
-            JobResultData result = client.getScheduler().jobResult(
-                    currentContext.getSessionId(), jobId);
-            writeLine(currentContext, "%s", StringUtility.string(result));
-        } catch (Exception e) {
-            handleError("An error occurred during job output retrieval: ", e, currentContext);
+            fileStream = new FileInputStream(localFile);
+            boolean uploaded = client.pushFile(
+                    currentContext.getSessionId(), spaceName, filePath, fileName, fileStream);
+            resultStack(currentContext).push(uploaded);
+            if (uploaded) {
+                writeLine(currentContext, "'%s' successfully uploaded to '%s:%s%s'",
+                          localFile,
+                          spaceName,
+                          filePath,
+                          fileName);
+            } else {
+                writeLine(currentContext, "Cannot upload the file '%s'", localFile);
+            }
+        } catch (Exception error) {
+            if (fileStream != null) {
+                closeQuietly(fileStream);
+            }
+            handleError(
+                    String.format("An error occurred when uploading the file '%s'", localFile),
+                    error, currentContext);
         }
     }
+
 }

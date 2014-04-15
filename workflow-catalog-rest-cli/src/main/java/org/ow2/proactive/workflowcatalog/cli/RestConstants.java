@@ -41,7 +41,7 @@ import java.io.File;
 
 public class RestConstants {
 
-    public static final String DFLT_REST_SCHEDULER_URL = "http://localhost:8080/SchedulingRest/rest";
+    public static final String DFLT_REST_SCHEDULER_URL = "http://localhost:8082/workflow-catalog-rest-server";
 
     public static final String DFLT_SESSION_DIR = System
             .getProperty("user.home") + File.separator + ".proactive";

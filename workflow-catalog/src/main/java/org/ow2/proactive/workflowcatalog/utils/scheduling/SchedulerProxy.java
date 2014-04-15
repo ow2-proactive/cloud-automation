@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javax.security.auth.login.LoginException;
 
+import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 import org.ow2.proactive.workflowcatalog.Reference;
 import org.ow2.proactive.workflowcatalog.utils.HttpUtility;
 import org.ow2.proactive_grid_cloud_portal.scheduler.client.SchedulerRestClient;
@@ -44,14 +45,6 @@ public class SchedulerProxy {
           new ApacheHttpClient4Engine(httpClient));
 
         sessionId = connectToScheduler(schedulerLoginData);
-    }
-
-    public JobStateData getJobStatus(String jobId) throws JobStatusRetrievalException {
-        try {
-            return restClient.getScheduler().listJobs(sessionId, jobId);
-        } catch (Exception e) {
-            throw new JobStatusRetrievalException("Error getting state for job " + jobId + " : " + e.getMessage());
-        }
     }
 
     public Map<String, String> getAllTaskResults(String jobId)

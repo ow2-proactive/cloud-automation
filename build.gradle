@@ -84,6 +84,7 @@ project(':workflow-catalog-rest-server') {
         compile 'org.apache.shiro:shiro-core:1.2.2'
         compile 'org.apache.shiro:shiro-web:1.2.2'
         compile 'javax.servlet:servlet-api:2.5'
+        compile 'org.mitre.dsmiley.httpproxy:smiley-http-proxy-servlet:1.4'
 
         testCompile 'org.mortbay.jetty:jetty:6.1.26'
     }
@@ -108,8 +109,7 @@ project(':workflow-catalog-rest-cli') {
         compile 'org.jboss.resteasy:jaxrs-api:3.0.6.Final'
         compile 'org.jboss.resteasy:resteasy-jackson-provider:3.0.6.Final'
         compile 'org.jboss.resteasy:resteasy-client:3.0.6.Final'
-
-        runtime 'org.codehaus.groovy:groovy-all:2.1.2'
+        compile 'org.codehaus.groovy:groovy-all:2.1.2'
     }
 }
 

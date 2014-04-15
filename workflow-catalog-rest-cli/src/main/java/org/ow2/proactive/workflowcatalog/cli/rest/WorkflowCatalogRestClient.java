@@ -16,10 +16,9 @@ import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 
-
 public class WorkflowCatalogRestClient extends ClientBase implements WorkflowCatalogClient {
 
-    private Workflows proxy;
+    private Workflows workflows;
 
     private WorkflowCatalogRestClient() {}
 
@@ -27,19 +26,13 @@ public class WorkflowCatalogRestClient extends ClientBase implements WorkflowCat
         return new WorkflowCatalogRestClient();
     }
 
-    public void init(String url, String login, String password) throws Exception {
-
-        String sessionId = "123"; // TODO login
-        proxy = createRestApi(url, sessionId);
-    }
-
     @Override
     public void init(String url, String sessionId) throws Exception {
-        proxy = createRestApi(url, sessionId);
+        workflows = createWorkflowsApi(url, sessionId);
     }
 
-    public Workflows getProxy() {
-        return proxy;
+    public Workflows getWorkflowsProxy() {
+        return workflows;
     }
 
     static class Handler implements InvocationHandler {
@@ -67,7 +60,7 @@ public class WorkflowCatalogRestClient extends ClientBase implements WorkflowCat
         }
     }
 
-    private Workflows createRestApi(String url, final String sessionId) {
+    private Workflows createWorkflowsApi(String url, final String sessionId) {
 
         ResteasyClient client = new ResteasyClientBuilder().register(new ClientRequestFilter() {
             @Override
@@ -83,6 +76,5 @@ public class WorkflowCatalogRestClient extends ClientBase implements WorkflowCat
 
         return (Workflows) Proxy.newProxyInstance(Workflows.class.getClassLoader(), interfacesArray, handler);
     }
-
 
 }

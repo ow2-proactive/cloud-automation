@@ -23,8 +23,7 @@ public class ConfigurationHelper {
 
     public static SchedulerLoginData getSchedulerLoginData(Configuration config) {
         return new SchedulerLoginData(
-                config.scheduler.url, config.scheduler.username,
-                config.scheduler.password, config.security.insecuremode);
+                config.scheduler.url, config.security.insecuremode);
     }
 
     public static File getCatalogPath(Configuration config) {
