@@ -11,6 +11,9 @@
 
 	<taskFlow>
         <task name="nop-task">
+            <inputFiles>
+                <files includes="*" accessMode="transferFromUserSpace"/>
+            </inputFiles>
             <scriptExecutable>
                 <script >
                     <code language="groovy">
@@ -24,9 +27,13 @@ println "Variables provided: "
 println "variable1='$variable1'"
 println "variable2='$variable2'"
 
+def files = (new File(new URI(localspace.getRealURI()))).list()
+println "localspace=$files"
+
 def json = new JSONObject()
 json.put("variable1", variable1)
 json.put("variable2", variable2)
+json.put("localspace", files)
 
 result = json.toJSONString()
 
@@ -36,6 +43,9 @@ println "Result: $result"
                     </code>
                 </script>
             </scriptExecutable>
+            <outputFiles>
+                <files includes="*" accessMode="transferToUserSpace"/>
+            </outputFiles>
         </task>
     </taskFlow>
 </job>
