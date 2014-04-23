@@ -4,6 +4,7 @@ import org.ow2.proactive.workflowcatalog.cli.CLIException
 import org.ow2.proactive.workflowcatalog.cli.cmd.AbstractLoginCommand
 import org.ow2.proactive.workflowcatalog.cli.cmd.DownloadFileCommand
 import org.ow2.proactive.workflowcatalog.cli.cmd.GetJobResultCommand
+import org.ow2.proactive.workflowcatalog.cli.cmd.GetLogsCommand
 import org.ow2.proactive.workflowcatalog.cli.cmd.ListWorkflowsCommand
 import org.ow2.proactive.workflowcatalog.cli.cmd.UploadFileCommand
 import org.ow2.proactive.workflowcatalog.cli.cmd.SubmitWorkflowCommand
@@ -74,6 +75,11 @@ void downloadfile(srcPathName, dstFileName) {
 void downloadfile(srcSpaceName, srcPathName, dstFileName) {
     execute(new DownloadFileCommand(srcSpaceName, srcPathName, dstFileName))
 }
+
+void getlogs(jobId) {
+    execute(new GetLogsCommand(jobId))
+}
+
 
 void exit() {
 	currentContext.setProperty(AbstractIModeCommand.TERMINATE, true)
