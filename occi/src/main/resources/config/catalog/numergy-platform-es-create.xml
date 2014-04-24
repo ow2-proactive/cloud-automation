@@ -44,7 +44,7 @@
                     <code language="groovy">
                         <![CDATA[
 
-import org.ow2.proactive.iaas.IaasInstance
+import org.ow2.proactive.iaas.*
 import org.ow2.proactive.iaas.numergy.NumergyAPI
 import net.minidev.json.JSONObject
 
@@ -78,7 +78,7 @@ def metadata = new JSONObject(mdmap).toJSONString()
 
 println ">>> Logging to Numergy..."
 
-NumergyAPI api = NumergyAPI.getNumergyAPI(
+def api = NumergyAPI.getNumergyAPI(
         accessKey, secretKey, tenantId,
         new URI(uri), new URI(metadataServer));
 
