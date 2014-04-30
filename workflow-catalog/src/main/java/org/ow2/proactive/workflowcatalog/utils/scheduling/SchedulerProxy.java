@@ -12,6 +12,7 @@ import org.ow2.proactive.workflowcatalog.utils.HttpUtility;
 import org.ow2.proactive_grid_cloud_portal.scheduler.client.SchedulerRestClient;
 import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobIdData;
 import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobStateData;
+import org.ow2.proactive_grid_cloud_portal.scheduler.exception.NotConnectedRestException;
 import org.ow2.proactive_grid_cloud_portal.scheduler.exception.SchedulerRestException;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.client.HttpClient;
@@ -28,7 +29,8 @@ public class SchedulerProxy {
     private static final Logger logger = Logger.getLogger(SchedulerProxy.class.getName());
 
     private final SchedulerRestClient restClient;
-    private final String sessionId;
+    private String sessionId;
+    private SchedulerLoginData loginData;
 
     public SchedulerProxy(
       SchedulerLoginData schedulerLoginData) throws LoginException, SchedulerRestException {
@@ -38,13 +40,15 @@ public class SchedulerProxy {
         httpClient = new DefaultHttpClient(new PoolingClientConnectionManager(
           mgr.getSchemeRegistry()), params);
 
-        if (schedulerLoginData.insecureMode)
+        loginData = schedulerLoginData;
+
+        if (loginData.insecureMode)
             httpClient = HttpUtility.turnClientIntoInsecure(httpClient);
 
-        this.restClient = new SchedulerRestClient(schedulerLoginData.schedulerUrl,
+        this.restClient = new SchedulerRestClient(loginData.schedulerUrl,
           new ApacheHttpClient4Engine(httpClient));
 
-        sessionId = connectToScheduler(schedulerLoginData);
+        sessionId = connectToScheduler(loginData);
     }
 
     public Map<String, String> getAllTaskResults(String jobId)
@@ -52,10 +56,16 @@ public class SchedulerProxy {
 
         Map<String, String> jobResultValue = null;
         try {
-            jobResultValue = restClient.getScheduler().jobResultValue(sessionId, jobId);
+            try {
+                jobResultValue = restClient.getScheduler().jobResultValue(sessionId, jobId);
+             } catch (NotConnectedRestException e) {
+                sessionId = connectToScheduler(loginData);
+                jobResultValue = restClient.getScheduler().jobResultValue(sessionId, jobId);
+            }
         } catch (Exception e) {
             throw new JobStatusRetrievalException(
-                "Error getting result for job " + jobId + " : " + e.getMessage());
+                "Error getting result for job " + jobId +
+                        " : " + e.getClass().getName() + " " + e.getMessage());
         }
 
         if (jobResultValue == null)
@@ -67,7 +77,12 @@ public class SchedulerProxy {
 
     public JobIdData submitJob(File jobFile) throws JobSubmissionException {
         try {
-            return restClient.submitXml(sessionId, new FileInputStream(jobFile));
+            try {
+                return restClient.submitXml(sessionId, new FileInputStream(jobFile));
+            } catch (NotConnectedRestException e) {
+                sessionId = connectToScheduler(loginData);
+                return restClient.submitXml(sessionId, new FileInputStream(jobFile));
+            }
         } catch (Exception e) {
             throw new JobSubmissionException(e);
         }
