@@ -13,13 +13,13 @@ import org.ow2.proactive.brokering.occi.client.ResourceInstance
 import org.ow2.proactive.brokering.triggering.Condition
 import static org.ow2.proactive.brokering.triggering.utils.elasticity.ElasticityUtils.*
 
-class ConditionNumergy extends Condition {
+class ConditionES extends Condition {
 
-    private static final Logger logger = Logger.getLogger(ConditionNumergy.class.getName());
+    private static final Logger logger = Logger.getLogger(ConditionES.class.getName());
 
     private HttpClient httpClient
 
-    public ConditionNumergy() {
+    public ConditionES() {
         httpClient = new DefaultHttpClient()
     }
 

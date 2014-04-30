@@ -101,10 +101,10 @@ Map<String, String> ar = new HashMap<String, String>();
 ar.put("rule","numergy");
 ar.put("action.state", "done");
 ar.put("occi.monitoring.periodms", "30000");
-ar.put("occi.monitoring.condition", "ConditionNumergy.groovy")
-ar.put("occi.monitoring.trueaction", "ActionTrueNumergy.groovy")
-ar.put("occi.monitoring.falseaction", "ActionFalseNumergy.groovy")
-ar.put("occi.monitoring.stopaction", "ActionStopNumergy.groovy")
+ar.put("occi.monitoring.condition", "ConditionES.groovy")
+ar.put("occi.monitoring.trueaction", "ActionTrueES.groovy")
+ar.put("occi.monitoring.falseaction", "ActionFalseES.groovy")
+ar.put("occi.monitoring.stopaction", "ActionStopES.groovy")
 ar.put("elasticity.vm.count.maximum", "${elasticity.vm.count.maximum}")
 ar.put("elasticity.vm.count.minimum", "${elasticity.vm.count.minimum}")
 ar.put("occi.paas.elasticity.masterplatform", basePlatform)

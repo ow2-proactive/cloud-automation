@@ -6,9 +6,9 @@ import org.ow2.proactive.brokering.occi.client.ResourceInstance
 import org.ow2.proactive.brokering.triggering.Action
 import static org.ow2.proactive.brokering.triggering.utils.elasticity.ElasticityUtils.*
 
-class ActionFalseNumergy extends Action {
+class ActionFalseES extends Action {
 
-    private static final Logger logger = Logger.getLogger(ActionFalseNumergy.class.getName());
+    private static final Logger logger = Logger.getLogger(ActionFalseES.class.getName());
 
     @Override
     void execute(Map<String, String> args) {

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd"
+     name="elasticsearch-elastic-platform-delete" priority="normal" cancelJobOnError="true">
+
+    <variables>
+
+        <variable name="occi.server.endpoint"/>
+
+        <variable name="occi.paas.elasticity.masterplatform" value=""/>
+        <variable name="occi.paas.elasticity.trigger" value=""/>
+    </variables>
+
+    <jobClasspath>
+        <pathElement path="/tmp/addons/commons-codec-1.6.jar"/>
+        <pathElement path="/tmp/addons/commons-io-1.3.2.jar"/>
+        <pathElement path="/tmp/addons/commons-lang-2.6.jar"/>
+        <pathElement path="/tmp/addons/commons-logging-1.1.1.jar"/>
+        <pathElement path="/tmp/addons/connectors-3.5.0-SNAPSHOT.jar"/>
+        <pathElement path="/tmp/addons/httpclient-4.2.1.jar"/>
+        <pathElement path="/tmp/addons/httpcore-4.2.1.jar"/>
+        <pathElement path="/tmp/addons/iaas-api-3.5.0-SNAPSHOT.jar"/>
+        <pathElement path="/tmp/addons/json-path-0.9.1.jar"/>
+        <pathElement path="/tmp/addons/json-smart-1.1.1.jar"/>
+        <pathElement path="/tmp/addons/monitoring-3.5.0-SNAPSHOT.jar"/>
+        <pathElement path="/tmp/addons/nova-3.5.0-SNAPSHOT.jar"/>
+        <pathElement path="/tmp/addons/occi-1.0-SNAPSHOT.jar"/>
+        <pathElement path="/tmp/addons/workflow-catalog-1.0-SNAPSHOT.jar"/>
+    </jobClasspath>
+
+
+    <genericInformation>
+        <info name="category" value="platform"/>
+        <info name="operation" value="update"/>
+        <info name="action" value="stop"/>
+        <info name="provider" value="openstack"/>
+        <info name="application" value="elasticsearch"/>
+        <info name="flavor" value="elastic"/>
+    </genericInformation>
+
+    <taskFlow>
+
+        <task name="undeploy-es">
+            <scriptExecutable>
+                <script >
+                    <code language="groovy">
+                        <![CDATA[
+
+import org.ow2.proactive.brokering.occi.client.*
+
+def occiServerUrl = "${occi.server.endpoint}"
+def client = new org.ow2.proactive.brokering.occi.client.OcciClient(occiServerUrl);
+
+def base = new ResourceInstance("${occi.paas.elasticity.masterplatform}")
+println "Base: " + base.getLocation()
+def trigger = new ResourceInstance("${occi.paas.elasticity.trigger}")
+println "Trigger: " + trigger.getLocation()
+
+ResourceInstance base1 = client.updateResource(base.getCategory(), base.getUuid(), Collections.EMPTY_MAP, "stop");
+ResourceInstance trigger1 = client.updateResource(trigger.getCategory(), trigger.getUuid(), Collections.EMPTY_MAP, "stop");
+
+def json = new net.minidev.json.JSONObject();
+json.put("occi.paas.state", "down");
+result = json.toJSONString()
+println result
+
+]]>
+                    </code>
+                </script>
+            </scriptExecutable>
+        </task>
+    </taskFlow>
+</job>

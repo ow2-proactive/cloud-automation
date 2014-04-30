@@ -7,9 +7,9 @@ import org.ow2.proactive.brokering.triggering.Action
 
 import static org.ow2.proactive.brokering.triggering.utils.elasticity.ElasticityUtils.*
 
-class ActionStopNumergy extends Action {
+class ActionStopES extends Action {
 
-    private static final Logger logger = Logger.getLogger(ActionStopNumergy.class.getName());
+    private static final Logger logger = Logger.getLogger(ActionStopES.class.getName());
 
     @Override
     void execute(Map<String, String> args) {

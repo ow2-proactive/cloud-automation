@@ -6,9 +6,9 @@ import org.ow2.proactive.brokering.occi.client.ResourceInstance
 import org.ow2.proactive.brokering.triggering.Action
 import static org.ow2.proactive.brokering.triggering.utils.elasticity.ElasticityUtils.*
 
-class ActionTrueNumergy extends Action {
+class ActionTrueES extends Action {
 
-    private static final Logger logger = Logger.getLogger(ActionTrueNumergy.class.getName());
+    private static final Logger logger = Logger.getLogger(ActionTrueES.class.getName());
 
     @Override
     void execute(Map<String, String> args) {
@@ -44,7 +44,8 @@ class ActionTrueNumergy extends Action {
 
     private HashMap<String, String> generateVmParameters(String vmName, String ipBase) {
         Map<String, String> parameters = new HashMap<String, String>();
-        parameters.put("provider", "numergy");
+        parameters.put("provider", "openstack");
+        parameters.put("rule", "try");
         parameters.put("application", "elasticsearch");
         parameters.put("flavor", "single");
         parameters.put("occi.compute.hostname", vmName);
