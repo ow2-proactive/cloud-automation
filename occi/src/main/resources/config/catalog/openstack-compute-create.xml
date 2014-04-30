@@ -10,12 +10,13 @@
         <variable name="iaas.provider.api.password"/>
         <variable name="iaas.provider.api.tenant"/>
 
-        <variable name="iaas.provider.newvm.name"/>
+        <variable name="occi.compute.name"/>
+
         <variable name="iaas.provider.newvm.image"/>
         <variable name="iaas.provider.newvm.flavor"/>
         <variable name="iaas.provider.newvm.java.home.dir"/>
         <variable name="iaas.provider.newvm.proactive.home.dir"/>
-        <variable name="occi.compute.proactive.node.token" value="${iaas.provider.newvm.name}"/>
+        <variable name="occi.compute.proactive.node.token"/>
 
         <variable name="proactive.rm.url"/>
 
@@ -41,7 +42,8 @@
                     <parameter name="password" value="${iaas.provider.api.password}"/>
                     <parameter name="tenantName" value="${iaas.provider.api.tenant}"/>
 
-                    <parameter name="name" value="${iaas.provider.newvm.name}"/>
+                    <parameter name="name" value="${occi.compute.name}"/>
+
                     <parameter name="imageRef" value="${iaas.provider.newvm.image}"/>
                     <parameter name="flavorRef" value="${iaas.provider.newvm.flavor}"/>
 
@@ -50,7 +52,7 @@ set -x&#10;
 export JAVA_HOME=${iaas.provider.newvm.java.home.dir}&#10;
 export SCHEDULING_HOME=$PREFIX/opt/proactive/latest/scheduling/&#10;
 cd ${iaas.provider.newvm.proactive.home.dir}&#10;
-./bin/unix/rm-start-node -r ${proactive.rm.url} -v ${proactive.rm.credentials} -s ${proactive.rm.nodesource.name} -n ${iaas.provider.newvm.name} -Dproactive.useIPaddress=true -Dproactive.net.nolocal=true -Dproactive.node.access.token=${occi.compute.proactive.node.token} &amp;&#10;
+./bin/unix/rm-start-node -r ${proactive.rm.url} -v ${proactive.rm.credentials} -s ${proactive.rm.nodesource.name} -n ${occi.compute.name} -Dproactive.useIPaddress=true -Dproactive.net.nolocal=true -Dproactive.node.access.token=${occi.compute.proactive.node.token} &amp;&#10;
 "/>
                 </parameters>
             </javaExecutable>
