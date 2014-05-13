@@ -4,10 +4,10 @@ import org.ow2.proactive.brokering.occi.client.OcciClient
 import org.ow2.proactive.brokering.occi.client.ResourceInstance
 
 // Instantiate an OCCI client for Cloud Automation API
-OcciClient client = new OcciClient("https://CA-SERVER/ca/");
+OcciClient client = new OcciClient("http://try.activeeon.com/cloudautomation/");
 
 // Create elastic platform
-def argu = ["provider":"numergy","elasticity.vm.count.maximum":"3","elasticity.vm.count.minimum":"1","application":"elasticsearch","flavor":"elastic"]
+def argu = ["provider":"openstack","rule":"try","elasticity.vm.count.maximum":"2","elasticity.vm.count.minimum":"0","application":"elasticsearch","flavor":"elastic"]
 def elasticPlatform = client.createResource("platform", argu);
 
 // Wait so that the bitPlatform updates its attributes

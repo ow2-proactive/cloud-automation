@@ -26,7 +26,7 @@ public class OcciClient {
     private HttpClient httpClient;
 
     public OcciClient(String endpoint) throws URISyntaxException {
-        this.endpoint = new URI(endpoint);
+        this.endpoint = new URI(normalize(endpoint));
         this.httpClient = HttpUtility.turnClientIntoInsecure(new DefaultHttpClient());
     }
 
@@ -133,6 +133,14 @@ public class OcciClient {
                 logger.warn("Invalid line: " + line);
         }
         return map;
+    }
+
+    private String normalize(String endpoint) {
+        if (endpoint.endsWith("/"))
+            return endpoint.substring(0, endpoint.length() - 1);
+        else
+            return endpoint;
+
     }
 
 }

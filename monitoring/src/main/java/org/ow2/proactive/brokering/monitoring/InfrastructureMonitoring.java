@@ -1,19 +1,11 @@
 package org.ow2.proactive.brokering.monitoring;
 
-import org.ow2.proactive.brokering.monitoring.MonitoringException;
-import org.ow2.proactive.brokering.monitoring.MonitoringProxy;
-
-import javax.json.*;
-import java.io.StringReader;
-import java.util.HashMap;
 import java.util.Map;
 
-public class InfrastructureMonitoring {
-
-    private MonitoringProxy proxy;
+public class InfrastructureMonitoring extends NodeMonitoring {
 
     public InfrastructureMonitoring(MonitoringProxy proxy) {
-        this.proxy = proxy;
+        super(proxy);
     }
 
     public Map<String, String> getHostProperties(String hostId) throws MonitoringException {
@@ -37,56 +29,6 @@ public class InfrastructureMonitoring {
             if (getVMProperties(vmid).get(property).equals(value))
                 return vmid;
         return null;
-    }
-
-    // PRIVATE METHODS
-
-    private Map<String, String> getMBeanAttributeAsMap(String attribute) throws MonitoringException {
-        String json = proxy.getAttribute(attribute);
-        JsonObject obj = extractObjectValueOfFirstElement(json);
-        return transformToStringsMap(obj);
-    }
-
-    private String[] getMBeanAttributeAsStringArray(String attribute) throws MonitoringException {
-        String json = proxy.getAttribute(attribute);
-        JsonArray array = extractArrayValueOfFirstElement(json);
-        return transformToStringArray(array);
-    }
-
-    private JsonObject extractObjectValueOfFirstElement(String json) {
-        JsonArray array = getJsonReader(json).readArray();
-        JsonObject ob = getFirstJsonObject(array);
-        return ob.getJsonObject("value");
-    }
-
-    private JsonArray extractArrayValueOfFirstElement(String json) {
-        JsonArray array = getJsonReader(json).readArray();
-        JsonObject ob = getFirstJsonObject(array);
-        return ob.getJsonArray("value");
-    }
-
-    private String[] transformToStringArray(JsonArray array) {
-        int i = 0;
-        String[] output = new String[array.size()];
-        for (JsonValue a : array)
-            output[i++] = ((JsonString) a).getString();
-        return output;
-    }
-
-    private Map<String, String> transformToStringsMap(JsonObject map) {
-        Map<String, String> output = new HashMap<String, String>();
-        for (Map.Entry<String, JsonValue> entry : map.entrySet()) {
-            output.put(entry.getKey(), ((JsonString) entry.getValue()).getString());
-        }
-        return output;
-    }
-
-    private JsonObject getFirstJsonObject(JsonArray array) {
-        return array.getJsonObject(0);
-    }
-
-    private JsonReader getJsonReader(String json) {
-        return Json.createReader(new StringReader(json));
     }
 
 }

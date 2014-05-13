@@ -1,5 +1,6 @@
 package org.ow2.proactive.brokering.monitoring;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.auth.AuthenticationException;
@@ -8,38 +9,49 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.ow2.proactive.workflowcatalog.utils.HttpUtility;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 public class MonitoringProxy {
 
     private String restUrl;
+    private String restCredentials;
     private String restUsername;
     private String restPassword;
     private String nodeSourceName;
+    private String objectName;
+    private String type;
     private String jmxUrl;
     private HttpClient httpClient;
 
     public String getAttribute(String attribute) throws MonitoringException {
         String sessionId;
         try {
-            sessionId = connectToRestRm(restUrl, restUsername, restPassword);
+            sessionId = connectToRestRm(restUrl, restCredentials, restUsername, restPassword);
         } catch (AuthenticationException e) {
             throw new MonitoringException(e);
         }
-        String output = getAttribute(attribute, sessionId);
+        String output = getAttributeWithSession(attribute, sessionId);
         disconnectFromRestRm(sessionId);
         return output;
     }
 
-    public String getAttribute(String attribute, String sessid) throws MonitoringException {
+    // PRIVATE METHODS
+
+    private String getAttributeWithSession(String attribute, String sessid) throws MonitoringException {
         HttpGet get = generateMonitoringHttpGet(attribute, sessid);
         try {
             HttpResponse response = httpClient.execute(get);
@@ -49,11 +61,11 @@ public class MonitoringProxy {
         }
     }
 
-    public String connectToRestRm(String restApi, String username, String password)
+    private String connectToRestRm(String restApi, String credentials, String username, String password)
             throws AuthenticationException {
 
         try {
-            HttpPost post = generateLoginHttpPost(restApi, username, password);
+            HttpPost post = generateLoginHttpPost(restApi, credentials, username, password);
             HttpResponse response = httpClient.execute(post);
             return getResult(response);
         } catch (IOException e) {
@@ -61,7 +73,7 @@ public class MonitoringProxy {
         }
     }
 
-    public Integer disconnectFromRestRm(String sessid) throws MonitoringException {
+    private Integer disconnectFromRestRm(String sessid) throws MonitoringException {
         try {
             HttpPost post = generateDisconnectLoginHttpPost(sessid);
             HttpResponse response = httpClient.execute(post);
@@ -78,8 +90,6 @@ public class MonitoringProxy {
         return get;
     }
 
-    // PRIVATE METHODS
-
     private HttpRequestBase addAuthenticationHeader(HttpRequestBase request, String sessionId) {
         request.addHeader("sessionid", sessionId);
         return request;
@@ -89,12 +99,20 @@ public class MonitoringProxy {
         return EntityUtils.toString(response.getEntity());
     }
 
-    private HttpPost generateLoginHttpPost(String restApi, String username, String password)
-            throws UnsupportedEncodingException {
+    private HttpPost generateLoginHttpPost(String restApi, String credentials, String username, String password)
+            throws IOException {
         String endpoint = restApi + "/rm/login";
         HttpPost post = new HttpPost(endpoint);
-        post.addHeader("Content-type", "application/x-www-form-urlencoded");
-        post.setEntity(new StringEntity("username=" + username + "&password=" + password, "UTF-8"));
+        if (credentials == null) {
+            MultipartEntity m = new MultipartEntity();
+            m.addPart("username", new StringBody(username));
+            m.addPart("password", new StringBody(password));
+            post.setEntity(m);
+        } else {
+            MultipartEntity m = new MultipartEntity();
+            m.addPart("credential", new StringBody(credentials));
+            post.setEntity(m);
+        }
         return post;
     }
 
@@ -109,13 +127,21 @@ public class MonitoringProxy {
     private String generateMonitoringUri(String attributes) {
         ArrayList<NameValuePair> nameValuePair = new ArrayList<NameValuePair>();
         nameValuePair.add(new BasicNameValuePair("nodejmxurl", jmxUrl));
-        nameValuePair.add(new BasicNameValuePair("objectname", generateObjectName(nodeSourceName)));
+        nameValuePair.add(new BasicNameValuePair("objectname", generateObjectName()));
         nameValuePair.add(new BasicNameValuePair("attrs", attributes));
         return restUrl + "/rm/node/mbean?" + URLEncodedUtils.format(nameValuePair, "utf-8");
     }
 
-    private String generateObjectName(String nodeSourceName) {
-        return "ProActiveResourceManager:name=IaasMonitoring-" + nodeSourceName;
+    private String generateObjectName() {
+        if (objectName != null) {
+            return objectName;
+        } else if (nodeSourceName != null) {
+            return "ProActiveResourceManager:name=IaasMonitoring-" + nodeSourceName;
+        } else if (type != null) {
+            return "sigar:Type=" + type;
+        } else {
+            throw new RuntimeException("Cannot generate objectName");
+        }
     }
 
     // BUILDER CONSTRUCTOR
@@ -123,9 +149,12 @@ public class MonitoringProxy {
     private MonitoringProxy(Builder builder) {
 
         restUrl = builder.restUrl;
+        restCredentials = builder.restCredentials;
         restUsername = builder.restUsername;
         restPassword = builder.restPassword;
         nodeSourceName = builder.nodeSourceName;
+        objectName = builder.objectName;
+        type = builder.type;
         jmxUrl = builder.jmxUrl;
         httpClient = new DefaultHttpClient();
         if (builder.insecureAccess)
@@ -138,9 +167,12 @@ public class MonitoringProxy {
     public static class Builder {
 
         private String restUrl;
+        private String restCredentials;
         private String restUsername;
         private String restPassword;
         private String nodeSourceName;
+        private String objectName;
+        private String type;
         private String jmxUrl;
         private Boolean insecureAccess = false;
 
@@ -163,6 +195,16 @@ public class MonitoringProxy {
             return this;
         }
 
+        public Builder setObjectName(String objectName) {
+            this.objectName = objectName;
+            return this;
+        }
+
+        public Builder setType(String type) {
+            this.type = type;
+            return this;
+        }
+
         public Builder setJmxUrl(String jmxUrl) {
             this.jmxUrl = jmxUrl;
             return this;
@@ -172,6 +214,12 @@ public class MonitoringProxy {
             this.insecureAccess = true;
             return this;
         }
+
+        public Builder setCredentials(String credentials) {
+            this.restCredentials = credentials;
+            return this;
+        }
+
 
         public MonitoringProxy build() {
             return new MonitoringProxy(this);

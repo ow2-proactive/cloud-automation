@@ -147,8 +147,10 @@ project(':monitoring') {
 
     dependencies {
         compile project(':workflow-catalog')
-        compile 'javax.json:javax.json-api:1.0'
-        testCompile 'org.glassfish:javax.json:1.0.2'
+        //compile 'javax.json:javax.json-api:1.0'
+        //testCompile 'org.glassfish:javax.json:1.0.2'
+        compile 'org.glassfish:javax.json:1.0.2'
+
     }
 }
 
