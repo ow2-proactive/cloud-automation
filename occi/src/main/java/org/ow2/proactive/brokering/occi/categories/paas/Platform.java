@@ -46,6 +46,10 @@ public class Platform {
         attributeList.add(new Attribute("occi.paas.elasticity.masterplatform", mutable, !required));
         attributeList.add(new Attribute("occi.paas.elasticity.trigger", mutable, !required));
 
+        attributeList.add(new Attribute("proactive.node.url", mutable, !required));
+
+        attributeList.add(new Attribute("occi.error.description", mutable, !required));
+
 
         return attributeList;
     }

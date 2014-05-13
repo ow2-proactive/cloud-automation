@@ -37,6 +37,8 @@ public class Compute {
         attributeList.add(new Attribute("occi.compute.proactive.node.token", mutable, !required));
         attributeList.add(new Attribute("occi.compute.error.code", mutable, !required, "0"));
         attributeList.add(new Attribute("occi.compute.error.description", mutable, !required));
+        attributeList.add(new Attribute("occi.error.description", mutable, !required));
+        attributeList.add(new Attribute("proactive.node.url", mutable, !required));
         return attributeList;
     }
 }

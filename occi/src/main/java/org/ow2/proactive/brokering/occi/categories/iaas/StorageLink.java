@@ -17,6 +17,7 @@ public class StorageLink {
         boolean required = true;
         attributeList.add(new Attribute("occi.core.source", mutable, !required));
         attributeList.add(new Attribute("occi.core.target", mutable, !required));
+        attributeList.add(new Attribute("occi.error.description", mutable, !required));
         return attributeList;
     }
 }

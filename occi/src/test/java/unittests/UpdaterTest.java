@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.Ignore;
 import org.ow2.proactive.brokering.Updater;
 import org.ow2.proactive.brokering.occi.Database;
 import org.ow2.proactive.brokering.occi.OcciServer;
@@ -27,14 +28,21 @@ import static org.mockito.Mockito.when;
 
 public class UpdaterTest {
 
-    private static final String HOST = "host";
     private static final String COMPUTE_NAME = "compute";
+
     private static final Long UPDATE_PERIOD = TimeUnit.MILLISECONDS.toMillis(1);
 
-    private static List<Reference> jobReferences = new ArrayList<Reference>();
+    private static final Integer JOB_ID_ALL_TASKS_PRODUCE_JSON = 0;
+    private static final Integer JOB_ID_NO_TASK_PRODUCES_JSON = 1;
+    private static final Integer JOB_ID_SOME_TASKS_PRODUCE_JSON = 2;
+    private static final Integer JOB_ID_TASKS_WITH_ERROR = 3;
 
-    private static SchedulerProxy scheduler;
+    private static final String ERROR_STRING = "Exception";
+    private static final String TASK_RESULT_WHEN_ERROR = ERROR_STRING + ": , = '' \"\"...";
+
     private static Occi occiServer;
+    private static SchedulerProxy scheduler;
+    private static Map<Integer, Reference> jobReferences = new HashMap<Integer, Reference>();
 
     @BeforeClass
     public static void beforeClass() throws Exception {
@@ -47,11 +55,14 @@ public class UpdaterTest {
     @Test
     public void verifyJsonTaskOutputsAreInsertedIntoResourceProperties_Test() throws Exception {
 
-        Reference jobReference = getJobResultWithJsonTasksOutput();
+        // A resource is created, and a job is submitted consequently for real stuff.
+        // The output of the job's tasks must be used to update the resource's properties.
+
         Resource resource = Resource.factory(
                 UUID.randomUUID(),
                 COMPUTE_NAME,
                 getDefaultComputeAttributes());
+        Reference jobReference = jobReferences.get(JOB_ID_ALL_TASKS_PRODUCE_JSON);
 
         Updater updater = new Updater(occiServer, scheduler, UPDATE_PERIOD);
         updater.addResourceToTheUpdateQueue(jobReference, resource);
@@ -69,11 +80,11 @@ public class UpdaterTest {
     public void verifyOuputJsonTaskOutputIsInsertedIntoResourcePropertiesIfTaskOutputIsNotJson_Test()
             throws Exception {
 
-        Reference jobReference = getJobResultWithNonJsonTasksOutput();
         Resource resource = Resource.factory(
                 UUID.randomUUID(),
                 COMPUTE_NAME,
                 getDefaultComputeAttributes());
+        Reference jobReference = jobReferences.get(JOB_ID_NO_TASK_PRODUCES_JSON);
 
         Updater updater = new Updater(occiServer, scheduler, UPDATE_PERIOD);
         updater.addResourceToTheUpdateQueue(jobReference, resource);
@@ -88,19 +99,54 @@ public class UpdaterTest {
 
     }
 
-    private void assertThereIsOneJobPendingForUpdate(Updater updater) {
-        Assert.assertTrue(updater.getUpdateQueueSize() == 1);
+    @Test
+    public void verifyAllOuputJsonTaskOutputAreInsertedIntoResourcePropertiesEvenIfNotAllTaskOutputsAreJson_Test()
+            throws Exception {
+
+        Resource resource = Resource.factory(
+                UUID.randomUUID(),
+                COMPUTE_NAME,
+                getDefaultComputeAttributes());
+        Reference jobReference = jobReferences.get(JOB_ID_SOME_TASKS_PRODUCE_JSON);
+
+        Updater updater = new Updater(occiServer, scheduler, UPDATE_PERIOD);
+        updater.addResourceToTheUpdateQueue(jobReference, resource);
+
+        assertThereIsOneJobPendingForUpdate(updater);
+
+        waitUntilUpdaterReacts();
+
+        assertSomeResourceAttributesAreCorrectlyTakenFromTaskResults(resource);
+
+        Assert.assertTrue(updater.getUpdateQueueSize() == 0);
+
+    }
+
+    @Test
+    public void verifyResourcePropertiesAreUpdatedIfJobError_Test()
+            throws Exception {
+
+        Resource resource = Resource.factory(
+                UUID.randomUUID(),
+                COMPUTE_NAME,
+                getDefaultComputeAttributes());
+        Reference jobReference = jobReferences.get(JOB_ID_TASKS_WITH_ERROR);
+
+        Updater updater = new Updater(occiServer, scheduler, UPDATE_PERIOD);
+        updater.addResourceToTheUpdateQueue(jobReference, resource);
+
+        assertThereIsOneJobPendingForUpdate(updater);
+
+        waitUntilUpdaterReacts();
+
+        assertSomeResourceAttributesAreCorrectlyTakenFromTaskResults(resource);
+        assertResourceAttributesErrorDescriptionContains(resource, ERROR_STRING);
+
+        Assert.assertTrue(updater.getUpdateQueueSize() == 0);
+
     }
 
     // PRIVATE METHODS
-
-    private Reference getJobResultWithJsonTasksOutput() {
-        return jobReferences.get(0);
-    }
-
-    private Reference getJobResultWithNonJsonTasksOutput() {
-        return jobReferences.get(1);
-    }
 
     private static Occi createMockOfOcciServer() {
         return new OcciServer();
@@ -109,19 +155,42 @@ public class UpdaterTest {
     private static SchedulerProxy createMockOfSchedulerProxy() throws Exception {
         SchedulerProxy scheduler = mock(SchedulerProxy.class);
 
-        // The first tasks results response is a expected response, where tasks have results
-        // that are json formatted.
-        // The second tasks results response is a unexpected response, where tasks have results
-        // that are non-json formatted.
-        Map<String, String> goodTaskResults = new HashMap<String, String>();
-        goodTaskResults.put("task1", "{\"occi.compute.state\":\"up\",\"occi.compute.hostname\":\"pepa\"}");
-        goodTaskResults.put("task2", "{\"occi.compute.cores\":\"1\",\"occi.compute.memory\":\"1024\"}");
-        mockJobResults(scheduler, 1, goodTaskResults);
+        {
+            // The first tasks results response is a expected response, where tasks have results
+            // that are json formatted.
+            Map<String, String> goodTaskResults = new HashMap<String, String>();
+            goodTaskResults.put("task1", "{\"occi.compute.state\":\"up\",\"occi.compute.hostname\":\"pepa\"}");
+            goodTaskResults.put("task2", "{\"occi.compute.cores\":\"1\",\"occi.compute.memory\":\"1024\"}");
+            mockJobResults(scheduler, JOB_ID_ALL_TASKS_PRODUCE_JSON, goodTaskResults);
+        }
 
-        Map<String, String> badTaskResults = new HashMap<String, String>();
-        badTaskResults.put("task1", "nonJsonTaskResult1");
-        badTaskResults.put("task2", "nonJsonTaskResult2");
-        mockJobResults(scheduler, 2, badTaskResults);
+        {
+            // The second tasks results response is a unexpected response, where tasks have results
+            // that are non-json formatted.
+            Map<String, String> badTaskResults = new HashMap<String, String>();
+            badTaskResults.put("task1", "nonJsonTaskResult1");
+            badTaskResults.put("task2", "nonJsonTaskResult2");
+            mockJobResults(scheduler, JOB_ID_NO_TASK_PRODUCES_JSON, badTaskResults);
+        }
+
+        {
+            // The third tasks results response is a sort of expected response, where some tasks have results
+            // that are json formatted and some do not.
+            Map<String, String> mixedTaskResults = new HashMap<String, String>();
+            mixedTaskResults.put("task1", "{\"occi.compute.state\":\"up\",\"occi.compute.hostname\":\"pepa\"}");
+            mixedTaskResults.put("task2", "nonJsonTaskResult2");
+            mockJobResults(scheduler, JOB_ID_SOME_TASKS_PRODUCE_JSON, mixedTaskResults);
+        }
+
+        {
+            // The fourth tasks results response is a non expected response, where some tasks fail.
+            Map<String, String> failedTaskResults = new HashMap<String, String>();
+            failedTaskResults.put("task1", "{\"occi.compute.state\":\"up\",\"occi.compute.hostname\":\"pepa\"}");
+            failedTaskResults.put("task2", "nonJsonTaskResult2");
+            failedTaskResults.put("task3", TASK_RESULT_WHEN_ERROR);
+            mockJobResults(scheduler, JOB_ID_TASKS_WITH_ERROR, failedTaskResults);
+        }
+
         return scheduler;
     }
 
@@ -131,7 +200,7 @@ public class UpdaterTest {
         jobIdData.setId(jobId);
         jobIdData.setReadableName("TestJob" + jobId);
         Reference jobReference = Reference.buildJobReference("", jobIdData);
-        jobReferences.add(jobReference);
+        jobReferences.put(jobId, jobReference);
         when(scheduler.getAllTaskResults(jobReference.getId())).thenReturn(taskResults);
     }
 
@@ -140,7 +209,7 @@ public class UpdaterTest {
     }
 
     private void waitUntilUpdaterReacts() throws InterruptedException {
-        Thread.sleep(100);
+        Thread.sleep(500);
     }
 
     private void assertResourceAttributesAreCorrectlyTakenFromTaskResults(Resource resource) {
@@ -149,5 +218,19 @@ public class UpdaterTest {
         Assert.assertTrue(resource.getAttributes().get("occi.compute.memory").equalsIgnoreCase("1024"));
         Assert.assertTrue(resource.getAttributes().get("occi.compute.hostname").equalsIgnoreCase("pepa"));
     }
+
+    private void assertSomeResourceAttributesAreCorrectlyTakenFromTaskResults(Resource resource) {
+        Assert.assertTrue(resource.getAttributes().get("occi.compute.state").equalsIgnoreCase("up"));
+        Assert.assertTrue(resource.getAttributes().get("occi.compute.hostname").equalsIgnoreCase("pepa"));
+    }
+
+    private void assertResourceAttributesErrorDescriptionContains(Resource resource, String message) {
+        Assert.assertTrue(resource.getAttributes().get("occi.error.description").contains(message));
+    }
+
+    private void assertThereIsOneJobPendingForUpdate(Updater updater) {
+        Assert.assertTrue(updater.getUpdateQueueSize() == 1);
+    }
+
 
 }

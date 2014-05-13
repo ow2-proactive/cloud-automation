@@ -8,6 +8,7 @@ import java.util.TimerTask;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import javax.json.JsonObject;
 import javax.json.stream.JsonParsingException;
 import javax.ws.rs.core.Response;
 
@@ -105,9 +106,6 @@ public class Updater {
 
                 removeUpdateItem(u);
 
-            } catch (JsonParsingException e) {
-                logger.debug("Could not parse json: " + u.reference);
-                removeUpdateItem(u);
             } catch (JobNotFinishedException e) {
                 logger.debug("Waiting for update job:" + u.reference);
             } catch (Exception e) {
@@ -128,11 +126,26 @@ public class Updater {
         }
 
         private String flattenTaskResultsAndConvertJsonTaskResultsToMap(
-          Map<String, String> allProperties) throws JsonParsingException {
+                Map<String, String> allProperties) {
+
             Map<String, String> flattenTaskResults = new HashMap<String, String>();
-            for (Map.Entry<String, String> mapEntry : allProperties.entrySet()) {
-                flattenTaskResults.putAll(Utils.convertToMap(Utils.convertToJson(mapEntry.getValue())));
+            StringBuilder errorsString = new StringBuilder();
+            for (Map.Entry<String, String> taskEntry : allProperties.entrySet()) {
+                String taskName = taskEntry.getKey();
+                String taskResult = taskEntry.getValue();
+
+                try {
+                    JsonObject taskResultJson = Utils.convertToJson(taskResult);
+                    flattenTaskResults.putAll(Utils.convertToMap(taskResultJson));
+                } catch (Exception e) {
+                    errorsString.append(taskName);
+                    errorsString.append(": '");
+                    errorsString.append(taskResult);
+                    errorsString.append("'\n");
+                }
             }
+            flattenTaskResults.put("occi.error.description", // TODO improve attribute rendering on OCCIServer (use json)
+                                   Utils.escapeAttribute(errorsString.toString()));
             return Utils.buildString(flattenTaskResults);
         }
     }

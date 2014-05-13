@@ -118,4 +118,8 @@ public class Utils {
         return (Configuration) jaxbUnmarshaller.unmarshal(configFile);
     }
 
+    public static String escapeAttribute(String attribute) {
+        return attribute.replace(",", ";");
+    }
+
 }

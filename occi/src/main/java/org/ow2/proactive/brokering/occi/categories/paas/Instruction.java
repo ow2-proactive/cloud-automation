@@ -21,6 +21,7 @@ public class Instruction {
         attributeList.add(new Attribute("occi.compute.instruction.arg4", mutable, !required));
         attributeList.add(new Attribute("occi.compute.instruction.arg5", mutable, !required));
         attributeList.add(new Attribute("occi.compute.proactive.node.token", mutable, !required));
+        attributeList.add(new Attribute("occi.error.description", mutable, !required));
         return attributeList;
     }
 }
