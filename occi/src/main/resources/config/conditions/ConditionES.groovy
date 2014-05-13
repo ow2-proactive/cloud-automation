@@ -8,6 +8,8 @@ import org.apache.http.client.methods.HttpGet
 import org.apache.http.impl.client.DefaultHttpClient
 import org.apache.http.util.EntityUtils
 import org.apache.log4j.Logger
+import org.ow2.proactive.brokering.monitoring.MonitoringProxy
+import org.ow2.proactive.brokering.monitoring.NodeMonitoring
 import org.ow2.proactive.brokering.occi.client.OcciClient
 import org.ow2.proactive.brokering.occi.client.ResourceInstance
 import org.ow2.proactive.brokering.triggering.Condition
@@ -25,39 +27,53 @@ class ConditionES extends Condition {
 
     public Boolean evaluate(Map<String, String> args) {
 
+        def restServerUrl = getAttribute("proactive.rest.url", args)
         def occiServerUrl = getAttribute("occi.server.endpoint", args)
+        def credentials = getAttribute("proactive.rm.credentials", args)
         def platformBaseUrl = getAttribute("occi.paas.elasticity.masterplatform", args)
         def vmCountMaximum = Integer.parseInt(getAttribute("elasticity.vm.count.maximum", args))
         def vmCountMinimum = Integer.parseInt(getAttribute("elasticity.vm.count.minimum", args))
 
         ResourceInstance esPlatformBaseResource = getResource(platformBaseUrl, occiServerUrl)
 
-        String ipBase = getIpCheckValid(esPlatformBaseResource)
-        if (ipBase == null) {
+        String nodeUrlBase = getNodeUrlCheckValid(esPlatformBaseResource)
+        String nodeName = getNodeNameCheckValid(esPlatformBaseResource)
+        if (nodeUrlBase == null) {
             logger.debug "SO: +0 (no master yet)"
             return null
         }
 
-        def url = "http://" + ipBase + ":9200"
-        JSONObject esIndices = getEsIndices(url)
-        JSONObject esNodesAndMaster = getEsNodes(url)
+        MonitoringProxy proxy = createMonitoringProxy(restServerUrl, credentials, generateJmxUrl(nodeUrlBase, nodeName))
+
+        JSONObject esIndices = getEsIndices(proxy)
+        JSONObject esNodesAndMaster = getEsNodes(proxy)
 
         Vms vms = extractVmsData(args)
         updateVmsStatus(esNodesAndMaster, vms)
         updataVmsData(args, vms);
 
-        return scaleUpOrDown(esIndices, vms, esNodesAndMaster, vmCountMaximum, vmCountMinimum)
+        return scaleUpOrDown(
+                esIndices.size(),
+                vms,
+                esNodesAndMaster.size(),
+                vmCountMaximum,
+                vmCountMinimum)
     }
 
-    private String getIpCheckValid(ResourceInstance esPlatformBaseResource) {
-        def ipBase = esPlatformBaseResource.get("occi.networkinterface.address")
-        return (ipBase == null || ipBase.isEmpty() ? null : ipBase)
+    private String getNodeUrlCheckValid(ResourceInstance esPlatformBaseResource) {
+        def nodeUrl = esPlatformBaseResource.get("proactive.node.url")
+        return (nodeUrl == null || nodeUrl.isEmpty() ? null : nodeUrl)
+    }
+
+    private String getNodeNameCheckValid(ResourceInstance esPlatformBaseResource) {
+        def nodeName = esPlatformBaseResource.get("occi.compute.hostname")
+        return (nodeName == null || nodeName.isEmpty() ? null : nodeName)
     }
 
     private Boolean scaleUpOrDown(
-                    JSONObject nodesRequired,
+                    Integer nodesRequired,
                     Vms metadataVms,
-                    JSONObject nodesUpAndMaster,
+                    Integer nodesUpAndMaster,
                     Integer maxNodes,
                     Integer minNodes
     ) {
@@ -65,11 +81,11 @@ class ConditionES extends Condition {
         def nodesBuilding = metadataVms.getNroVmsBuilding()
         def nroNodesShuttingDown = metadataVms.getNroVmsShuttingDown()
         def nroNodesBuildingExpired = metadataVms.getNroVmsBuildingExpired()
-        int nodesMissing = nodesRequired.size() - nodesBuilding - (nodesUpAndMaster.size()-1)
+        int nodesMissing = nodesRequired - nodesBuilding - (nodesUpAndMaster-1)
 
-        logger.debug "   + indices: " + nodesRequired.size()
+        logger.debug "   + indices: " + nodesRequired
         logger.debug "   - building: " + nodesBuilding
-        logger.debug "   - nodes: " + (nodesUpAndMaster.size()-1)
+        logger.debug "   - nodes: " + (nodesUpAndMaster-1)
         logger.debug "   = missing: " + nodesMissing
         logger.debug ""
         logger.debug "   shutting down: " + nroNodesShuttingDown
@@ -77,7 +93,7 @@ class ConditionES extends Condition {
         logger.debug "   max: " + maxNodes
         logger.debug "   min: " + minNodes
 
-        int total = nodesBuilding + (nodesUpAndMaster.size()-1)
+        int total = nodesBuilding + (nodesUpAndMaster-1)
 
         if (total < minNodes) {
             logger.debug "SO: +1 (less than min)"
@@ -119,6 +135,25 @@ class ConditionES extends Condition {
     }
 
 
+    private MonitoringProxy createMonitoringProxy(String restUrl, String credentials, String jmxUrl) {
+        MonitoringProxy proxy = new MonitoringProxy.Builder()
+        //.setRestUrl("http://try.activeeon.com/rest/rest")
+        .setRestUrl(restUrl)
+        //.setCredentials("***REMOVED***")
+        .setCredentials(credentials)
+        .setInsecureAccess()
+        //.setJmxUrl("service:jmx:ro:///jndi/pamr://4211/rmnode")
+        .setJmxUrl(jmxUrl)
+        .setType("PFlags")
+        .build();
+        return proxy;
+    }
+
+    private String generateJmxUrl(String nodeUrl, String nodeName) {
+        return "service:jmx:ro:///jndi/" + nodeUrl.replace(nodeName, "rmnode");
+
+    }
+
     private ResourceInstance getResource(String platformBaseLocation, String serverUrl) {
         def esBaseStub = new ResourceInstance(platformBaseLocation)
         def client = new OcciClient(serverUrl);
@@ -141,13 +176,19 @@ class ConditionES extends Condition {
         }
     }
 
-    private JSONObject getEsNodes(String url) {
-        String entityNodes = executeHttpGet(url, "/_nodes")
+    private JSONObject getEsNodes(MonitoringProxy proxy) {
+        //String entityNodes = executeHttpGet(url, "/_nodes")
+        NodeMonitoring node = new NodeMonitoring(proxy);
+        Map<String, String> map = node.getMBeanAttributeAsMap("PFlags");
+        String entityNodes = map.get("esnodes");
         return JsonPath.read(entityNodes, "\$.nodes")
     }
 
-    private JSONObject getEsIndices(String url) {
-        String entityStatus = executeHttpGet(url, "/_status")
+    private JSONObject getEsIndices(MonitoringProxy proxy) {
+        //String entityStatus = executeHttpGet(url, "/_status")
+        NodeMonitoring node = new NodeMonitoring(proxy);
+        Map<String, String> map = node.getMBeanAttributeAsMap("PFlags");
+        String entityStatus = map.get("esstatus");
         return JsonPath.read(entityStatus, "\$.indices")
     }
 
