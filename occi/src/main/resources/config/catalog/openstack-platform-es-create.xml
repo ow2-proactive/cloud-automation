@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd" name="elasticsearch-platform-create" priority="normal" cancelJobOnError="true">
+<job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd" name="openstack-platform-es-create" priority="normal" cancelJobOnError="true">
 
     <variables>
-
-        <!-- Provided by proactive rule -->
-
+        <variable name="occi.core.id"/>
         <variable name="occi.compute.hostname"/>
         <variable name="paas.elasticsearch.master.ip" value=""/>
 
@@ -15,6 +13,8 @@
         <variable name="proactive.router.address"/>
         <variable name="proactive.rm.credentials"/>
         <variable name="proactive.rm.nodesource.name"/>
+        <variable name="iaas.provider.api.gateway.hostname"/>
+        <variable name="iaas.provider.api.gateway.addons.dir"/>
         <variable name="iaas.provider.api.user"/>
         <variable name="iaas.provider.api.password"/>
         <variable name="iaas.provider.api.tenant"/>
@@ -23,25 +23,24 @@
         <variable name="iaas.provider.vm.image"/>
         <variable name="iaas.provider.vm.image.proactive.home"/>
         <variable name="iaas.provider.vm.image.java.home"/>
-
     </variables>
 
 
     <jobClasspath>
-        <pathElement path="/tmp/addons/commons-codec-1.6.jar"/>
-        <pathElement path="/tmp/addons/commons-io-1.3.2.jar"/>
-        <pathElement path="/tmp/addons/commons-lang-2.6.jar"/>
-        <pathElement path="/tmp/addons/commons-logging-1.1.1.jar"/>
-        <pathElement path="/tmp/addons/connectors-3.5.0-SNAPSHOT.jar"/>
-        <pathElement path="/tmp/addons/httpclient-4.2.1.jar"/>
-        <pathElement path="/tmp/addons/httpcore-4.2.1.jar"/>
-        <pathElement path="/tmp/addons/iaas-api-3.5.0-SNAPSHOT.jar"/>
-        <pathElement path="/tmp/addons/json-path-0.8.1.jar"/>
-        <pathElement path="/tmp/addons/json-smart-1.1.1.jar"/>
-        <pathElement path="/tmp/addons/monitoring-3.5.0-SNAPSHOT.jar"/>
-        <pathElement path="/tmp/addons/nova-3.5.0-SNAPSHOT.jar"/>
-        <pathElement path="/tmp/addons/rest-api-schemas-5.1.0.jar"/>
-        <pathElement path="/tmp/addons/occi-1.0-SNAPSHOT.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/commons-codec-1.6.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/commons-io-1.3.2.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/commons-lang-2.6.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/commons-logging-1.1.1.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/connectors-3.5.0-SNAPSHOT.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/httpclient-4.2.1.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/httpcore-4.2.1.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/iaas-api-3.5.0-SNAPSHOT.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/json-path-0.8.1.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/json-smart-1.1.1.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/monitoring-3.5.0-SNAPSHOT.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/nova-3.5.0-SNAPSHOT.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/rest-api-schemas-5.1.0.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/occi-1.0-SNAPSHOT.jar"/>
     </jobClasspath>
 
     <genericInformation>
@@ -57,7 +56,23 @@
 
     <taskFlow>
 
-        <task name="deploy-vm">
+        <task name="deploy-vm" maxNumberOfExecution="5">
+            <selection>
+                <script type="dynamic" >
+                    <code language="javascript">
+                        <![CDATA[
+var hostName = "${iaas.provider.api.gateway.hostname}";
+if (org.ow2.proactive.scripting.helper.selection.SelectionUtils.checkHostName(hostName)) {
+   selected = true;
+   print("Hostname = " + hostName + " ==> selected");
+} else {
+   selected = false;
+   print("Hostname <> " + hostName + " ==> not selected");
+}
+]]>
+                    </code>
+                </script>
+            </selection>
             <scriptExecutable>
                 <script >
                     <code language="groovy">
@@ -66,6 +81,8 @@
 import org.ow2.proactive.iaas.*
 import org.ow2.proactive.iaas.nova.*
 import net.minidev.json.JSONObject
+
+println "Current category ID: ${occi.core.id}"
 
 String accessKey = '${iaas.provider.api.user}'
 String secretKey = '${iaas.provider.api.password}'
@@ -93,7 +110,7 @@ String userdata =
     "set -x\n" +
     "export LOGS=/tmp/rm-start-node.log\n" +
     "export JAVA_HOME="+javaHome+"\n" +
-    "export CMD=\"$proactiveHome/bin/unix/rm-start-node -Dproactive.useIPaddress=true -Dproactive.net.nolocal=true -Dproactive.node.access.token=$token -Dproactive.agent.rank=0 -Dproactive.communication.protocol=$protocol -Dproactive.pamr.router.address=$router_address -Dproactive.pamr.router.port=$router_port -r $rm_url -s $node_source_name -n $node_name -v $credentials \"\n" +
+    "export CMD=\"$proactiveHome/bin/unix/rm-start-node -Dproactive.useIPaddress=true -Dsigar.pflag.path=/tmp/pflags -Dproactive.net.nolocal=true -Dproactive.node.access.token=$token -Dproactive.agent.rank=0 -Dproactive.communication.protocol=$protocol -Dproactive.pamr.router.address=$router_address -Dproactive.pamr.router.port=$router_port -r $rm_url -s $node_source_name -n $node_name -v $credentials \"\n" +
     "echo \$CMD > \$LOGS\n" +
     "date >> \$LOGS\n" +
     "\$CMD &>> \$LOGS\n"
@@ -143,7 +160,7 @@ println result
 
 
 <!--
-        <task name="install-es">
+        <task name="install-es" maxNumberOfExecution="5">
             <genericInformation>
                 <info name="NODE_ACCESS_TOKEN" value="${occi.compute.hostname}"/>
             </genericInformation>
@@ -196,7 +213,7 @@ println result
 
 
 
-        <task name="start-es">
+        <task name="start-es" maxNumberOfExecution="5">
             <genericInformation>
                 <info name="NODE_ACCESS_TOKEN" value="${occi.compute.hostname}"/>
             </genericInformation>
@@ -275,7 +292,7 @@ println result
             </scriptExecutable>
         </task>
 
-        <task name="update-occi">
+        <task name="update-occi" maxNumberOfExecution="5">
             <genericInformation>
                 <info name="NODE_ACCESS_TOKEN" value="${occi.compute.hostname}"/>
             </genericInformation>
@@ -291,9 +308,21 @@ String name = '${occi.compute.hostname}'
 
 String ifconfig = "ifconfig eth0".execute().text.trim()
 String hostname = "hostname".execute().text.trim()
+String nufl = "/tmp/PA-AGENT_URL_$name-0"
+String nodeurl = "cat $nufl".execute().text.trim()
 
 println "IFCONFIG COMMAND: '$ifconfig'"
 println "HOSTNAME COMMAND: '$hostname'"
+println "NODE URL FILENAME:'$nufl'"
+println "NODE URL COMMAND: '$nodeurl'"
+
+if (nodeurl == null || nodeurl.isEmpty()) {
+    println "RETRYING NODE URL FILENAME:'$nufl'"
+    Thread.sleep(20 * 1000)
+    nodeurl = "cat $nufl".execute().text.trim()
+    println "RESULT: '$nodeurl'"
+}
+
 
 def regex = /(?s).*inet addr:(.*?)Bcast:.*/
 def matcher = (ifconfig=~regex)
@@ -306,12 +335,13 @@ if (matcher.matches()) {
 }
 
 def json = new net.minidev.json.JSONObject();
-json.put("occi.networkinterface.address", ip.trim())
+json.put("occi.networkinterface.address", ip)
 json.put("occi.compute.hostname", name.trim())
-json.put("occi.compute.organization.name", hostname.trim())
+json.put("occi.compute.organization.name", hostname)
 json.put("action.state", "done")
+json.put("proactive.node.url", nodeurl)
 json.put("occi.compute.state", "up")
-json.put("occi.paas.application.endpoints", "http://" + ip.trim() + ":9200")
+json.put("occi.paas.application.endpoints", "http://" + ip + ":9200")
 result = json.toJSONString()
 println result
 
@@ -320,6 +350,148 @@ println result
                 </script>
             </scriptExecutable>
         </task>
+
+
+        <task name="launch-monitoring-script" maxNumberOfExecution="5">
+            <genericInformation>
+                <info name="NODE_ACCESS_TOKEN" value="${occi.compute.hostname}"/>
+            </genericInformation>
+            <depends>
+                <task ref="deploy-vm"/>
+            </depends>
+            <scriptExecutable>
+                <script >
+                    <code language="groovy">
+                        <![CDATA[
+
+def content = []
+
+println "Creating monitoring script..."
+
+content << '#!/bin/python'
+content << ''
+content << 'import os, sys, json, time;'
+content << 'from subprocess import Popen, PIPE;'
+content << ''
+content << 'while True:'
+content << '        command1 = ["curl", "-s", "http://localhost:9200/_nodes"]'
+content << '        command2 = ["curl", "-s", "http://localhost:9200/_status"]'
+content << '        filename1 = "/tmp/pflags/esnodes"'
+content << '        filename2 = "/tmp/pflags/esstatus"'
+content << '        interval = 5'
+content << ''
+content << '        process1 = Popen(command1, stdout=PIPE);'
+content << '        (stdout1, stderr1) = process1.communicate();'
+content << '        exitcode1 = process1.wait();'
+content << ''
+content << '        process2 = Popen(command2, stdout=PIPE);'
+content << '        (stdout2, stderr2) = process2.communicate();'
+content << '        exitcode2 = process2.wait();'
+content << ''
+content << '        try:'
+content << '            obj = json.loads(stdout1);'
+content << '            for nameid in obj["nodes"]:'
+content << '                hname = obj["nodes"][nameid]["name"];'
+content << '                obj["nodes"][nameid] = {};'
+content << '                obj["nodes"][nameid]["name"] = hname;'
+content << ''
+content << '            content1 = json.dumps(obj)'
+content << ''
+content << '        except: '
+content << '            content1 = ""'
+content << '            pass'
+content << ''
+content << '        try:'
+content << '            obj = json.loads(stdout2)'
+content << '            for nameid in obj["indices"]:'
+content << '                obj["indices"][nameid] = {};'
+content << '                obj["indices"][nameid]["name"] = nameid;'
+content << ''
+content << '            content2 = json.dumps(obj)'
+content << ''
+content << '        except: '
+content << '            content2 = ""'
+content << '            pass'
+content << ''
+content << '        if not os.path.exists(os.path.dirname(filename1)):'
+content << '            os.makedirs(os.path.dirname(filename1))'
+content << ''
+content << '        print "Writing :" + content1 + " to: " + filename1'
+content << '        print "Writing :" + content2 + " to: " + filename2'
+content << ''
+content << '        f = open(filename1, "w")'
+content << '        f.write(content1)'
+content << ''
+content << '        g = open(filename2, "w")'
+content << '        g.write(content2)'
+content << ''
+content << '        time.sleep(interval)'
+content << ''
+
+new File("/tmp/monitoring.py").withWriter { out -> content.each { out.println it } }
+
+content = []
+
+println "Creating monitoring service script..."
+
+content << '#!/bin/bash'
+content << ''
+content << 'WORK_DIR="/tmp/"'
+content << 'DAEMON="/usr/bin/python"'
+content << 'ARGS="/tmp/monitoring.py"'
+content << 'PIDFILE="/tmp/monitoring.pid"'
+content << 'USER="root"'
+content << ''
+content << 'case "$1" in'
+content << '  start)'
+content << '    echo "Starting server"'
+content << '    mkdir -p "$WORK_DIR"'
+content << '    /sbin/start-stop-daemon --start --pidfile $PIDFILE --user $USER --group $USER -b --make-pidfile --chuid $USER --exec $DAEMON $ARGS'
+content << '    ;;'
+content << '  stop)'
+content << '    echo "Stopping server"'
+content << '    /sbin/start-stop-daemon --stop --pidfile $PIDFILE --verbose'
+content << '    ;;'
+content << '  *)'
+content << '    echo "Usage: /etc/init.d/$USER {start|stop}"'
+content << '    exit 1'
+content << '    ;;'
+content << 'esac'
+content << ''
+content << 'exit 0'
+
+new File("/etc/init.d/monitoring").withWriter { out -> content.each { out.println it } }
+
+def executeit(cmd) {
+    def p = cmd.execute()
+
+    println "command: " + cmd
+    println "stderr: " + p.err.text
+    println "stdout: " + p.text
+    p.waitFor()
+    if (p.exitValue() != 0) throw new RuntimeException("cmd " + cmd + " returned " + p.exitValue());
+}
+
+println "Creating service..."
+
+executeit(["chmod", "+x", "/etc/init.d/monitoring"])
+executeit(["service", "monitoring", "start"])
+
+def json = new net.minidev.json.JSONObject();
+//json.put("occi.networkinterface.address", ip.trim())
+result = json.toJSONString()
+println result
+
+]]>
+                    </code>
+                </script>
+            </scriptExecutable>
+        </task>
+
+
+
+
+
     </taskFlow>
 
 </job>

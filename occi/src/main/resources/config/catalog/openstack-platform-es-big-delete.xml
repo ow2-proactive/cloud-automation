@@ -1,33 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-     xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd"
-     name="elasticsearch-elastic-platform-delete" priority="normal" cancelJobOnError="true">
+<job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd" name="openstack-platform-es-big-delete" priority="normal" cancelJobOnError="true">
 
     <variables>
-
-        <variable name="occi.server.endpoint"/>
-
+        <variable name="occi.core.id"/>
         <variable name="occi.paas.elasticity.masterplatform" value=""/>
         <variable name="occi.paas.elasticity.trigger" value=""/>
+
+        <!-- Provided by rule -->
+        <variable name="occi.server.endpoint"/>
+        <variable name="iaas.provider.api.gateway.hostname"/>
+        <variable name="iaas.provider.api.gateway.addons.dir"/>
+
     </variables>
 
     <jobClasspath>
-        <pathElement path="/tmp/addons/commons-codec-1.6.jar"/>
-        <pathElement path="/tmp/addons/commons-io-1.3.2.jar"/>
-        <pathElement path="/tmp/addons/commons-lang-2.6.jar"/>
-        <pathElement path="/tmp/addons/commons-logging-1.1.1.jar"/>
-        <pathElement path="/tmp/addons/connectors-3.5.0-SNAPSHOT.jar"/>
-        <pathElement path="/tmp/addons/httpclient-4.2.1.jar"/>
-        <pathElement path="/tmp/addons/httpcore-4.2.1.jar"/>
-        <pathElement path="/tmp/addons/iaas-api-3.5.0-SNAPSHOT.jar"/>
-        <pathElement path="/tmp/addons/json-path-0.9.1.jar"/>
-        <pathElement path="/tmp/addons/json-smart-1.1.1.jar"/>
-        <pathElement path="/tmp/addons/monitoring-3.5.0-SNAPSHOT.jar"/>
-        <pathElement path="/tmp/addons/nova-3.5.0-SNAPSHOT.jar"/>
-        <pathElement path="/tmp/addons/occi-1.0-SNAPSHOT.jar"/>
-        <pathElement path="/tmp/addons/workflow-catalog-1.0-SNAPSHOT.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/commons-codec-1.6.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/commons-io-1.3.2.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/commons-lang-2.6.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/commons-logging-1.1.1.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/connectors-3.5.0-SNAPSHOT.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/httpclient-4.2.1.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/httpcore-4.2.1.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/iaas-api-3.5.0-SNAPSHOT.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/json-path-0.9.1.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/json-smart-1.1.1.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/monitoring-3.5.0-SNAPSHOT.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/nova-3.5.0-SNAPSHOT.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/occi-1.0-SNAPSHOT.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/workflow-catalog-1.0-SNAPSHOT.jar"/>
     </jobClasspath>
-
 
     <genericInformation>
         <info name="category" value="platform"/>
@@ -41,12 +42,30 @@
     <taskFlow>
 
         <task name="undeploy-es">
+            <selection>
+                <script type="dynamic" >
+                    <code language="javascript">
+                        <![CDATA[
+var hostName = "${iaas.provider.api.gateway.hostname}";
+if (org.ow2.proactive.scripting.helper.selection.SelectionUtils.checkHostName(hostName)) {
+   selected = true;
+   print("Hostname = " + hostName + " ==> selected");
+} else {
+   selected = false;
+   print("Hostname <> " + hostName + " ==> not selected");
+}
+]]>
+                    </code>
+                </script>
+            </selection>
             <scriptExecutable>
                 <script >
                     <code language="groovy">
                         <![CDATA[
 
 import org.ow2.proactive.brokering.occi.client.*
+
+println "Current category ID: ${occi.core.id}"
 
 def occiServerUrl = "${occi.server.endpoint}"
 def client = new org.ow2.proactive.brokering.occi.client.OcciClient(occiServerUrl);

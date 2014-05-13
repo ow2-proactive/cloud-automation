@@ -1,61 +1,213 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<job xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:proactive:jobdescriptor:3.1"
-     xsi:schemaLocation="urn:proactive:jobdescriptor:3.1 http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/3.1/schedulerjob.xsd"
-     name="openstack-compute-create">
-    <variables>
+<job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd" name="openstack-compute-create" priority="normal" cancelJobOnError="true">
 
-        <variable name="iaas.provider.name"/>
-        <variable name="iaas.provider.api.url"/>
+    <variables>
+        <variable name="occi.core.id"/>
+        <variable name="occi.compute.hostname"/>
+
+        <!-- Provided by rule -->
+        <variable name="proactive.rm.url"/>
+        <variable name="proactive.router.protocol"/>
+        <variable name="proactive.router.port"/>
+        <variable name="proactive.router.address"/>
+        <variable name="proactive.rm.credentials"/>
+        <variable name="proactive.rm.nodesource.name"/>
+        <variable name="iaas.provider.api.gateway.hostname"/>
         <variable name="iaas.provider.api.user"/>
         <variable name="iaas.provider.api.password"/>
         <variable name="iaas.provider.api.tenant"/>
-
-        <variable name="occi.compute.name"/>
-
-        <variable name="iaas.provider.newvm.image"/>
-        <variable name="iaas.provider.newvm.flavor"/>
-        <variable name="iaas.provider.newvm.java.home.dir"/>
-        <variable name="iaas.provider.newvm.proactive.home.dir"/>
-        <variable name="occi.compute.proactive.node.token"/>
-
-        <variable name="proactive.rm.url"/>
-
-        <variable name="proactive.rm.credentials"/>
-        <variable name="proactive.rm.nodesource.name"/>
-
+        <variable name="iaas.provider.api.url"/>
+        <variable name="iaas.provider.vm.flavor"/>
+        <variable name="iaas.provider.vm.image"/>
+        <variable name="iaas.provider.vm.image.proactive.home"/>
+        <variable name="iaas.provider.vm.image.java.home"/>
     </variables>
+
+
+    <jobClasspath>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/commons-codec-1.6.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/commons-io-1.3.2.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/commons-lang-2.6.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/commons-logging-1.1.1.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/connectors-3.5.0-SNAPSHOT.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/httpclient-4.2.1.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/httpcore-4.2.1.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/iaas-api-3.5.0-SNAPSHOT.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/json-path-0.8.1.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/json-smart-1.1.1.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/monitoring-3.5.0-SNAPSHOT.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/nova-3.5.0-SNAPSHOT.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/rest-api-schemas-5.1.0.jar"/>
+        <pathElement path="${iaas.provider.api.gateway.addons.dir}/occi-1.0-SNAPSHOT.jar"/>
+    </jobClasspath>
+
     <genericInformation>
         <info name="category" value="compute"/>
         <info name="operation" value="create"/>
-        <info name="action" value="start"/>
         <info name="provider" value="openstack"/>
     </genericInformation>
 
     <taskFlow>
-        <task name="create-task">
-            <javaExecutable class="org.ow2.proactive.iaas.nova.tasks.Deploy">
-                <forkEnvironment></forkEnvironment>
-                <parameters>
-                    <parameter name="providerName" value="${iaas.provider.name}"/>
-                    <parameter name="apiurl" value="${iaas.provider.api.url}"/>
-                    <parameter name="username" value="${iaas.provider.api.user}"/>
-                    <parameter name="password" value="${iaas.provider.api.password}"/>
-                    <parameter name="tenantName" value="${iaas.provider.api.tenant}"/>
 
-                    <parameter name="name" value="${occi.compute.name}"/>
+        <task name="deploy-vm" maxNumberOfExecution="5">
+            <selection>
+                <script type="dynamic" >
+                    <code language="javascript">
+                        <![CDATA[
+var hostName = "${iaas.provider.api.gateway.hostname}";
+if (org.ow2.proactive.scripting.helper.selection.SelectionUtils.checkHostName(hostName)) {
+   selected = true;
+   print("Hostname = " + hostName + " ==> selected");
+} else {
+   selected = false;
+   print("Hostname <> " + hostName + " ==> not selected");
+}
+]]>
+                    </code>
+                </script>
+            </selection>
+            <scriptExecutable>
+                <script >
+                    <code language="groovy">
+                        <![CDATA[
 
-                    <parameter name="imageRef" value="${iaas.provider.newvm.image}"/>
-                    <parameter name="flavorRef" value="${iaas.provider.newvm.flavor}"/>
+import org.ow2.proactive.iaas.*
+import org.ow2.proactive.iaas.nova.*
+import net.minidev.json.JSONObject
 
-                    <parameter name="user_data" value="#!/bin/bash &#10;
-set -x&#10;
-export JAVA_HOME=${iaas.provider.newvm.java.home.dir}&#10;
-export SCHEDULING_HOME=$PREFIX/opt/proactive/latest/scheduling/&#10;
-cd ${iaas.provider.newvm.proactive.home.dir}&#10;
-./bin/unix/rm-start-node -r ${proactive.rm.url} -v ${proactive.rm.credentials} -s ${proactive.rm.nodesource.name} -n ${occi.compute.name} -Dproactive.useIPaddress=true -Dproactive.net.nolocal=true -Dproactive.node.access.token=${occi.compute.proactive.node.token} &amp;&#10;
-"/>
-                </parameters>
-            </javaExecutable>
+println "Current category ID: ${occi.core.id}"
+
+String accessKey = '${iaas.provider.api.user}'
+String secretKey = '${iaas.provider.api.password}'
+String tenantId = '${iaas.provider.api.tenant}'
+String uri = '${iaas.provider.api.url}'
+String image = '${iaas.provider.vm.image}'
+String flavor = '${iaas.provider.vm.flavor}'
+
+String proactiveHome = '${iaas.provider.vm.image.proactive.home}'
+String javaHome = '${iaas.provider.vm.image.java.home}'
+
+String name = '${occi.compute.hostname}'
+
+String rm_url='${proactive.rm.url}'
+String protocol='${proactive.router.protocol}'
+String router_port='${proactive.router.port}'
+String router_address='${proactive.router.address}'
+String credentials='${proactive.rm.credentials}'
+String node_source_name='${proactive.rm.nodesource.name}'
+String node_name = name
+String token = name
+
+String userdata =
+    "#!/bin/bash\n" +
+    "set -x\n" +
+    "export LOGS=/tmp/rm-start-node.log\n" +
+    "export JAVA_HOME="+javaHome+"\n" +
+    "export CMD=\"$proactiveHome/bin/unix/rm-start-node -Dproactive.useIPaddress=true -Dsigar.pflag.path=/tmp/pflags -Dproactive.net.nolocal=true -Dproactive.node.access.token=$token -Dproactive.agent.rank=0 -Dproactive.communication.protocol=$protocol -Dproactive.pamr.router.address=$router_address -Dproactive.pamr.router.port=$router_port -r $rm_url -s $node_source_name -n $node_name -v $credentials \"\n" +
+    "echo \$CMD > \$LOGS\n" +
+    "date >> \$LOGS\n" +
+    "\$CMD &>> \$LOGS\n"
+
+println ">>> Logging to OpenStack..."
+
+def api = NovaAPI.getNovaAPI(
+        accessKey, secretKey, tenantId,
+        new URI(uri));
+
+def map = new HashMap<String, String>();
+map.put(NovaAPI.NovaAPIConstants.InstanceParameters.USER_DATA, userdata);
+map.put(NovaAPI.NovaAPIConstants.InstanceParameters.FLAVOR_REF, flavor);
+map.put(NovaAPI.NovaAPIConstants.InstanceParameters.IMAGE_REF, image);
+map.put(NovaAPI.NovaAPIConstants.InstanceParameters.NAME, name);
+
+println ">>> Deploying VM..."
+
+def instance = api.startInstance(map)
+
+println ">>> VM deployed: " + instance.instanceId
+
+def counter = 0
+def ATTEMPTS = 15
+while (!api.isInstanceStarted(instance)) {
+    println ">>> Waiting for instance to be started..."
+    Thread.sleep(1000 * 60 * 1)
+    if (counter++ > ATTEMPTS)
+        throw new RuntimeException("VM won't execute")
+}
+
+println ">>> VM started correctly."
+
+result = instance.instanceId
+
+def json = new net.minidev.json.JSONObject();
+json.put("occi.compute.vendor.uuid", instance.instanceId)
+json.put("occi.compute.state", "up")
+result = json.toJSONString()
+println result
+
+]]>
+                    </code>
+                </script>
+            </scriptExecutable>
         </task>
+
+        <task name="update-occi" maxNumberOfExecution="5">
+            <genericInformation>
+                <info name="NODE_ACCESS_TOKEN" value="${occi.compute.hostname}"/>
+            </genericInformation>
+            <depends>
+                <task ref="deploy-vm"/>
+            </depends>
+            <scriptExecutable>
+                <script >
+                    <code language="groovy">
+                        <![CDATA[
+
+String name = '${occi.compute.hostname}'
+
+String ifconfig = "ifconfig eth0".execute().text.trim()
+String hostname = "hostname".execute().text.trim()
+String nufl = "/tmp/PA-AGENT_URL_$name-0"
+String nodeurl = "cat $nufl".execute().text.trim()
+
+println "IFCONFIG COMMAND: '$ifconfig'"
+println "HOSTNAME COMMAND: '$hostname'"
+println "NODE URL FILENAME:'$nufl'"
+println "NODE URL COMMAND: '$nodeurl'"
+
+if (nodeurl == null || nodeurl.isEmpty()) {
+    println "RETRYING NODE URL FILENAME:'$nufl'"
+    Thread.sleep(20 * 1000)
+    nodeurl = "cat $nufl".execute().text.trim()
+    println "RESULT: '$nodeurl'"
+}
+
+
+def regex = /(?s).*inet addr:(.*?)Bcast:.*/
+def matcher = (ifconfig=~regex)
+
+def ip = "unknownip"
+if (matcher.matches()) {
+    ip = matcher.group(1).trim()
+} else {
+    println("Cannot extract IP")
+}
+
+def json = new net.minidev.json.JSONObject();
+json.put("occi.networkinterface.address", ip)
+json.put("occi.compute.hostname", name.trim())
+json.put("occi.compute.organization.name", hostname)
+json.put("action.state", "done")
+json.put("proactive.node.url", nodeurl)
+json.put("occi.compute.state", "up")
+result = json.toJSONString()
+println result
+
+]]>
+                    </code>
+                </script>
+            </scriptExecutable>
+        </task>
+
     </taskFlow>
 </job>
