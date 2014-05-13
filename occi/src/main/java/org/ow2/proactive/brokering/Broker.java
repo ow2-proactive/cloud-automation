@@ -120,7 +120,7 @@ public class Broker {
                 //              if (workflow.isDeepCompliant(attributes))
                 File jobFile = workflow.configure(attributes);
 
-                logger.debug("Generated job file : " + jobFile.getAbsolutePath());
+                logger.info("Generated job file : " + jobFile.getAbsolutePath());
                 logger.debug(FileUtils.readFileToString(jobFile));
 
                 JobIdData response = scheduler.submitJob(jobFile);
@@ -173,7 +173,7 @@ public class Broker {
                     logger.debug("Applying rule: " + rule.getClass().getName());
                 }
             } catch (Throwable e) {
-                logger.debug("Error loading rule : " + file.getName(), e);
+                logger.warn("Error loading rule : " + file.getName(), e);
             }
         }
         return count;

@@ -33,7 +33,6 @@ public class Compute {
         attributeList.add(new Attribute("occi.compute.lease.delete", mutable, !required, "-1"));
         attributeList.add(new Attribute("occi.compute.lease.delete.warning", mutable, !required, "-1"));
         attributeList.add(new Attribute("occi.networkinterface.address", mutable, !required));
-        attributeList.add(new Attribute("occi.compute.instruction", mutable, !required));
         attributeList.add(new Attribute("occi.compute.proactive.node.token", mutable, !required));
         attributeList.add(new Attribute("occi.compute.error.code", mutable, !required, "0"));
         attributeList.add(new Attribute("occi.compute.error.description", mutable, !required));

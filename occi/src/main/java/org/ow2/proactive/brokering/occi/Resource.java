@@ -5,7 +5,6 @@ import org.ow2.proactive.brokering.Broker;
 import org.ow2.proactive.brokering.occi.categories.iaas.*;
 import org.ow2.proactive.brokering.occi.categories.paas.Platform;
 import org.ow2.proactive.brokering.occi.categories.trigger.ActionTrigger;
-import org.ow2.proactive.brokering.occi.categories.paas.Instruction;
 import org.ow2.proactive.workflowcatalog.References;
 
 import java.net.URL;
@@ -22,7 +21,6 @@ public class Resource {
     public static final String STORAGE_LINK_CATEGORY_NAME = "storagelink";
     public static final String PLATFORM_CATEGORY_NAME = "platform";
     public static final String ACTION_TRIGGER_CATEGORY_NAME = "actiontrigger";
-    public static final String INSTRUCTION_CATEGORY_NAME = "instruction";
 
     private static Logger logger = Logger.getLogger(Resource.class.getName());
     private static Map<UUID, Resource> resources = new HashMap<UUID, Resource>();
@@ -81,8 +79,6 @@ public class Resource {
             return new Platform().getSpecificAttributeList();
         } else if (category.equalsIgnoreCase(ACTION_TRIGGER_CATEGORY_NAME)) {
             return ActionTrigger.getInstance().getSpecificAttributeList();
-        } else if (category.equalsIgnoreCase(INSTRUCTION_CATEGORY_NAME)) {
-            return new Instruction().getSpecificAttributeList();
         }
         throw new IllegalArgumentException("Invalid category name: " + category);
     }
