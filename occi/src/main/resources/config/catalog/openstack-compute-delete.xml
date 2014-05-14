@@ -9,6 +9,7 @@
         <!-- Provided by rule -->
         <variable name="iaas.provider.api.gateway.hostname"/>
         <variable name="iaas.provider.api.gateway.addons.dir"/>
+        <variable name="iaas.provider.api.gateway.scripts.dir"/>
         <variable name="iaas.provider.api.user"/>
         <variable name="iaas.provider.api.password"/>
         <variable name="iaas.provider.api.tenant"/>
@@ -46,22 +47,8 @@
                 <info name="NODE_ACCESS_TOKEN" value="${occi.compute.hostname}"/>
             </genericInformation>
             <scriptExecutable>
-                <script >
-                    <code language="groovy">
-
-println "Current category ID: ${occi.core.id}"
-
-// Stop RMNode
-def p = "/root/stop-node.sh".execute()
-println "stderr: " + p.err.text
-println "stdout: " + p.text
-println "exitvalue: " + p.exitValue()
-
-def json = new net.minidev.json.JSONObject();
-result = json.toJSONString()
-println result
-
-            </code>
+                <script>
+                    <file path="${iaas.provider.api.gateway.scripts.dir}/stoprmnode.groovy"></file>
                 </script>
             </scriptExecutable>
         </task>
@@ -72,58 +59,16 @@ println result
             </depends>
             <selection>
                 <script type="dynamic" >
-                    <code language="javascript">
-                        <![CDATA[
-var hostName = "${iaas.provider.api.gateway.hostname}";
-if (org.ow2.proactive.scripting.helper.selection.SelectionUtils.checkHostName(hostName)) {
-   selected = true;
-   print("Hostname = " + hostName + " ==> selected");
-} else {
-   selected = false;
-   print("Hostname <> " + hostName + " ==> not selected");
-}
-]]>
-                    </code>
+                    <file path="${iaas.provider.api.gateway.scripts.dir}/checkHostName.js">
+                        <arguments>
+                            <argument value="${iaas.provider.api.gateway.hostname}"/>
+                        </arguments>
+                    </file>
                 </script>
             </selection>
             <scriptExecutable>
-                <script >
-                    <code language="groovy">
-                        <![CDATA[
-
-import org.ow2.proactive.iaas.*
-import org.ow2.proactive.iaas.nova.*
-import net.minidev.json.JSONObject
-
-String accessKey = '${iaas.provider.api.user}'
-String secretKey = '${iaas.provider.api.password}'
-String tenantId = '${iaas.provider.api.tenant}'
-String uri = '${iaas.provider.api.url}'
-
-String instanceId = '${occi.compute.vendor.uuid}'
-
-if (instanceId == null || instanceId.isEmpty())
-    throw new RuntimeException("No VM uuid specified.");
-
-println ">>> Logging to IaaS server..."
-
-def api = NovaAPI.getNovaAPI(
-        accessKey, secretKey, tenantId,
-        new URI(uri));
-
-println ">>> Undeploying VM: " + instanceId
-
-api.stopInstance(new IaasInstance(instanceId))
-
-println ">>> VM undeployed"
-
-def json = new net.minidev.json.JSONObject()
-json.put("occi.compute.state", "down")
-result = json.toJSONString()
-println result
-
-]]>
-                    </code>
+                <script>
+                    <file path="${iaas.provider.api.gateway.scripts.dir}/undeployvm.groovy"></file>
                 </script>
             </scriptExecutable>
         </task>

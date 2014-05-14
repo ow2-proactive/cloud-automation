@@ -10,6 +10,7 @@
         <variable name="occi.server.endpoint"/>
         <variable name="iaas.provider.api.gateway.hostname"/>
         <variable name="iaas.provider.api.gateway.addons.dir"/>
+        <variable name="iaas.provider.api.gateway.scripts.dir"/>
 
     </variables>
 
@@ -44,47 +45,16 @@
         <task name="undeploy-es">
             <selection>
                 <script type="dynamic" >
-                    <code language="javascript">
-                        <![CDATA[
-var hostName = "${iaas.provider.api.gateway.hostname}";
-if (org.ow2.proactive.scripting.helper.selection.SelectionUtils.checkHostName(hostName)) {
-   selected = true;
-   print("Hostname = " + hostName + " ==> selected");
-} else {
-   selected = false;
-   print("Hostname <> " + hostName + " ==> not selected");
-}
-]]>
-                    </code>
+                    <file path="${iaas.provider.api.gateway.scripts.dir}/checkHostName.js">
+                        <arguments>
+                            <argument value="${iaas.provider.api.gateway.hostname}"/>
+                        </arguments>
+                    </file>
                 </script>
             </selection>
             <scriptExecutable>
-                <script >
-                    <code language="groovy">
-                        <![CDATA[
-
-import org.ow2.proactive.brokering.occi.client.*
-
-println "Current category ID: ${occi.core.id}"
-
-def occiServerUrl = "${occi.server.endpoint}"
-def client = new org.ow2.proactive.brokering.occi.client.OcciClient(occiServerUrl);
-
-def base = new ResourceInstance("${occi.paas.elasticity.masterplatform}")
-println "Base: " + base.getLocation()
-def trigger = new ResourceInstance("${occi.paas.elasticity.trigger}")
-println "Trigger: " + trigger.getLocation()
-
-ResourceInstance base1 = client.updateResource(base.getCategory(), base.getUuid(), Collections.EMPTY_MAP, "stop");
-ResourceInstance trigger1 = client.updateResource(trigger.getCategory(), trigger.getUuid(), Collections.EMPTY_MAP, "stop");
-
-def json = new net.minidev.json.JSONObject();
-json.put("occi.paas.state", "down");
-result = json.toJSONString()
-println result
-
-]]>
-                    </code>
+                <script>
+                    <file path="${iaas.provider.api.gateway.scripts.dir}/undeployesbig.groovy"></file>
                 </script>
             </scriptExecutable>
         </task>

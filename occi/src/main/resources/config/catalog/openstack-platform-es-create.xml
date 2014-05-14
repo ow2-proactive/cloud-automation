@@ -15,6 +15,7 @@
         <variable name="proactive.rm.nodesource.name"/>
         <variable name="iaas.provider.api.gateway.hostname"/>
         <variable name="iaas.provider.api.gateway.addons.dir"/>
+        <variable name="iaas.provider.api.gateway.scripts.dir"/>
         <variable name="iaas.provider.api.user"/>
         <variable name="iaas.provider.api.password"/>
         <variable name="iaas.provider.api.tenant"/>
@@ -52,108 +53,21 @@
         <info name="flavor" value="single"/>
     </genericInformation>
 
-
-
     <taskFlow>
 
         <task name="deploy-vm" maxNumberOfExecution="5">
             <selection>
                 <script type="dynamic" >
-                    <code language="javascript">
-                        <![CDATA[
-var hostName = "${iaas.provider.api.gateway.hostname}";
-if (org.ow2.proactive.scripting.helper.selection.SelectionUtils.checkHostName(hostName)) {
-   selected = true;
-   print("Hostname = " + hostName + " ==> selected");
-} else {
-   selected = false;
-   print("Hostname <> " + hostName + " ==> not selected");
-}
-]]>
-                    </code>
+                    <file path="${iaas.provider.api.gateway.scripts.dir}/checkHostName.js">
+                        <arguments>
+                            <argument value="${iaas.provider.api.gateway.hostname}"/>
+                        </arguments>
+                    </file>
                 </script>
             </selection>
             <scriptExecutable>
-                <script >
-                    <code language="groovy">
-                        <![CDATA[
-
-import org.ow2.proactive.iaas.*
-import org.ow2.proactive.iaas.nova.*
-import net.minidev.json.JSONObject
-
-println "Current category ID: ${occi.core.id}"
-
-String accessKey = '${iaas.provider.api.user}'
-String secretKey = '${iaas.provider.api.password}'
-String tenantId = '${iaas.provider.api.tenant}'
-String uri = '${iaas.provider.api.url}'
-String image = '${iaas.provider.vm.image}'
-String flavor = '${iaas.provider.vm.flavor}'
-
-String proactiveHome = '${iaas.provider.vm.image.proactive.home}'
-String javaHome = '${iaas.provider.vm.image.java.home}'
-
-String name = '${occi.compute.hostname}'
-
-String rm_url='${proactive.rm.url}'
-String protocol='${proactive.router.protocol}'
-String router_port='${proactive.router.port}'
-String router_address='${proactive.router.address}'
-String credentials='${proactive.rm.credentials}'
-String node_source_name='${proactive.rm.nodesource.name}'
-String node_name = name
-String token = name
-
-String userdata =
-    "#!/bin/bash\n" +
-    "set -x\n" +
-    "export LOGS=/tmp/rm-start-node.log\n" +
-    "export JAVA_HOME="+javaHome+"\n" +
-    "export CMD=\"$proactiveHome/bin/unix/rm-start-node -Dproactive.useIPaddress=true -Dsigar.pflag.path=/tmp/pflags -Dproactive.net.nolocal=true -Dproactive.node.access.token=$token -Dproactive.agent.rank=0 -Dproactive.communication.protocol=$protocol -Dproactive.pamr.router.address=$router_address -Dproactive.pamr.router.port=$router_port -r $rm_url -s $node_source_name -n $node_name -v $credentials \"\n" +
-    "echo \$CMD > \$LOGS\n" +
-    "date >> \$LOGS\n" +
-    "\$CMD &>> \$LOGS\n"
-
-println ">>> Logging to OpenStack..."
-
-def api = NovaAPI.getNovaAPI(
-        accessKey, secretKey, tenantId,
-        new URI(uri));
-
-def map = new HashMap<String, String>();
-map.put(NovaAPI.NovaAPIConstants.InstanceParameters.USER_DATA, userdata);
-map.put(NovaAPI.NovaAPIConstants.InstanceParameters.FLAVOR_REF, flavor);
-map.put(NovaAPI.NovaAPIConstants.InstanceParameters.IMAGE_REF, image);
-map.put(NovaAPI.NovaAPIConstants.InstanceParameters.NAME, name);
-
-println ">>> Deploying VM..."
-
-def instance = api.startInstance(map)
-
-println ">>> VM deployed: " + instance.instanceId
-
-def counter = 0
-def ATTEMPTS = 15
-while (!api.isInstanceStarted(instance)) {
-    println ">>> Waiting for instance to be started..."
-    Thread.sleep(1000 * 60 * 1)
-    if (counter++ > ATTEMPTS)
-        throw new RuntimeException("VM won't execute")
-}
-
-println ">>> VM started correctly."
-
-result = instance.instanceId
-
-def json = new net.minidev.json.JSONObject();
-json.put("occi.compute.vendor.uuid", instance.instanceId)
-json.put("occi.compute.state", "up")
-result = json.toJSONString()
-println result
-
-]]>
-                    </code>
+                <script>
+                    <file path="${iaas.provider.api.gateway.scripts.dir}/deployvm.groovy"></file>
                 </script>
             </scriptExecutable>
         </task>
@@ -168,44 +82,8 @@ println result
                 <task ref="deploy-vm"/>
             </depends>
             <scriptExecutable>
-                <script >
-                    <code language="groovy">
-                        <![CDATA[
-
-import org.apache.commons.io.FileUtils
-
-println "Download ElasticSearch..."
-//def p = "curl -O 10.0.0.1:8090/elasticsearch-1.1.1.noarch.rpm".execute()
-//def p = "curl -O https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.1.1.noarch.rpm".execute()
-def p = "curl -O https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-1.1.1.deb".execute()
-
-println "stderr: " + p.err.text
-println "stdout: " + p.text
-p.waitFor()
-if (p.exitValue() != 0) throw new RuntimeException("exitValue: " + p.exitValue());
-
-println "Install ElasticSearch..."
-p = "dpkg -i elasticsearch-1.1.1.deb".execute()
-//p = "rmp -i elasticsearch-1.1.1.noarch.rpm".execute()
-println "stderr: " + p.err.text
-println "stdout: " + p.text
-p.waitFor()
-if (p.exitValue() != 0) throw new RuntimeException("exitValue: " + p.exitValue());
-
-println "Install OpenJDK-7..."
-
-p = "apt-get install openjdk-7-jre-headless -y".execute()
-println "stderr: " + p.err.text
-println "stdout: " + p.text
-p.waitFor()
-if (p.exitValue() != 0) throw new RuntimeException("exitValue: " + p.exitValue());
-
-def json = new net.minidev.json.JSONObject()
-result = json.toJSONString()
-println result
-
-]]>
-                    </code>
+                <script>
+                    <file path="${iaas.provider.api.gateway.scripts.dir}/installes.groovy"></file>
                 </script>
             </scriptExecutable>
         </task>
@@ -225,69 +103,8 @@ println result
 
             </depends>
             <scriptExecutable>
-                <script >
-                    <code language="groovy">
-                        <![CDATA[
-
-import org.apache.commons.io.FileUtils
-
-def elasticSearchMasterIp = '${paas.elasticsearch.master.ip}'
-def elasticSearchNodeName = '${occi.compute.hostname}'
-
-def SEP = File.separator
-def configFilePath = SEP + "etc" + SEP + "elasticsearch" + SEP + "elasticsearch.yml"
-
-println "Create/modify config file..."
-def masterConfigLines = new StringBuilder()
-masterConfigLines.append("node.name: ")
-masterConfigLines.append(elasticSearchNodeName)
-masterConfigLines.append("\n")
-masterConfigLines.append("discovery.zen.ping.multicast.enabled: false")
-masterConfigLines.append("\n")
-masterConfigLines.append("discovery.zen.ping.unicast.hosts: [\"")
-masterConfigLines.append(elasticSearchMasterIp)
-masterConfigLines.append("\"]")
-masterConfigLines.append("\n")
-
-println "Writing to file: $configFilePath the following:"
-println "---"
-println "$masterConfigLines"
-println "---"
-
-def configFile = new File(configFilePath)
-
-if (configFile.exists())
-    FileUtils.writeStringToFile(configFile, masterConfigLines.toString());
-else
-    throw new RuntimeException("Config file not found: $configFilePath")
-
-println "Start ElasticSearch..."
-
-def p = "service elasticsearch start".execute()
-println "stderr: " + p.err.text
-println "stdout: " + p.text
-p.waitFor()
-if (p.exitValue() != 0) throw new RuntimeException("exitValue: " + p.exitValue());
-
-Thread.sleep(1000 * 15)
-
-println "Check status..."
-
-p = "service elasticsearch status".execute()
-println "stderr: " + p.err.text
-
-def output1 = p.text
-println "stdout: " + output1
-p.waitFor()
-if (p.exitValue() != 0 || output1.contains("not")) throw new RuntimeException("exitValue: " + p.exitValue());
-
-def json = new net.minidev.json.JSONObject()
-json.put("occi.paas.state", "up")
-result = json.toJSONString()
-println result
-
-]]>
-                    </code>
+                <script>
+                    <file path="${iaas.provider.api.gateway.scripts.dir}/startes.groovy"></file>
                 </script>
             </scriptExecutable>
         </task>
@@ -300,57 +117,11 @@ println result
                 <task ref="deploy-vm"/>
             </depends>
             <scriptExecutable>
-                <script >
-                    <code language="groovy">
-                        <![CDATA[
-
-String name = '${occi.compute.hostname}'
-
-String ifconfig = "ifconfig eth0".execute().text.trim()
-String hostname = "hostname".execute().text.trim()
-String nufl = "/tmp/PA-AGENT_URL_$name-0"
-String nodeurl = "cat $nufl".execute().text.trim()
-
-println "IFCONFIG COMMAND: '$ifconfig'"
-println "HOSTNAME COMMAND: '$hostname'"
-println "NODE URL FILENAME:'$nufl'"
-println "NODE URL COMMAND: '$nodeurl'"
-
-if (nodeurl == null || nodeurl.isEmpty()) {
-    println "RETRYING NODE URL FILENAME:'$nufl'"
-    Thread.sleep(20 * 1000)
-    nodeurl = "cat $nufl".execute().text.trim()
-    println "RESULT: '$nodeurl'"
-}
-
-
-def regex = /(?s).*inet addr:(.*?)Bcast:.*/
-def matcher = (ifconfig=~regex)
-
-def ip = "unknownip"
-if (matcher.matches()) {
-    ip = matcher.group(1).trim()
-} else {
-    println("Cannot extract IP")
-}
-
-def json = new net.minidev.json.JSONObject();
-json.put("occi.networkinterface.address", ip)
-json.put("occi.compute.hostname", name.trim())
-json.put("occi.compute.organization.name", hostname)
-json.put("action.state", "done")
-json.put("proactive.node.url", nodeurl)
-json.put("occi.compute.state", "up")
-json.put("occi.paas.application.endpoints", "http://" + ip + ":9200")
-result = json.toJSONString()
-println result
-
-]]>
-                    </code>
+                <script>
+                    <file path="${iaas.provider.api.gateway.scripts.dir}/updateocci2.groovy"></file>
                 </script>
             </scriptExecutable>
         </task>
-
 
         <task name="launch-monitoring-script" maxNumberOfExecution="5">
             <genericInformation>
@@ -360,137 +131,11 @@ println result
                 <task ref="deploy-vm"/>
             </depends>
             <scriptExecutable>
-                <script >
-                    <code language="groovy">
-                        <![CDATA[
-
-def content = []
-
-println "Creating monitoring script..."
-
-content << '#!/bin/python'
-content << ''
-content << 'import os, sys, json, time;'
-content << 'from subprocess import Popen, PIPE;'
-content << ''
-content << 'while True:'
-content << '        command1 = ["curl", "-s", "http://localhost:9200/_nodes"]'
-content << '        command2 = ["curl", "-s", "http://localhost:9200/_status"]'
-content << '        filename1 = "/tmp/pflags/esnodes"'
-content << '        filename2 = "/tmp/pflags/esstatus"'
-content << '        interval = 5'
-content << ''
-content << '        process1 = Popen(command1, stdout=PIPE);'
-content << '        (stdout1, stderr1) = process1.communicate();'
-content << '        exitcode1 = process1.wait();'
-content << ''
-content << '        process2 = Popen(command2, stdout=PIPE);'
-content << '        (stdout2, stderr2) = process2.communicate();'
-content << '        exitcode2 = process2.wait();'
-content << ''
-content << '        try:'
-content << '            obj = json.loads(stdout1);'
-content << '            for nameid in obj["nodes"]:'
-content << '                hname = obj["nodes"][nameid]["name"];'
-content << '                obj["nodes"][nameid] = {};'
-content << '                obj["nodes"][nameid]["name"] = hname;'
-content << ''
-content << '            content1 = json.dumps(obj)'
-content << ''
-content << '        except: '
-content << '            content1 = ""'
-content << '            pass'
-content << ''
-content << '        try:'
-content << '            obj = json.loads(stdout2)'
-content << '            for nameid in obj["indices"]:'
-content << '                obj["indices"][nameid] = {};'
-content << '                obj["indices"][nameid]["name"] = nameid;'
-content << ''
-content << '            content2 = json.dumps(obj)'
-content << ''
-content << '        except: '
-content << '            content2 = ""'
-content << '            pass'
-content << ''
-content << '        if not os.path.exists(os.path.dirname(filename1)):'
-content << '            os.makedirs(os.path.dirname(filename1))'
-content << ''
-content << '        print "Writing :" + content1 + " to: " + filename1'
-content << '        print "Writing :" + content2 + " to: " + filename2'
-content << ''
-content << '        f = open(filename1, "w")'
-content << '        f.write(content1)'
-content << ''
-content << '        g = open(filename2, "w")'
-content << '        g.write(content2)'
-content << ''
-content << '        time.sleep(interval)'
-content << ''
-
-new File("/tmp/monitoring.py").withWriter { out -> content.each { out.println it } }
-
-content = []
-
-println "Creating monitoring service script..."
-
-content << '#!/bin/bash'
-content << ''
-content << 'WORK_DIR="/tmp/"'
-content << 'DAEMON="/usr/bin/python"'
-content << 'ARGS="/tmp/monitoring.py"'
-content << 'PIDFILE="/tmp/monitoring.pid"'
-content << 'USER="root"'
-content << ''
-content << 'case "$1" in'
-content << '  start)'
-content << '    echo "Starting server"'
-content << '    mkdir -p "$WORK_DIR"'
-content << '    /sbin/start-stop-daemon --start --pidfile $PIDFILE --user $USER --group $USER -b --make-pidfile --chuid $USER --exec $DAEMON $ARGS'
-content << '    ;;'
-content << '  stop)'
-content << '    echo "Stopping server"'
-content << '    /sbin/start-stop-daemon --stop --pidfile $PIDFILE --verbose'
-content << '    ;;'
-content << '  *)'
-content << '    echo "Usage: /etc/init.d/$USER {start|stop}"'
-content << '    exit 1'
-content << '    ;;'
-content << 'esac'
-content << ''
-content << 'exit 0'
-
-new File("/etc/init.d/monitoring").withWriter { out -> content.each { out.println it } }
-
-def executeit(cmd) {
-    def p = cmd.execute()
-
-    println "command: " + cmd
-    println "stderr: " + p.err.text
-    println "stdout: " + p.text
-    p.waitFor()
-    if (p.exitValue() != 0) throw new RuntimeException("cmd " + cmd + " returned " + p.exitValue());
-}
-
-println "Creating service..."
-
-executeit(["chmod", "+x", "/etc/init.d/monitoring"])
-executeit(["service", "monitoring", "start"])
-
-def json = new net.minidev.json.JSONObject();
-//json.put("occi.networkinterface.address", ip.trim())
-result = json.toJSONString()
-println result
-
-]]>
-                    </code>
+                <script>
+                    <file path="${iaas.provider.api.gateway.scripts.dir}/launchmonitoringscript.groovy"></file>
                 </script>
             </scriptExecutable>
         </task>
-
-
-
-
 
     </taskFlow>
 
