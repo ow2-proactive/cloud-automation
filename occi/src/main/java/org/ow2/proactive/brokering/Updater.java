@@ -5,11 +5,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.json.JsonObject;
-import javax.json.stream.JsonParsingException;
 import javax.ws.rs.core.Response;
 
 import org.ow2.proactive.brokering.occi.OcciServer;
@@ -46,7 +44,7 @@ public class Updater {
         return queue.size();
     }
 
-    public synchronized void addResourceToTheUpdateQueue(Reference jobReference, UUID resource) {
+    public synchronized void addResourceToTheUpdateQueue(Reference jobReference, String resource) {
         addResourceToTheUpdateQueue(jobReference, Resource.getResources().get(resource));
     }
 
@@ -70,6 +68,10 @@ public class Updater {
             this.reference = reference;
         }
 
+        public String toString() {
+            return resource.getUuid() + " : job " + reference.getId();
+        }
+
     }
 
     class UpdaterTask extends TimerTask {
@@ -86,7 +88,7 @@ public class Updater {
                 try {
                     updateOcciResource(u);
                 } catch (Throwable e) {
-                    logger.warn("Error updating", e);
+                    logger.warn("Error updating: " + u, e);
                 }
 
             }
@@ -99,7 +101,7 @@ public class Updater {
                 String attributes = flattenTaskResultsAndConvertJsonTaskResultsToMap(taskResults);
 
                 Response r = occi.updateResource(
-                        u.resource.getCategory(), u.resource.getUuid().toString(),
+                        u.resource.getCategory(), u.resource.getUuid(),
                         null, attributes);
 
                 printLogsIfIncorrectExecution(r);
@@ -107,9 +109,9 @@ public class Updater {
                 removeUpdateItem(u);
 
             } catch (JobNotFinishedException e) {
-                logger.debug("Waiting for update job:" + u.reference);
+                logger.debug("Waiting for update job: " + u);
             } catch (Exception e) {
-                logger.warn("Unexpected error getting info to update category instance", e);
+                logger.warn("Unexpected error while updating: " + u, e);
                 removeUpdateItem(u);
             }
 
@@ -121,7 +123,7 @@ public class Updater {
         }
 
         private void removeUpdateItem(UpdateUnit u) {
-            logger.debug("Removing '" + u.resource + " from queue.");
+            logger.debug("Removing '" + u + "' from update queue.");
             queue.remove(u);
         }
 

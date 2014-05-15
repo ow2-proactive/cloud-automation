@@ -46,7 +46,7 @@ public class UpdaterTest {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        OcciServer.setDatabase(mock(Database.class));
+        Database.setDatabaseName("occi-updater-test");
         new OcciServer();
         scheduler = createMockOfSchedulerProxy();
         occiServer = createMockOfOcciServer();

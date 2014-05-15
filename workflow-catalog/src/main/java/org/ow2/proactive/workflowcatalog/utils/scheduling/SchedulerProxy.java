@@ -90,6 +90,7 @@ public class SchedulerProxy {
 
     private String connectToScheduler(
       SchedulerLoginData schedulerLoginData) throws LoginException, SchedulerRestException {
+        logger.debug("Scheduler login process...");
         String sessionId = restClient.getScheduler().login(schedulerLoginData.schedulerUsername,
           schedulerLoginData.schedulerPassword);
         logger.debug("Scheduler session ID: " + sessionId);

@@ -102,8 +102,8 @@ public class Broker {
         return c;
     }
 
-    private UUID getUuid(Map<String, String> attributes) {
-        return UUID.fromString(attributes.get("occi.core.id"));
+    private String getUuid(Map<String, String> attributes) {
+        return attributes.get("occi.core.id");
     }
 
     private References processWorkflowRequest(

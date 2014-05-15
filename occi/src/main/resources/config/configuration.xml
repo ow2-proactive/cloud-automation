@@ -4,7 +4,7 @@
     <rules path="config/rules/" refresh="10"/>
     <actions path="config/actions/" refresh="10"/>
     <conditions path="config/conditions/" refresh="10"/>
-    <updater refresh="50"/>
+    <updater refresh="30"/>
     <security insecuremode="true"/>
     <!--
     <server prefix="http://pacagrid.cloudapp.net:8081/occi/api/occi/"/>
