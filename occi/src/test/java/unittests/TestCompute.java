@@ -57,7 +57,7 @@ public class TestCompute {
         Response result = server.getAllResources("compute");
         String[] urlTab = result.getEntity().toString().trim().split("/");
         String uuid = urlTab[urlTab.length - 1];
-        Resource resource = Database.getInstance().load(UUID.fromString(uuid));
+        Resource resource = Database.getInstance().load(uuid);
         System.out.println("LoadResource: resource = \n" + resource);
     }
 }

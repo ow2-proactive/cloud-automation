@@ -1,53 +1,29 @@
 package org.ow2.proactive.brokering.occi;
 
-import com.almworks.sqlite4java.SQLiteConnection;
-import com.almworks.sqlite4java.SQLiteJob;
-import com.almworks.sqlite4java.SQLiteQueue;
-import com.almworks.sqlite4java.SQLiteStatement;
+import com.orientechnologies.orient.core.db.object.ODatabaseObjectTx;
+import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery;
 import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.util.*;
 
 public class Database {
+
+    private static String DB_NAME = "occi-database";
+    private static String DB_DEFAULT_USERNAME = "admin";
+    private static String DB_DEFAULT_PASSWORD = "admin";
+
     private static Logger logger = Logger.getLogger(Database.class);
     private static Database instance;
-    private SQLiteQueue dbQueue;
 
-    private Database() {
-        try {
-            logger.info("Setup the Database");
-            File dbFile = new File("/tmp/database.sqlite");
-            dbQueue = new SQLiteQueue(dbFile);
-            dbQueue.start();
-            dbQueue.execute(new SQLiteJob<Object>() {
-                @Override
-                protected Object job(SQLiteConnection conn) throws Throwable {
-                    SQLiteStatement st = null;
-                    try {
-                        st = conn.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='resources'");
-                        if (!st.step()) {
-                            conn.exec("CREATE TABLE resources (uuid TEXT PRIMARY KEY UNIQUE, category TEXT)");
-                        }
-                        st.dispose();
-                        st = conn.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='attributes'");
-                        if (!st.step()) {
-                            conn.exec("CREATE TABLE attributes (uuid TEXT, key TEXT, value TEXT)");
-                        }
+    private ODatabaseObjectTx db;
 
-                    } finally {
-                        if (st != null) {
-                            st.dispose();
-                        }
-                        return null;
-                    }
-                }
-            }).complete();
+    public static void setDatabaseName(String databaseName) {
+        DB_NAME = databaseName;
+    }
 
-        } catch (Throwable e) {
-            e.printStackTrace();
-            logger.error(e.fillInStackTrace());
-        }
+    public static void resetInstance() {
+        instance = null;
     }
 
     public static Database getInstance() {
@@ -58,148 +34,93 @@ public class Database {
         return instance;
     }
 
-    public String toString() {
-        return dbQueue.toString();
+    public static void dropDB() {
+        ODatabaseObjectTx dba = new ODatabaseObjectTx(generateDatabaseUrl(DB_NAME));
+        if (dba.exists()) {
+            dba = dba.open(DB_DEFAULT_USERNAME, DB_DEFAULT_PASSWORD);
+            dba.drop();
+        }
+        resetInstance();
     }
 
-    public void delete(final UUID uuid) {
-        try {
-            dbQueue.execute(new SQLiteJob<Object>() {
-                @Override
-                protected Object job(SQLiteConnection connection) throws Throwable {
-                    connection.setBusyTimeout(100);
-                    connection.prepare("DELETE FROM resources WHERE uuid='" + uuid + "'").step();
-                    return null;
-                }
-            }).complete();
-            dbQueue.execute(new SQLiteJob<Object>() {
-                @Override
-                protected Object job(SQLiteConnection connection) throws Throwable {
-                    connection.prepare("DELETE FROM attributes WHERE uuid='" + uuid + "'").step();
-                    return null;
-                }
-            }).complete();
+    private Database() {
+        logger.info("Setting up DB");
 
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
+        db = new ODatabaseObjectTx(generateDatabaseUrl(DB_NAME));
+
+        this.createIfNeeded();
+        this.openIfNeeded();
+        this.registerEntities();
+
+        logger.info("DB correctly started");
     }
 
     public void store(Resource resource) {
         try {
             logger.info("Resource to store in DB : " + resource.getUuid());
-            final String uuid = resource.getUuid().toString();
-            final String category = resource.getCategory();
-            final Map<String, String> attributes = resource.getAttributes();
-
-            delete(resource.getUuid());
-            dbQueue.execute(new SQLiteJob<Object>() {
-                @Override
-                protected Object job(SQLiteConnection connection) throws Throwable {
-                    connection.prepare("INSERT INTO resources VALUES ('" + uuid + "','" + category + "')").step();
-                    return null;
-                }
-            }).complete();
-            for (Map.Entry<String, String> attribute : attributes.entrySet()) {
-                final String key = attribute.getKey();
-                final String value = attribute.getValue();
-                dbQueue.execute(new SQLiteJob<Object>() {
-                    @Override
-                    protected Object job(SQLiteConnection connection) throws Throwable {
-                        connection.prepare("INSERT INTO attributes VALUES ('" + uuid + "','" + key + "','" + value + "')").step();
-                        return null;
-                    }
-                }).complete();
-            }
-            logger.debug("Resource stored in DB : " + uuid);
-
+            db.save(resource);
         } catch (Throwable e) {
-            e.printStackTrace();
-            logger.error("Resource storage to DB Failed: " + e.fillInStackTrace());
-
+            logger.error("Resource storage to DB failed", e);
         }
     }
 
-    public Resource load(final UUID uuid) {
-        SQLiteStatement st = null;
+    public void delete(String uuid) {
         try {
-            logger.info("Resource to load from DB : " + uuid);
-            SQLiteJob<Resource> job = dbQueue.execute(new SQLiteJob<Resource>() {
-                @Override
-                protected Resource job(SQLiteConnection conn) throws Throwable {
-                    SQLiteStatement st = conn.prepare("SELECT * FROM resources WHERE uuid='" + uuid + "'");
-                    if (!st.step()) {
-                        return null;
-                    }
-                    String category = st.columnString(1);
-                    st.dispose();
-                    st = conn.prepare("SELECT * FROM attributes WHERE uuid='" + uuid + "'");
-                    Map<String, String> attributes = new HashMap<String, String>();
-                    while (st.step()) {
-                        String key = st.columnString(1);
-                        String value = st.columnString(2);
-                        attributes.put(key, value);
-                    }
-                    st.dispose();
-                    return Resource.factory(uuid, category, attributes);
-                }
-            });
-            return job.complete();
-
+            Resource res = load(uuid);
+            if (res != null)
+                db.delete(res);
         } catch (Throwable e) {
-            e.printStackTrace();
-
-        } finally {
-            if (st != null) {
-                st.dispose();
-            }
+            logger.error("Resource deletion from DB failed", e);
         }
-        return null;
+    }
+
+    public Resource load(String uuid) {
+        OSQLSynchQuery<Resource> q =
+            new OSQLSynchQuery<Resource>("select * from Resource where uuid = '" + uuid + "'");
+        List<Resource> list = db.query(q);
+
+        if (list.size() == 0) {
+            return null;
+        } else if (list.size() == 1) {
+            return list.get(0);
+        } else {
+            logger.warn("Repeated uuid: " + uuid);
+            return list.get(0);
+        }
     }
 
     public List<Resource> getAllResources() {
         logger.info("Load all resources");
-        SQLiteJob<List<Resource>> job = dbQueue.execute(new SQLiteJob<List<Resource>>() {
-            @Override
-            protected List<Resource> job(SQLiteConnection conn) throws Throwable {
-                SQLiteStatement st = null;
-                try {
-                    List<Resource> resourceList = new ArrayList<Resource>();
-                    st = conn.prepare("SELECT uuid FROM resources");
-                    while (st.step()) {
-                        UUID uuid = UUID.fromString(st.columnString(0));
-                        Resource resource = internalLoad(conn, uuid);
-                        resourceList.add(resource);
-                    }
-                    st.dispose();
-                    return resourceList;
-
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                } finally {
-                    if (st != null) {
-                        st.dispose();
-                    }
-                }
-                return null;
-            }
-        });
-        return job.complete();
+        List<Resource> list = new ArrayList<Resource>();
+        for (Resource r : db.browseClass(Resource.class))
+            list.add(r);
+        return list;
     }
 
-    private Resource internalLoad(SQLiteConnection conn, UUID uuid) throws Exception {
-        SQLiteStatement st = conn.prepare("SELECT * FROM resources WHERE uuid='" + uuid + "'");
-        st.step();
-        String category = st.columnString(1);
-        st.dispose();
-        st = conn.prepare("SELECT * FROM attributes WHERE uuid='" + uuid + "'");
-        Map<String, String> attributes = new HashMap<String, String>();
-        while (st.step()) {
-            String key = st.columnString(1);
-            String value = st.columnString(2);
-            attributes.put(key, value);
-        }
-        st.dispose();
-        return Resource.factory(uuid, category, attributes);
+    public void close() {
+        db.close();
     }
+
+    private static String generateDatabaseUrl(String name) {
+        String tmp = System.getProperty("java.io.tmpdir");
+        String fs = File.separator;
+        return "local:" + tmp + fs + name;
+    }
+
+    private void registerEntities() {
+        db.getEntityManager().registerEntityClass(Resource.class);
+    }
+
+    private void createIfNeeded() {
+        if (!db.exists())
+            db.create();
+    }
+
+    private void openIfNeeded() {
+        if (db.isClosed())
+            db.open(DB_DEFAULT_USERNAME, DB_DEFAULT_PASSWORD);
+    }
+
+
 }
+

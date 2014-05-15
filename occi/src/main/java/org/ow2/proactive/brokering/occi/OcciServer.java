@@ -40,7 +40,7 @@ public class OcciServer implements Occi {
         logger.info("Create : host = [" + host + "], category = [" + category + "]");
         logger.debug("         attributes = [" + attributes + "]");
         try {
-            UUID uuid = UUID.randomUUID();
+            String uuid = UUID.randomUUID().toString();
             attributes += ",action.state=pending,occi.core.id=" + uuid;
             //            attributes += ",action.state=\"pending\", occi.core.id=\"" + uuid + "\"";
             Resource resource = Resource.factory(uuid, category, Utils.buildMap(attributes));
@@ -96,7 +96,7 @@ public class OcciServer implements Occi {
         logger.info("------------------------------------------------------------------------");
         logger.info("Get : category = [" + category + "], uuid = [" + uuid + "], attribute = [" + attribute + "]");
         try {
-            Resource resource = Resource.getResources().get(UUID.fromString(uuid));
+            Resource resource = Resource.getResources().get(uuid);
             if (resource == null || !resource.getCategory().equalsIgnoreCase(category)) {
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
@@ -126,7 +126,7 @@ public class OcciServer implements Occi {
         logger.info("Update : category = [" + category + "], uuid = [" + uuid + "], action = [" + action + "]");
         logger.info("         attributes = [" + attributes + "]");
         try {
-            Resource resource = Resource.getResources().get(UUID.fromString(uuid));
+            Resource resource = Resource.getResources().get(uuid);
             if (resource == null || !resource.getCategory().equalsIgnoreCase(category)) {
                 logger.debug("Response : NOT_FOUND:" + Response.Status.NOT_FOUND);
                 return Response.status(Response.Status.NOT_FOUND).build();
@@ -186,8 +186,8 @@ public class OcciServer implements Occi {
             }
             logger.info("Delete URL : category = [" + category + "], uuid = [" + uuid + "], status = [" + status + "]");
             if (status.equalsIgnoreCase("done")) {
-                Resource.getResources().remove(UUID.fromString(uuid));
-                db.delete(UUID.fromString(uuid));
+                Resource.getResources().remove(uuid);
+                db.delete(uuid);
                 logger.info("------------------------------------------------------------------------");
                 return Response.status(Response.Status.OK).build();
             }

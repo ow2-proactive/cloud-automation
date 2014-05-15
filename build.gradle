@@ -1,6 +1,5 @@
 buildscript {
     repositories {
-        mavenLocal()
         mavenCentral()
         maven { url 'http://repo.activeeon.com/content/repositories/snapshots/' }
         maven { url 'http://repo.activeeon.com/content/repositories/releases/' }
@@ -124,10 +123,7 @@ project(':occi') {
         compile project(':workflow-catalog')
         compile project(':monitoring')
 
-        compile 'com.almworks.sqlite4java:sqlite4java:0.282'
-        runtime 'com.almworks.sqlite4java:libsqlite4java-linux-amd64:0.282'
-        runtime 'com.almworks.sqlite4java:libsqlite4java-linux-i386:0.282'
-        runtime 'com.almworks.sqlite4java:libsqlite4java-osx:0.282'
+        compile 'com.orientechnologies:orientdb:1.0rc9'
 
         compile 'org.jboss.resteasy:resteasy-jaxrs:3.0.6.Final'
         compile 'org.jboss.resteasy:jaxrs-api:3.0.6.Final'

@@ -59,7 +59,7 @@ public class UpdaterTest {
         // The output of the job's tasks must be used to update the resource's properties.
 
         Resource resource = Resource.factory(
-                UUID.randomUUID(),
+                UUID.randomUUID().toString(),
                 COMPUTE_NAME,
                 getDefaultComputeAttributes());
         Reference jobReference = jobReferences.get(JOB_ID_ALL_TASKS_PRODUCE_JSON);
@@ -81,7 +81,7 @@ public class UpdaterTest {
             throws Exception {
 
         Resource resource = Resource.factory(
-                UUID.randomUUID(),
+                UUID.randomUUID().toString(),
                 COMPUTE_NAME,
                 getDefaultComputeAttributes());
         Reference jobReference = jobReferences.get(JOB_ID_NO_TASK_PRODUCES_JSON);
@@ -104,7 +104,7 @@ public class UpdaterTest {
             throws Exception {
 
         Resource resource = Resource.factory(
-                UUID.randomUUID(),
+                UUID.randomUUID().toString(),
                 COMPUTE_NAME,
                 getDefaultComputeAttributes());
         Reference jobReference = jobReferences.get(JOB_ID_SOME_TASKS_PRODUCE_JSON);
@@ -127,7 +127,7 @@ public class UpdaterTest {
             throws Exception {
 
         Resource resource = Resource.factory(
-                UUID.randomUUID(),
+                UUID.randomUUID().toString(),
                 COMPUTE_NAME,
                 getDefaultComputeAttributes());
         Reference jobReference = jobReferences.get(JOB_ID_TASKS_WITH_ERROR);

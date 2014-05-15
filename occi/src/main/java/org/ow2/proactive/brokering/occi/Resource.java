@@ -8,7 +8,11 @@ import org.ow2.proactive.brokering.occi.categories.trigger.ActionTrigger;
 import org.ow2.proactive.workflowcatalog.References;
 
 import java.net.URL;
-import java.util.*;
+import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.TreeMap;
+import java.util.HashMap;
 
 public class Resource {
     public static final String OP_CREATE = "create";
@@ -23,24 +27,25 @@ public class Resource {
     public static final String ACTION_TRIGGER_CATEGORY_NAME = "actiontrigger";
 
     private static Logger logger = Logger.getLogger(Resource.class.getName());
-    private static Map<UUID, Resource> resources = new HashMap<UUID, Resource>();
+    private static Map<String, Resource> resources = new HashMap<String, Resource>();
 
-    private UUID uuid;
+    private String uuid;
     private String category;
     private Map<String, String> attributes;
 
-    private Resource(UUID uuid, String category, Map<String, String> attributes) {
+    private Resource() {}
+
+    private Resource(String uuid, String category, Map<String, String> attributes) {
         this.uuid = uuid;
         this.category = category;
         this.attributes = attributes;
     }
 
-    public static Map<UUID, Resource> getResources() {
+    public static Map<String, Resource> getResources() {
         return resources;
     }
 
-    public static Resource factory(UUID uuid, String category, Map<String, String> attributes) {
-        System.out.flush();
+    public static Resource factory(String uuid, String category, Map<String, String> attributes) {
         fillAttributes(category, attributes);
         Resource resource = new Resource(uuid, category, attributes);
         resources.put(uuid, resource);
@@ -93,7 +98,7 @@ public class Resource {
         return attributeList;
     }
 
-    public UUID getUuid() {
+    public String getUuid() {
         return uuid;
     }
 
@@ -142,6 +147,28 @@ public class Resource {
             }
         }
         return result;
+    }
+
+    public boolean equals(Resource target) {
+        if (!this.getUuid().equals(target.uuid))
+            return false;
+
+        if (!this.getCategory().equals(target.category))
+            return false;
+
+        if (this.getAttributes().size() != target.getAttributes().size())
+            return false;
+
+        for (String key: this.getAttributes().keySet()) {
+            if (!target.getAttributes().containsKey(key))
+                return false;
+            String value = this.getAttributes().get(key);
+            String valueTarget = target.getAttributes().get(key);
+            if (!value.equals(valueTarget))
+                return false;
+        }
+
+        return true;
     }
 
 }
