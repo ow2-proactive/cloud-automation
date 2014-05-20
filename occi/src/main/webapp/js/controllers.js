@@ -1,5 +1,12 @@
 var appControllers = angular.module('appControllers', []);
 
+appControllers.controller('HeaderController', function ($scope, $location) {
+    $scope.isActive = function (viewLocation) {
+        console.log($location.path())
+        return viewLocation === $location.path();
+    };
+});
+
 appControllers.controller('CatalogCtrl', function ($scope, $http) {
 
     $http.get('/ca/api/occi/template').success(function (data) {

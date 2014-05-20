@@ -26,7 +26,7 @@
 </head>
 <body>
 
-<div class="navbar navbar-fixed-top" role="navigation">
+<div class="navbar navbar-default navbar-fixed-top" role="navigation">
     <div class="navbar-header">
         <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
             <span class="icon-bar"></span>
@@ -38,11 +38,11 @@
             ProActive Cloud Automation
         </a>
     </div>
-    <div class="collapse navbar-collapse">
+    <div class="collapse navbar-collapse" ng-controller="HeaderController">
         <ul class="nav navbar-nav">
-            <li><a id="save-button" href="#/catalog" class="pointer">
+            <li ng-class="{ active: isActive('/catalog')}"><a id="save-button" href="#/catalog" class="pointer">
                 <i class="glyphicon glyphicon-folder-open"></i> Catalog</a></li>
-            <li><a id="submit-button" href="#/services" class="pointer"><i
+            <li ng-class="{ active: isActive('/services')}"><a id="submit-button" href="#/services" class="pointer"><i
                     class="glyphicon glyphicon-tasks "></i> Services</a></li>
         </ul>
         <ul class="nav navbar-nav nav navbar-right">

@@ -26,6 +26,17 @@
     overflow: auto;
 }
 
-.active {
-    color:#E87224;
+
+a, a:visited {
+    text-decoration:none;
+    color:#5c96bc !important;
+    border-radius:0.2em;
+    -webkit-transition: color 0.15s ease-in;
+    -moz-transition: color 0.15s ease-in;
+    -o-transition: color 0.15s ease-in;
+    transition: color 0.15s ease-in;
+}
+
+a:hover {
+    color:#E87224 !important;
 }
