@@ -1,11 +1,12 @@
 package org.ow2.proactive.brokering.occi.categories.paas;
 
-import org.ow2.proactive.brokering.occi.Attribute;
-
 import java.util.ArrayList;
 import java.util.List;
 
-public class Platform {
+import org.ow2.proactive.brokering.occi.Attribute;
+import org.ow2.proactive.brokering.occi.Category;
+
+public class Platform implements Category {
 
     public Platform() {
 

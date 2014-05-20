@@ -1,20 +1,19 @@
 package unittests;
 
-import junit.framework.Assert;
-import org.apache.commons.io.FileUtils;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.ow2.proactive.brokering.Configuration;
-import org.ow2.proactive.workflowcatalog.References;
-import org.ow2.proactive.brokering.occi.Resource;
-import org.ow2.proactive.brokering.occi.categories.trigger.ActionTrigger;
-import org.ow2.proactive.brokering.triggering.ScriptUtils;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
+import org.ow2.proactive.brokering.Configuration;
+import org.ow2.proactive.brokering.occi.categories.trigger.ActionTrigger;
+import org.ow2.proactive.brokering.triggering.ScriptUtils;
+import org.ow2.proactive.workflowcatalog.References;
+import junit.framework.Assert;
+import org.apache.commons.io.FileUtils;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 public class ActionTriggerTest {
 
@@ -69,7 +68,7 @@ public class ActionTriggerTest {
         Assert.assertTrue(falseActions == 0);
 
         References references = actionTrigger.request(
-                Resource.ACTION_TRIGGER_CATEGORY_NAME, "create",
+          "create",
                 "scheduleonce", atts);
 
         Thread.sleep(100 * PERIODMS);
@@ -118,7 +117,7 @@ public class ActionTriggerTest {
         Assert.assertTrue(ActionTrigger.getTimers().size() == 0);
 
         actionTrigger.request(
-                Resource.ACTION_TRIGGER_CATEGORY_NAME, "create",
+          "create",
                 "schedule", atts); // rule started
 
         Thread.sleep(100 * PERIODMS);
@@ -129,7 +128,7 @@ public class ActionTriggerTest {
         Assert.assertTrue(ActionTrigger.getTimers().size() == 1);
 
         actionTrigger.request(
-                Resource.ACTION_TRIGGER_CATEGORY_NAME, "update", "delete",
+          "update", "delete",
                 atts); // rule stopped
 
         Thread.sleep(10 * PERIODMS);
@@ -162,7 +161,7 @@ public class ActionTriggerTest {
         actionTriggerAttributes.remove(ActionTrigger.OCCI_MONITORING_PERIODMS);
 
         References references = actionTrigger.request(
-                Resource.ACTION_TRIGGER_CATEGORY_NAME, "create",
+          "create",
                 "schedule", actionTriggerAttributes);
 
         Assert.assertFalse(references.areAllSubmitted());

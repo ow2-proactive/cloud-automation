@@ -1,30 +1,21 @@
 package org.ow2.proactive.brokering.occi;
 
-import org.apache.log4j.Logger;
-import org.ow2.proactive.brokering.Broker;
-import org.ow2.proactive.brokering.occi.categories.iaas.*;
-import org.ow2.proactive.brokering.occi.categories.paas.Platform;
-import org.ow2.proactive.brokering.occi.categories.trigger.ActionTrigger;
-import org.ow2.proactive.workflowcatalog.References;
-
 import java.net.URL;
-import java.util.Map;
-import java.util.List;
 import java.util.ArrayList;
-import java.util.TreeMap;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+import org.ow2.proactive.brokering.Broker;
+import org.ow2.proactive.workflowcatalog.References;
+import org.apache.log4j.Logger;
 
 public class Resource {
     public static final String OP_CREATE = "create";
     public static final String OP_READ = "read";
     public static final String OP_UPDATE = "update";
     public static final String OP_DELETE = "delete";
-
-    public static final String COMPUTE_CATEGORY_NAME = "compute";
-    public static final String STORAGE_CATEGORY_NAME = "storage";
-    public static final String STORAGE_LINK_CATEGORY_NAME = "storagelink";
-    public static final String PLATFORM_CATEGORY_NAME = "platform";
-    public static final String ACTION_TRIGGER_CATEGORY_NAME = "actiontrigger";
 
     private static Logger logger = Logger.getLogger(Resource.class.getName());
     private static Map<String, Resource> resources = new HashMap<String, Resource>();
@@ -74,18 +65,7 @@ public class Resource {
     }
 
     private static List<Attribute> getSpecificAttributeList(String category) {
-        if (category.equalsIgnoreCase(COMPUTE_CATEGORY_NAME)) {
-            return new Compute().getSpecificAttributeList();
-        } else if (category.equalsIgnoreCase(STORAGE_CATEGORY_NAME)) {
-            return new Storage().getSpecificAttributeList();
-        } else if (category.equalsIgnoreCase(STORAGE_LINK_CATEGORY_NAME)) {
-            return new StorageLink().getSpecificAttributeList();
-        } else if (category.equalsIgnoreCase(PLATFORM_CATEGORY_NAME)) {
-            return new Platform().getSpecificAttributeList();
-        } else if (category.equalsIgnoreCase(ACTION_TRIGGER_CATEGORY_NAME)) {
-            return ActionTrigger.getInstance().getSpecificAttributeList();
-        }
-        throw new IllegalArgumentException("Invalid category name: " + category);
+        return Categories.fromString(category).getSpecificAttributeList();
     }
 
     private static List<Attribute> getGenericAttributeList() {

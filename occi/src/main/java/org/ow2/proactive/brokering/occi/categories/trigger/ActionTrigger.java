@@ -1,21 +1,31 @@
 package org.ow2.proactive.brokering.occi.categories.trigger;
 
-import org.apache.log4j.Logger;
-import org.ow2.proactive.brokering.Configuration;
-import org.ow2.proactive.brokering.occi.categories.Utils;
-import org.ow2.proactive.brokering.triggering.*;
-import org.ow2.proactive.workflowcatalog.Reference;
-import org.ow2.proactive.workflowcatalog.References;
-import org.ow2.proactive.brokering.occi.Attribute;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Timer;
 
 import javax.xml.bind.JAXBException;
 
-import static org.ow2.proactive.brokering.occi.Resource.*;
+import org.ow2.proactive.brokering.Configuration;
+import org.ow2.proactive.brokering.occi.Attribute;
+import org.ow2.proactive.brokering.occi.Category;
+import org.ow2.proactive.brokering.occi.categories.Utils;
+import org.ow2.proactive.brokering.triggering.ActionExecutor;
+import org.ow2.proactive.brokering.triggering.Actions;
+import org.ow2.proactive.brokering.triggering.ConditionChecker;
+import org.ow2.proactive.brokering.triggering.Conditions;
+import org.ow2.proactive.brokering.triggering.ScriptException;
+import org.ow2.proactive.workflowcatalog.Reference;
+import org.ow2.proactive.workflowcatalog.References;
+import org.apache.log4j.Logger;
 
-import java.io.File;
-import java.util.*;
+import static org.ow2.proactive.brokering.occi.Resource.OP_CREATE;
+import static org.ow2.proactive.brokering.occi.Resource.OP_UPDATE;
 
-public class ActionTrigger {
+public class ActionTrigger implements Category {
 
     private static Logger logger = Logger.getLogger(ActionTrigger.class);
 
@@ -71,6 +81,7 @@ public class ActionTrigger {
         return instance;
     }
 
+    @Override
     public List<Attribute> getSpecificAttributeList() {
         List<Attribute> attributeList = new ArrayList<Attribute>();
         boolean mutable = true;
@@ -91,10 +102,9 @@ public class ActionTrigger {
     }
 
     public References request(
-            String category,
-            String operation,
-            String action,
-            Map<String, String> attributes) {
+      String operation,
+      String action,
+      Map<String, String> attributes) {
 
         References references = new References();
         if (OP_CREATE.equalsIgnoreCase(operation)) {

@@ -4,9 +4,8 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.UUID;
 
-import org.ow2.proactive.brokering.occi.Resource;
+import org.ow2.proactive.brokering.occi.Categories;
 import org.ow2.proactive.brokering.occi.categories.Utils;
 import org.ow2.proactive.brokering.occi.categories.trigger.ActionTrigger;
 import org.ow2.proactive.workflowcatalog.Catalog;
@@ -25,7 +24,7 @@ public class Broker {
 
     private static final Logger logger = Logger.getLogger(Broker.class.getName());
 
-    private static Broker instance;
+    private static Broker instance = new Broker();
 
     private SchedulerProxy scheduler;
     private Updater updater;
@@ -46,7 +45,7 @@ public class Broker {
             File catalogPath = getPath(config.catalog.path, "/config/catalog");
             File rulesPath = getPath(config.rules.path, "/config/rules");
 
-            catalog = new Catalog(catalogPath, config.catalog.refresh * 1000);
+            catalog = new Catalog(catalogPath, config.catalog.refresh * 1000, new CatalogToResource());
             rules = new Rules(rulesPath, config.rules.refresh * 1000);
             updater = new Updater(new SchedulerProxy(loginData), config.updater.refresh * 1000);
 
@@ -56,10 +55,6 @@ public class Broker {
     }
 
     public static Broker getInstance() {
-        // TODO : Double check locking
-        if (instance == null) {
-            instance = new Broker();
-        }
         return instance;
     }
 
@@ -141,9 +136,9 @@ public class Broker {
             String action,
             Map<String, String> attributes) {
 
-        if (Resource.ACTION_TRIGGER_CATEGORY_NAME.equalsIgnoreCase(category)) {
+        if (Categories.ACTION_TRIGGER.equals(Categories.fromString(category))) {
             int appliedRules = this.applyRules(attributes, rules);
-            References references = ActionTrigger.getInstance().request(category, operation, action, attributes);
+            References references = ActionTrigger.getInstance().request(operation, action, attributes);
             logger.info("Action trigger configured: (" + appliedRules + " rules applied)");
             return references;
         }

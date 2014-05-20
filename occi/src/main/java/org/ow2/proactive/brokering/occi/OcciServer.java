@@ -1,16 +1,19 @@
 package org.ow2.proactive.brokering.occi;
 
-import org.apache.log4j.Logger;
-import org.ow2.proactive.brokering.Configuration;
-import org.ow2.proactive.workflowcatalog.References;
-import org.ow2.proactive.brokering.occi.api.Occi;
-import org.ow2.proactive.brokering.occi.categories.Utils;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.xml.bind.JAXBException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import javax.ws.rs.core.Response;
+import javax.xml.bind.JAXBException;
+
+import org.ow2.proactive.brokering.Broker;
+import org.ow2.proactive.brokering.Configuration;
+import org.ow2.proactive.brokering.occi.api.Occi;
+import org.ow2.proactive.brokering.occi.categories.Utils;
+import org.ow2.proactive.workflowcatalog.References;
+import org.apache.log4j.Logger;
 
 public class OcciServer implements Occi {
 
@@ -71,16 +74,16 @@ public class OcciServer implements Occi {
         logger.info("------------------------------------------------------------------------");
         logger.info("Get list : category = [" + category + "]");
         try {
-            String locations = "";
+            List<Resource> filteredResources = new ArrayList<Resource>();
             for (Resource resource : Resource.getResources().values()) {
                 if (resource.getCategory().equalsIgnoreCase(category)) {
-                    locations += "X-OCCI-Location: " + resource.getUrl(prefixUrl) + "\n";
+                    filteredResources.add(resource);
                 }
             }
+            Resources resources = new Resources(filteredResources, prefixUrl);
             Response.ResponseBuilder response = Response.status(Response.Status.OK);
-            response.type(MediaType.TEXT_PLAIN_TYPE);
-            response.entity(locations);
-            logger.debug("Response : *" + locations.length() + " locations* CODE:" + Response.Status.OK);
+            response.entity(resources);
+            logger.debug("Response : *" + resources.size() + " locations* CODE:" + Response.Status.OK);
             return response.build();
 
         } catch (Throwable e) {
@@ -101,7 +104,6 @@ public class OcciServer implements Occi {
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
             Response.ResponseBuilder response = Response.status(Response.Status.OK);
-            response.type(MediaType.TEXT_PLAIN_TYPE);
             if (attribute == null) {
                 response.entity(resource);
             } else {
@@ -211,6 +213,8 @@ public class OcciServer implements Occi {
                 logger.warn(e);
             }
         }
+        // force creation when REST API is started
+        Broker.getInstance();
     }
 
     public static void setDatabase(Database db) {

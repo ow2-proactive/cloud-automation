@@ -1,11 +1,12 @@
 package org.ow2.proactive.brokering.occi.categories.iaas;
 
-import org.ow2.proactive.brokering.occi.Attribute;
-
 import java.util.ArrayList;
 import java.util.List;
 
-public class StorageLink {
+import org.ow2.proactive.brokering.occi.Attribute;
+import org.ow2.proactive.brokering.occi.Category;
+
+public class StorageLink implements Category {
 
     public StorageLink() {
 
