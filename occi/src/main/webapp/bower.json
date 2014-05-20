@@ -1,0 +1,11 @@
+{
+    "name": "Cloud Automation",
+    "private": true,
+    "dependencies": {
+        "angular": "1.2.x",
+        "bootstrap": "~3.1.1",
+        "angular-bootstrap": "~0.11.0",
+        "angular-route": "~1.2.x",
+        "angular-pines-notify": "0.1.0"
+    }
+}

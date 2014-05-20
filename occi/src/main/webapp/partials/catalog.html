@@ -1,0 +1,65 @@
+<!--<div class="col-sm-3 col-md-2 sidebar">-->
+<!--<hr>-->
+
+<!--<input type="text" ng-model="query"/>-->
+
+<!--<h4>Category</h4>-->
+
+<!--<div class="btn-group" data-toggle="buttons" ng-cloak-->
+<!--ng-repeat="(key, value) in filters.category">-->
+<!--<a class="btn btn-primary"-->
+<!--ng-click="query.attributes.category[key] = !query.attributes.category[key]"-->
+<!--ng-class="{active:!query.attributes.category[{{key}}]}">-->
+<!--{{ key | capitalize }}</a>-->
+<!--</div>-->
+<!--<h4>Provider</h4>-->
+
+<!--<div class="btn-group" data-toggle="buttons">-->
+<!--<label class="btn btn-primary" ng-click="query.attributes.provider = 'vcloud'">-->
+<!--<input type="radio"> VCloud-->
+<!--</label>-->
+<!--<label class="btn btn-primary" ng-click="query.attributes.provider = 'openstack'">-->
+<!--<input type="radio"> Openstack-->
+<!--</label>-->
+<!--</div>-->
+<!--<h4>Application</h4>-->
+
+<!--<div class="btn-group" data-toggle="buttons">-->
+<!--<label class="btn btn-primary" ng-click="query.attributes.application = 'elasticsearch'">-->
+<!--<input type="radio"> Elasticsearch-->
+<!--</label>-->
+<!--<label class="btn btn-primary" ng-click="query.attributes.application = 'nuxeo'">-->
+<!--<input type="radio"> Nuxeo-->
+<!--</label>-->
+<!--</div>-->
+
+<!--</div>-->
+<div class="col-sm-12  main">
+    <h1 class="page-header">Catalog
+        <small class="pull-right">
+            <i class="glyphicon glyphicon-filter"></i>
+            <input type="text" ng-model="query"/>
+        </small>
+    </h1>
+
+
+    <div class="row placeholders" ng-controller="InstantiateTemplateCtrl">
+        <div class="col-xs-6 col-sm-4 col-lg-2 placeholder ng-cloak"
+             ng-repeat="template in templates | filter:query | filter:{attributes: { operation : 'create'} }| orderBy:'attributes.application'"
+             ng-show="templates"
+             ng-cloak>
+            <a href="" class="templates" ng-click="open(template)">
+                <div class="thumbnail">
+                    <br>
+                    <img ng-src="img/catalog/{{template.attributes.application || template.attributes.provider || 'default' }}.png"
+                         class="img-responsive"
+                         alt="Template logo">
+                    <h4>{{template.attributes["occi.core.id"]}}</h4>
+                            <span class="text-muted">{{template.attributes.operation}} a {{template.attributes.category}}
+                                to {{template.attributes.action}} {{template.attributes.application}} on
+                                {{template.attributes.provider}}</span>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>

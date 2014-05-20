@@ -1,0 +1,31 @@
+.nav-sidebar > li > ul > li > a {
+    padding-right: 40px;
+    padding-left: 40px;
+}
+
+.navbar {
+    background-color: #FFFFFF;
+}
+
+.btn-group {
+    margin: 2px;
+}
+
+.form-horizontal .control-label{
+    text-align:left;
+}
+
+.templates a:hover, a:visited, a:link, a:active {
+    text-decoration: none;
+}
+.modal {
+    overflow-y: auto;
+}
+
+.modal-open {
+    overflow: auto;
+}
+
+.active {
+    color:#E87224;
+}

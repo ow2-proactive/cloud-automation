@@ -1,0 +1,42 @@
+<div class="col-sm-12 main" ng-controller="ServicesCtrl">
+    <h1 class="page-header">Services
+        <small class="pull-right">
+            <i class="glyphicon glyphicon-filter"></i>
+            <input type="text" ng-model="query"/>
+        </small>
+    </h1>
+
+    <table class="table table-striped ng-cloak" ng-show="services" ng-cloak>
+        <thead>
+        <tr>
+            <th></th>
+            <th>Category</th>
+            <th>State</th>
+            <th>Instance</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+
+        <tr class="ng-cloak"
+            ng-repeat="service in services | filter:query | orderBy:'uuid'">
+            <td>
+                <img ng-src="img/catalog/{{service.attributes.application || service.attributes.provider || 'default' }}.png"
+                     width="75px">
+            </td>
+
+            <td>
+                {{ service.category }}
+            </td>
+            <td>
+                {{ service.attributes['action.state'] }}
+            </td>
+            <td>
+                {{ service['uuid'] }}
+            </td>
+            <td>
+                <!--<a class="btn btn-warning">Stop</a>-->
+                <!--<a class="btn btn-danger">Delete</a>-->
+            </td>
+        </tr>
+    </table>
+</div>
