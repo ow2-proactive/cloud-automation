@@ -1,4 +1,4 @@
-<div class="col-sm-12 main" ng-controller="ServicesCtrl">
+<div class="col-sm-12 main" ng-controller="ServicesCtrl as controller">
     <h2 class="page-header">Services
         <small class="pull-right">
             <i class="glyphicon glyphicon-filter"></i>
@@ -6,7 +6,7 @@
         </small>
     </h2>
 
-    <table class="table table-striped ng-cloak" ng-show="services" ng-cloak>
+    <table class="table table-striped ng-cloak" ng-show="controller.services" ng-cloak>
         <thead>
         <tr>
             <th></th>
@@ -17,10 +17,9 @@
         </tr>
         </thead>
 
-        <tr class="ng-cloak"
-            ng-repeat="service in services | filter:query | orderBy:'uuid'">
+        <tr class="ng-cloak" ng-repeat="service in controller.services | filter:query | orderBy:'uuid'">
             <td>
-                <img ng-src="img/catalog/{{service.attributes.application || service.attributes.provider || 'default' }}.png"
+                <img ng-src="{{ service | toLogo }}"
                      width="75px">
             </td>
 

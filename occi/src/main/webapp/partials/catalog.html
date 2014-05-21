@@ -43,15 +43,15 @@
     </h2>
 
 
-    <div class="row placeholders" ng-controller="InstantiateTemplateCtrl">
+    <div class="row placeholders" ng-controller="CatalogCtrl as catalog">
         <div class="col-xs-6 col-sm-4 col-lg-2 placeholder ng-cloak"
-             ng-repeat="template in templates | filter:query | filter:{attributes: { operation : 'create'} }| orderBy:'attributes.application'"
-             ng-show="templates"
+             ng-repeat="template in catalog.templates | filter:query | filter:{attributes: { operation : 'create'} }| orderBy:'attributes.application'"
+             ng-show="catalog.templates"
              ng-cloak>
-            <a href="" class="templates" ng-click="open(template)">
+            <a href="" class="templates" ng-click="catalog.createService(template)">
                 <div class="thumbnail">
                     <br>
-                    <img ng-src="img/catalog/{{template.attributes.application || template.attributes.provider || 'default' }}.png"
+                    <img ng-src="{{template | toLogo }}"
                          class="img-responsive"
                          alt="Template logo">
                     <h4>{{template.attributes["occi.core.id"]}}</h4>

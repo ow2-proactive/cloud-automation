@@ -38,11 +38,11 @@
             ProActive Cloud Automation
         </a>
     </div>
-    <div class="collapse navbar-collapse" ng-controller="HeaderController">
+    <div class="collapse navbar-collapse" ng-controller="NavBarController as navbar">
         <ul class="nav navbar-nav">
-            <li ng-class="{ active: isActive('/catalog')}"><a id="save-button" href="#/catalog" class="pointer">
+            <li ng-class="{ active: navbar.isActive('/catalog')}"><a id="save-button" href="#/catalog" class="pointer">
                 <i class="glyphicon glyphicon-folder-open"></i> Catalog</a></li>
-            <li ng-class="{ active: isActive('/services')}"><a id="submit-button" href="#/services" class="pointer"><i
+            <li ng-class="{ active: navbar.isActive('/services')}"><a id="submit-button" href="#/services" class="pointer"><i
                     class="glyphicon glyphicon-tasks "></i> Services</a></li>
         </ul>
         <ul class="nav navbar-nav nav navbar-right">
@@ -67,7 +67,8 @@
 
 <script src="js/app.js"></script>
 <script src="js/config.js"></script>
-<script src="js/controllers.js"></script>
+<script src="js/catalog.js"></script>
+<script src="js/services.js"></script>
 
 </body>
 </html>
