@@ -38,16 +38,50 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.ow2.proactive.brokering.occi.Attribute;
+import org.ow2.proactive.brokering.occi.categories.iaas.Compute;
+import org.ow2.proactive.brokering.occi.categories.iaas.Storage;
+import org.ow2.proactive.brokering.occi.categories.iaas.StorageLink;
+import org.ow2.proactive.brokering.occi.categories.paas.Platform;
+import org.ow2.proactive.brokering.occi.categories.trigger.ActionTrigger;
 
 
-public class Template extends BaseCategory {
-    @Override
-    public List<Attribute> getAttributes() {
-        return new ArrayList<Attribute>();
+public enum Categories {
+    COMPUTE(new Compute()),
+    STORAGE(new Storage()),
+    STORAGE_LINK(new StorageLink()),
+    PLATFORM(new Platform()),
+    ACTION_TRIGGER(ActionTrigger.getInstance()),
+    TEMPLATE(new Template());
+
+    private Category category;
+
+    Categories(Category category) {
+        this.category = category;
+    }
+
+    public static Categories fromString(String categoryAsString) {
+        for (Categories category : Categories.values()) {
+            if (category.toString().equals(categoryAsString)) {
+                return category;
+            }
+        }
+        throw new IllegalArgumentException("Invalid category name: " + categoryAsString);
     }
 
     @Override
-    public String getScheme() {
-        return "http://schemas.ogf.org/occi/#";
+    public String toString() {
+        return super.toString().toLowerCase().replaceAll("_", "");
+    }
+
+    public List<Attribute> getSpecificAttributeList() {
+        return category.getAttributes();
+    }
+
+    public static List<Category> list() {
+        List<Category> categories = new ArrayList<Category>();
+        for (Categories category : values()) {
+            categories.add(category.category);
+        }
+        return categories;
     }
 }

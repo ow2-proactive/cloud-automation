@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.ow2.proactive.brokering.occi.Categories;
+import org.ow2.proactive.brokering.occi.categories.Categories;
 import org.ow2.proactive.brokering.occi.categories.Utils;
 import org.ow2.proactive.brokering.occi.categories.trigger.ActionTrigger;
 import org.ow2.proactive.workflowcatalog.Catalog;

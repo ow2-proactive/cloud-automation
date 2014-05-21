@@ -4,15 +4,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.ow2.proactive.brokering.occi.Attribute;
-import org.ow2.proactive.brokering.occi.Category;
+import org.ow2.proactive.brokering.occi.categories.BaseCategory;
 
-public class Platform implements Category {
+
+public class Platform extends BaseCategory {
 
     public Platform() {
 
     }
 
-    public List<Attribute> getSpecificAttributeList() {
+    public List<Attribute> getAttributes() {
         List<Attribute> attributeList = new ArrayList<Attribute>();
         boolean mutable = true;
         boolean required = true;
@@ -53,5 +54,10 @@ public class Platform implements Category {
 
 
         return attributeList;
+    }
+
+    @Override
+    public String getScheme() {
+        return "http://schemas.ogf.org/occi/platform#";
     }
 }

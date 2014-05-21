@@ -32,47 +32,58 @@
  *
  *  * $$PROACTIVE_INITIAL_DEV$$
  */
-package org.ow2.proactive.brokering.occi;
+package org.ow2.proactive.brokering.occi.categories;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-import org.ow2.proactive.brokering.occi.categories.Template;
-import org.ow2.proactive.brokering.occi.categories.iaas.Compute;
-import org.ow2.proactive.brokering.occi.categories.iaas.Storage;
-import org.ow2.proactive.brokering.occi.categories.iaas.StorageLink;
-import org.ow2.proactive.brokering.occi.categories.paas.Platform;
-import org.ow2.proactive.brokering.occi.categories.trigger.ActionTrigger;
+import org.ow2.proactive.brokering.occi.Attribute;
 
 
-public enum Categories {
-    COMPUTE(new Compute()),
-    STORAGE(new Storage()),
-    STORAGE_LINK(new StorageLink()),
-    PLATFORM(new Platform()),
-    ACTION_TRIGGER(ActionTrigger.getInstance()),
-    TEMPLATE(new Template());
-
-    private Category category;
-
-    Categories(Category category) {
-        this.category = category;
-    }
-
-    public static Categories fromString(String categoryAsString) {
-        for (Categories category : Categories.values()) {
-            if (category.toString().equals(categoryAsString)) {
-                return category;
-            }
-        }
-        throw new IllegalArgumentException("Invalid category name: " + categoryAsString);
+public abstract class BaseCategory implements Category {
+    @Override
+    public List<Attribute> getAttributes() {
+        return new ArrayList<Attribute>();
     }
 
     @Override
-    public String toString() {
-        return super.toString().toLowerCase().replaceAll("_", "");
+    public List<String> getActions() {
+        return Collections.emptyList();
     }
 
-    public List<Attribute> getSpecificAttributeList() {
-        return category.getSpecificAttributeList();
+    @Override
+    public String getTitle() {
+        return this.getClass().getSimpleName();
+    }
+
+    @Override
+    public String getRel() {
+        return "http://schemas.ogf.org/occi/core#" + unCapitalizeClassName();
+    }
+
+    private String unCapitalizeClassName() {
+        String className = this.getClass().getSimpleName();
+        return Character.toLowerCase(className.charAt(0)) + className.substring(1);
+    }
+
+    @Override
+    public String getLocation() {
+        return "/" + this.getClass().getSimpleName().toLowerCase() + "/";
+    }
+
+    @Override
+    public String getTerm() {
+        return this.getClass().getSimpleName().toLowerCase();
+    }
+
+    @Override
+    public String toOcciString() {
+        return getTerm() + ";"
+          + "scheme=" + getScheme() + ";"
+          + "class=" + "kind" + ";"
+          + "title=" + getTitle() + ";"
+          + "rel=" + getRel() + ";"
+          + "location=" + getLocation();
     }
 }

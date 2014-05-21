@@ -32,11 +32,23 @@
  *
  *  * $$PROACTIVE_INITIAL_DEV$$
  */
-package org.ow2.proactive.brokering.occi;
+package org.ow2.proactive.brokering.occi.categories;
 
 import java.util.List;
 
+import org.ow2.proactive.brokering.occi.Attribute;
+
 
 public interface Category {
-    List<Attribute> getSpecificAttributeList();
+    String getTerm();
+    String getScheme();
+    String getTitle();
+    String getRel();
+    String getLocation();
+
+    List<Attribute> getAttributes();
+
+    List<String> getActions();
+
+    String toOcciString();
 }

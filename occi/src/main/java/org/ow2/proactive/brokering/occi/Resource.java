@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.ow2.proactive.brokering.Broker;
+import org.ow2.proactive.brokering.occi.categories.Categories;
 import org.ow2.proactive.workflowcatalog.References;
 import org.apache.log4j.Logger;
 

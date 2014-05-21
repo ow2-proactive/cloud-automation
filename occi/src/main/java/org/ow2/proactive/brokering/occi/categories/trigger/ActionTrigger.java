@@ -11,7 +11,7 @@ import javax.xml.bind.JAXBException;
 
 import org.ow2.proactive.brokering.Configuration;
 import org.ow2.proactive.brokering.occi.Attribute;
-import org.ow2.proactive.brokering.occi.Category;
+import org.ow2.proactive.brokering.occi.categories.BaseCategory;
 import org.ow2.proactive.brokering.occi.categories.Utils;
 import org.ow2.proactive.brokering.triggering.ActionExecutor;
 import org.ow2.proactive.brokering.triggering.Actions;
@@ -25,7 +25,7 @@ import org.apache.log4j.Logger;
 import static org.ow2.proactive.brokering.occi.Resource.OP_CREATE;
 import static org.ow2.proactive.brokering.occi.Resource.OP_UPDATE;
 
-public class ActionTrigger implements Category {
+public class ActionTrigger extends BaseCategory {
 
     private static Logger logger = Logger.getLogger(ActionTrigger.class);
 
@@ -82,7 +82,7 @@ public class ActionTrigger implements Category {
     }
 
     @Override
-    public List<Attribute> getSpecificAttributeList() {
+    public List<Attribute> getAttributes() {
         List<Attribute> attributeList = new ArrayList<Attribute>();
         boolean mutable = true;
         boolean required = true;
@@ -95,6 +95,11 @@ public class ActionTrigger implements Category {
         attributeList.add(new Attribute(OCCI_MONITORING_METADATA, mutable, !required));
 
         return attributeList;
+    }
+
+    @Override
+    public String getScheme() {
+        return "http://schemas.ogf.org/occi/#";
     }
 
     public static Map<String, Timer> getTimers() {

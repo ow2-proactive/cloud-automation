@@ -11,6 +11,7 @@ import javax.xml.bind.JAXBException;
 import org.ow2.proactive.brokering.Broker;
 import org.ow2.proactive.brokering.Configuration;
 import org.ow2.proactive.brokering.occi.api.Occi;
+import org.ow2.proactive.brokering.occi.categories.Categories;
 import org.ow2.proactive.brokering.occi.categories.Utils;
 import org.ow2.proactive.workflowcatalog.References;
 import org.apache.log4j.Logger;
@@ -92,6 +93,16 @@ public class OcciServer implements Occi {
         } finally {
             logger.info("------------------------------------------------------------------------");
         }
+    }
+
+    @Override
+    public Response RFC5785() {
+        return Response.status(Response.Status.OK).build();
+    }
+
+    @Override
+    public Response discovery() {
+        return Response.status(Response.Status.OK).entity(Categories.list()).build();
     }
 
     @Override
