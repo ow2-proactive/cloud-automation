@@ -2,6 +2,10 @@ package unittests;
 
 import org.junit.*;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 import junit.framework.Assert;
 import org.ow2.proactive.brokering.occi.Database;
 import org.ow2.proactive.brokering.occi.Resource;
@@ -9,17 +13,16 @@ import org.ow2.proactive.brokering.occi.Resource;
 public class DatabaseTest {
 
     private static final int NRO_RESOURCES = 100;
-    private static final String TEST_DB_NAME = "occi-database-test";
+    private static final String TEST_DB_NAME_PREFIX = "occi-database-test-";
 
     @Before
     public void before() throws Exception {
-        Database.setDatabaseName(TEST_DB_NAME);
-        Database.dropDB();
+        Random r = new Random();
+        Database.setDatabaseName(TEST_DB_NAME_PREFIX + r.nextInt(Integer.MAX_VALUE));
     }
 
     @After
     public void after() throws Exception {
-        Database.setDatabaseName(TEST_DB_NAME);
         Database.dropDB();
     }
 
@@ -33,6 +36,58 @@ public class DatabaseTest {
         db.store(res);
 
         Assert.assertTrue(db.getAllResources().size() == 1);
+
+        db.close();
+    }
+
+    @Test
+    public void createDatabaseSimpleMultithreaded_Test() throws Exception {
+        final Database db = Database.getInstance();
+
+        Assert.assertTrue(db.getAllResources().isEmpty());
+
+        final Resource res = generateStandardResource();
+
+        Thread t = new Thread(new Runnable() { public void run() { db.store(res); } });
+        t.start();
+        t.join();
+
+        Assert.assertTrue(db.getAllResources().size() == 1);
+
+        db.close();
+    }
+
+    @Test
+    public void createDatabaseSimpleMultithreadedExtreme_Test() throws Exception {
+        final int NRO_STORES = 10000;
+        final int THREAD_POOL_SIZE = 10;
+        final int TIMEOUT = 10;
+
+        ExecutorService executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
+
+        final Database db = Database.getInstance();
+
+        Assert.assertTrue(db.getAllResources().isEmpty());
+
+        Runnable r = new Runnable() {
+            public void run() {
+                Resource res = generateStandardResource();
+                db.store(res);
+            }
+        };
+
+        for (int i=0; i<NRO_STORES; i++) {
+            executor.submit(r);
+        }
+
+        executor.shutdown();
+        boolean terminated = executor.awaitTermination(TIMEOUT, TimeUnit.SECONDS);
+
+        if (!terminated) {
+            throw new RuntimeException("The insertion took too long");
+        }
+
+        Assert.assertTrue(db.getAllResources().size() == NRO_STORES);
 
         db.close();
     }
