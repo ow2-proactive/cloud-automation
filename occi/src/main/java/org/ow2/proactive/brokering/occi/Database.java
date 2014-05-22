@@ -1,7 +1,8 @@
 package org.ow2.proactive.brokering.occi;
 
-import com.orientechnologies.orient.core.db.object.ODatabaseObjectTx;
+import com.orientechnologies.orient.core.db.ODatabaseRecordThreadLocal;
 import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery;
+import com.orientechnologies.orient.object.db.OObjectDatabaseTx;
 import org.apache.log4j.Logger;
 
 import java.io.File;
@@ -16,37 +17,33 @@ public class Database {
     private static Logger logger = Logger.getLogger(Database.class);
     private static Database instance;
 
-    private ODatabaseObjectTx db;
+    private OObjectDatabaseTx db;
 
     public static void setDatabaseName(String databaseName) {
         DB_NAME = databaseName;
     }
 
-    public static void resetInstance() {
-        instance = null;
+    public static String getDatabaseName() {
+        return DB_NAME;
     }
 
-    public static Database getInstance() {
-        if (instance == null) {
-            instance = new Database();
-            Resource.loadDatabase(instance.getAllResources());
-        }
-        return instance;
-    }
-
-    public static void dropDB() {
-        ODatabaseObjectTx dba = new ODatabaseObjectTx(generateDatabaseUrl(DB_NAME));
+    public static void dropDB(String dbName) {
+        OObjectDatabaseTx dba = new OObjectDatabaseTx(generateDatabaseUrl(dbName));
         if (dba.exists()) {
             dba = dba.open(DB_DEFAULT_USERNAME, DB_DEFAULT_PASSWORD);
             dba.drop();
+            dba.close();
         }
-        resetInstance();
+    }
+
+    public static Database getDatabase() {
+        return new Database();
     }
 
     private Database() {
         logger.info("Setting up DB");
 
-        db = new ODatabaseObjectTx(generateDatabaseUrl(DB_NAME));
+        db = new OObjectDatabaseTx(generateDatabaseUrl(DB_NAME));
 
         this.createIfNeeded();
         this.openIfNeeded();
@@ -120,7 +117,6 @@ public class Database {
         if (db.isClosed())
             db.open(DB_DEFAULT_USERNAME, DB_DEFAULT_PASSWORD);
     }
-
 
 }
 

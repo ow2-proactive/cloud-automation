@@ -12,6 +12,7 @@ import javax.ws.rs.core.Response;
 
 import org.ow2.proactive.brokering.occi.OcciServer;
 import org.ow2.proactive.brokering.occi.Resource;
+import org.ow2.proactive.brokering.occi.ResourcesHandler;
 import org.ow2.proactive.brokering.occi.api.Occi;
 import org.ow2.proactive.brokering.occi.categories.Utils;
 import org.ow2.proactive.workflowcatalog.Reference;
@@ -45,7 +46,7 @@ public class Updater {
     }
 
     public synchronized void addResourceToTheUpdateQueue(Reference jobReference, String resource) {
-        addResourceToTheUpdateQueue(jobReference, Resource.getResources().get(resource));
+        addResourceToTheUpdateQueue(jobReference, ResourcesHandler.getResources().get(resource));
     }
 
     public synchronized void addResourceToTheUpdateQueue(Reference jobReference, Resource resource) {

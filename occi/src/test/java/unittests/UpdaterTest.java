@@ -1,17 +1,14 @@
 package unittests;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-
-import org.junit.Ignore;
 import org.ow2.proactive.brokering.Updater;
 import org.ow2.proactive.brokering.occi.Database;
 import org.ow2.proactive.brokering.occi.OcciServer;
 import org.ow2.proactive.brokering.occi.Resource;
+import org.ow2.proactive.brokering.occi.ResourcesHandler;
 import org.ow2.proactive.brokering.occi.api.Occi;
 import org.ow2.proactive.workflowcatalog.Reference;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.JobNotFinishedException;
@@ -58,7 +55,7 @@ public class UpdaterTest {
         // A resource is created, and a job is submitted consequently for real stuff.
         // The output of the job's tasks must be used to update the resource's properties.
 
-        Resource resource = Resource.factory(
+        Resource resource = ResourcesHandler.factory(
                 UUID.randomUUID().toString(),
                 COMPUTE_NAME,
                 getDefaultComputeAttributes());
@@ -80,7 +77,7 @@ public class UpdaterTest {
     public void verifyOuputJsonTaskOutputIsInsertedIntoResourcePropertiesIfTaskOutputIsNotJson_Test()
             throws Exception {
 
-        Resource resource = Resource.factory(
+        Resource resource = ResourcesHandler.factory(
                 UUID.randomUUID().toString(),
                 COMPUTE_NAME,
                 getDefaultComputeAttributes());
@@ -103,7 +100,7 @@ public class UpdaterTest {
     public void verifyAllOuputJsonTaskOutputAreInsertedIntoResourcePropertiesEvenIfNotAllTaskOutputsAreJson_Test()
             throws Exception {
 
-        Resource resource = Resource.factory(
+        Resource resource = ResourcesHandler.factory(
                 UUID.randomUUID().toString(),
                 COMPUTE_NAME,
                 getDefaultComputeAttributes());
@@ -126,7 +123,7 @@ public class UpdaterTest {
     public void verifyResourcePropertiesAreUpdatedIfJobError_Test()
             throws Exception {
 
-        Resource resource = Resource.factory(
+        Resource resource = ResourcesHandler.factory(
                 UUID.randomUUID().toString(),
                 COMPUTE_NAME,
                 getDefaultComputeAttributes());
@@ -209,7 +206,7 @@ public class UpdaterTest {
     }
 
     private void waitUntilUpdaterReacts() throws InterruptedException {
-        Thread.sleep(500);
+        Thread.sleep(1000);
     }
 
     private void assertResourceAttributesAreCorrectlyTakenFromTaskResults(Resource resource) {

@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.ow2.proactive.brokering.occi.Resource;
+import org.ow2.proactive.brokering.occi.ResourcesHandler;
 import org.ow2.proactive.workflowcatalog.CatalogListener;
 import org.ow2.proactive.workflowcatalog.Workflow;
 
@@ -50,19 +51,19 @@ class CatalogToResource implements CatalogListener {
         attributes.putAll(addedWorkflow.getGenericInformation());
         String resourceId = resourceIdFromWorkflow(addedWorkflow);
         attributes.put("occi.core.id", resourceId);
-        Resource.factory(resourceId, "template", attributes);
+        ResourcesHandler.factory(resourceId, "template", attributes);
     }
 
     @Override
     public void updated(Workflow updatedWorkflow) {
-        Resource resource = Resource.getResources().get(resourceIdFromWorkflow(updatedWorkflow));
+        Resource resource = ResourcesHandler.getResources().get(resourceIdFromWorkflow(updatedWorkflow));
         resource.getAttributes().putAll(updatedWorkflow.getVariables());
         resource.getAttributes().putAll(updatedWorkflow.getGenericInformation());
     }
 
     @Override
     public void removed(Workflow removedWorkflow) {
-        Resource.getResources().remove(resourceIdFromWorkflow(removedWorkflow));
+        ResourcesHandler.getResources().remove(resourceIdFromWorkflow(removedWorkflow));
     }
 
     private String resourceIdFromWorkflow(Workflow addedWorkflow) {

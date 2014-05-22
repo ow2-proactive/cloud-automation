@@ -20,7 +20,6 @@ public class OcciServer implements Occi {
 
     private static Logger logger = Logger.getLogger(OcciServer.class);
 
-    private static Database db;
     private static String prefixUrl;
 
     // ************* OCCI SERVER MANAGEMENT **************
@@ -47,8 +46,8 @@ public class OcciServer implements Occi {
             String uuid = UUID.randomUUID().toString();
             attributes += ",action.state=pending,occi.core.id=" + uuid;
             //            attributes += ",action.state=\"pending\", occi.core.id=\"" + uuid + "\"";
-            Resource resource = Resource.factory(uuid, category, Utils.buildMap(attributes));
-            db.store(resource);
+            Resource resource = ResourcesHandler.factory(uuid, category, Utils.buildMap(attributes));
+            Database.getDatabase().store(resource);
 
             References references = resource.create();
             if (!references.areAllSubmitted()) {
@@ -76,7 +75,7 @@ public class OcciServer implements Occi {
         logger.info("Get list : category = [" + category + "]");
         try {
             List<Resource> filteredResources = new ArrayList<Resource>();
-            for (Resource resource : Resource.getResources().values()) {
+            for (Resource resource : ResourcesHandler.getResources().values()) {
                 if (resource.getCategory().equalsIgnoreCase(category)) {
                     filteredResources.add(resource);
                 }
@@ -110,7 +109,7 @@ public class OcciServer implements Occi {
         logger.info("------------------------------------------------------------------------");
         logger.info("Get : category = [" + category + "], uuid = [" + uuid + "], attribute = [" + attribute + "]");
         try {
-            Resource resource = Resource.getResources().get(uuid);
+            Resource resource = ResourcesHandler.getResources().get(uuid);
             if (resource == null || !resource.getCategory().equalsIgnoreCase(category)) {
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
@@ -139,7 +138,7 @@ public class OcciServer implements Occi {
         logger.info("Update : category = [" + category + "], uuid = [" + uuid + "], action = [" + action + "]");
         logger.info("         attributes = [" + attributes + "]");
         try {
-            Resource resource = Resource.getResources().get(uuid);
+            Resource resource = ResourcesHandler.getResources().get(uuid);
             if (resource == null || !resource.getCategory().equalsIgnoreCase(category)) {
                 logger.debug("Response : NOT_FOUND:" + Response.Status.NOT_FOUND);
                 return Response.status(Response.Status.NOT_FOUND).build();
@@ -153,7 +152,7 @@ public class OcciServer implements Occi {
                 }
                 resource.getAttributes().put(key, newAttributes.get(key));
             }
-            db.store(resource);
+            Database.getDatabase().store(resource);
 
             if (action != null) {
                 resource.getAttributes().put("action.state", "pending");
@@ -199,8 +198,8 @@ public class OcciServer implements Occi {
             }
             logger.info("Delete URL : category = [" + category + "], uuid = [" + uuid + "], status = [" + status + "]");
             if (status.equalsIgnoreCase("done")) {
-                Resource.getResources().remove(uuid);
-                db.delete(uuid);
+                ResourcesHandler.getResources().remove(uuid);
+                Database.getDatabase().delete(uuid);
                 logger.info("------------------------------------------------------------------------");
                 return Response.status(Response.Status.OK).build();
             }
@@ -212,10 +211,8 @@ public class OcciServer implements Occi {
         }
     }
 
-
     public OcciServer() {
-        if (db == null) {
-            db = Database.getInstance();
+        if (prefixUrl == null) {
 
             try {
                 Configuration config = Utils.getConfiguration();
@@ -228,7 +225,4 @@ public class OcciServer implements Occi {
         Broker.getInstance();
     }
 
-    public static void setDatabase(Database db) {
-        OcciServer.db = db;
-    }
 }

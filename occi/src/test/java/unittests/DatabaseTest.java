@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 import junit.framework.Assert;
 import org.ow2.proactive.brokering.occi.Database;
 import org.ow2.proactive.brokering.occi.Resource;
+import org.ow2.proactive.brokering.occi.ResourcesHandler;
 
 public class DatabaseTest {
 
@@ -23,12 +24,12 @@ public class DatabaseTest {
 
     @After
     public void after() throws Exception {
-        Database.dropDB();
+        Database.dropDB(Database.getDatabaseName());
     }
 
     @Test
     public void createDatabaseSimple_Test() throws Exception {
-        Database db = Database.getInstance();
+        Database db = Database.getDatabase();
 
         Assert.assertTrue(db.getAllResources().isEmpty());
 
@@ -42,37 +43,46 @@ public class DatabaseTest {
 
     @Test
     public void createDatabaseSimpleMultithreaded_Test() throws Exception {
-        final Database db = Database.getInstance();
-
-        Assert.assertTrue(db.getAllResources().isEmpty());
+        final Database dbe = Database.getDatabase();
+        Assert.assertTrue(dbe.getAllResources().isEmpty());
 
         final Resource res = generateStandardResource();
 
-        Thread t = new Thread(new Runnable() { public void run() { db.store(res); } });
+        Thread t = new Thread(
+            new Runnable() {
+                public void run() {
+                    final Database dbi = Database.getDatabase();
+                    dbi.store(res);
+                    dbi.close();
+                }
+            }
+        );
+
         t.start();
         t.join();
 
-        Assert.assertTrue(db.getAllResources().size() == 1);
+        Assert.assertTrue(dbe.getAllResources().size() == 1);
 
-        db.close();
+        dbe.close();
     }
 
     @Test
     public void createDatabaseSimpleMultithreadedExtreme_Test() throws Exception {
-        final int NRO_STORES = 10000;
+        final int NRO_STORES = 1000;
         final int THREAD_POOL_SIZE = 10;
-        final int TIMEOUT = 10;
+        final int TIMEOUT = 20;
 
         ExecutorService executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
 
-        final Database db = Database.getInstance();
-
-        Assert.assertTrue(db.getAllResources().isEmpty());
+        final Database dbe = Database.getDatabase();
+        Assert.assertTrue(dbe.getAllResources().isEmpty());
 
         Runnable r = new Runnable() {
             public void run() {
+                final Database dbi = Database.getDatabase();
                 Resource res = generateStandardResource();
-                db.store(res);
+                dbi.store(res);
+                dbi.close();
             }
         };
 
@@ -87,14 +97,14 @@ public class DatabaseTest {
             throw new RuntimeException("The insertion took too long");
         }
 
-        Assert.assertTrue(db.getAllResources().size() == NRO_STORES);
+        Assert.assertTrue(dbe.getAllResources().size() == NRO_STORES);
 
-        db.close();
+        dbe.close();
     }
 
     @Test
     public void persistentDatabaseSingleItem_Test() throws Exception {
-        Database db = Database.getInstance();
+        final Database db = Database.getDatabase();
 
         Assert.assertTrue(db.getAllResources().isEmpty());
 
@@ -105,8 +115,7 @@ public class DatabaseTest {
 
         db.close();
 
-        Database.resetInstance();
-        Database db1 = Database.getInstance();
+        final Database db1 = Database.getDatabase();
 
         Assert.assertTrue(db1.getAllResources().size() == 1);
 
@@ -119,7 +128,8 @@ public class DatabaseTest {
     @Test
     public void persistentDatabaseMultipleItems_Test() throws Exception {
 
-        Database db = Database.getInstance();
+        final Database db = Database.getDatabase();
+
         Map<String, Resource> checkMap = new HashMap<String, Resource>();
 
         Assert.assertTrue(db.getAllResources().isEmpty());
@@ -134,8 +144,7 @@ public class DatabaseTest {
 
         db.close();
 
-        Database.resetInstance();
-        Database db1 = Database.getInstance();
+        final Database db1 = Database.getDatabase();
 
         Assert.assertTrue(db1.getAllResources().size() == NRO_RESOURCES);
 
@@ -160,7 +169,7 @@ public class DatabaseTest {
         String templateName = "template_name" + UUID.randomUUID().toString();
         map.put("occi.compute.template_name", templateName);
         map.put("occi.core.id", uuid);
-        return Resource.factory(uuid, "compute", map);
+        return ResourcesHandler.factory(uuid, "compute", map);
     }
 
 }
