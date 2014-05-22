@@ -13,4 +13,12 @@
         });
     });
 
+    services.controller('ServiceDetailsCtrl', function ($http, $q, $routeParams) {
+        var controller = this;
+        this.compute = $http.get('/ca/api/occi/compute/' + $routeParams.serviceId).
+            success(function (data) {
+                controller.service = data;
+            });
+    });
+
 }());

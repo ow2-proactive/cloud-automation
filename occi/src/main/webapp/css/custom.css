@@ -14,6 +14,9 @@
 .form-horizontal .control-label{
     text-align:left;
 }
+.form-horizontal .control-label-right{
+    text-align:right;
+}
 
 .templates a:hover, a:visited, a:link, a:active {
     text-decoration: none;

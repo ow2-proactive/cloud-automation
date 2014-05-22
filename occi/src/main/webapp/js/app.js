@@ -34,6 +34,10 @@
                     templateUrl: 'partials/services.html',
                     controller: 'ServicesCtrl'
                 }).
+                when('/services/:serviceId', {
+                    templateUrl: 'partials/service-details.html',
+                    controller: 'ServiceDetailsCtrl'
+                }).
                 otherwise({
                     redirectTo: '/services'
                 });
