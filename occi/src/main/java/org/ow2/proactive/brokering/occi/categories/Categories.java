@@ -50,7 +50,7 @@ public enum Categories {
     STORAGE(new Storage()),
     STORAGE_LINK(new StorageLink()),
     PLATFORM(new Platform()),
-    ACTION_TRIGGER(ActionTrigger.getInstance()),
+    ACTION_TRIGGER(new ActionTrigger()),
     TEMPLATE(new Template());
 
     private Category category;

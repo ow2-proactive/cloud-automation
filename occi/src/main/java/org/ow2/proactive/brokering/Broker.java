@@ -8,6 +8,7 @@ import java.util.TreeMap;
 import org.ow2.proactive.brokering.occi.categories.Categories;
 import org.ow2.proactive.brokering.occi.categories.Utils;
 import org.ow2.proactive.brokering.occi.categories.trigger.ActionTrigger;
+import org.ow2.proactive.brokering.occi.client.ActionTriggerHandler;
 import org.ow2.proactive.workflowcatalog.Catalog;
 import org.ow2.proactive.workflowcatalog.Reference;
 import org.ow2.proactive.workflowcatalog.References;
@@ -138,7 +139,7 @@ public class Broker {
 
         if (Categories.ACTION_TRIGGER.equals(Categories.fromString(category))) {
             int appliedRules = this.applyRules(attributes, rules);
-            References references = ActionTrigger.getInstance().request(operation, action, attributes);
+            References references = ActionTriggerHandler.getInstance().request(operation, action, attributes);
             logger.info("Action trigger configured: (" + appliedRules + " rules applied)");
             return references;
         }

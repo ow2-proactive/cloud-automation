@@ -12,11 +12,14 @@ public class Scripts {
 
     protected static Logger logger = Logger.getLogger(Scripts.class.getName());
     protected final List<File> scripts;
+    protected final File scriptsPath;
 
     public Scripts(File path, long refreshMs) {
-        Timer timer = new Timer();
         scripts = new LinkedList<File>();
-        timer.schedule(new UpdateTask(path), 0, refreshMs);
+        scriptsPath = path;
+
+        Timer timer = new Timer();
+        timer.schedule(new UpdateTask(scriptsPath), 0, refreshMs);
     }
 
     public List<File> getScripts() {
@@ -30,7 +33,7 @@ public class Scripts {
             if (f.getName().equals(name))
                 return f;
         }
-        throw new FileNotFoundException(name);
+        throw new FileNotFoundException(new File(scriptsPath, name).getAbsolutePath());
     }
 
     public Class getScriptAsClass(String name) throws IOException {

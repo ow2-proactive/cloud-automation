@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import org.ow2.proactive.brokering.Configuration;
 import org.ow2.proactive.brokering.occi.categories.trigger.ActionTrigger;
+import org.ow2.proactive.brokering.occi.client.ActionTriggerHandler;
 import org.ow2.proactive.brokering.triggering.ScriptUtils;
 import org.ow2.proactive.workflowcatalog.References;
 import junit.framework.Assert;
@@ -28,12 +29,12 @@ public class ActionTriggerTest {
     public static void before() throws Exception {
         Configuration config = new Configuration();
         config.actions = new Configuration.Actions();
-        config.actions.path = ActionTrigger.class.getResource("/actions/").getFile();
+        config.actions.path = ActionTriggerTest.class.getResource("/actions/").getFile();
         config.actions.refresh = 10;
         config.conditions = new Configuration.Conditions();
-        config.conditions.path = ActionTrigger.class.getResource("/conditions/").getFile();
+        config.conditions.path = ActionTriggerTest.class.getResource("/conditions/").getFile();
         config.conditions.refresh = 10;
-        ActionTrigger.getInstance(config);
+        ActionTriggerHandler.getInstance(config);
     }
 
     @Test
@@ -60,7 +61,7 @@ public class ActionTriggerTest {
 
     private void actionTriggerStartScheduleOnce(Map<String, String> atts) throws Exception {
 
-        ActionTrigger actionTrigger = ActionTrigger.getInstance();
+        ActionTriggerHandler actionTrigger = ActionTriggerHandler.getInstance();
 
         initializeCallbackCounters();
 
@@ -69,7 +70,7 @@ public class ActionTriggerTest {
 
         References references = actionTrigger.request(
           "create",
-                "scheduleonce", atts);
+                ActionTriggerHandler.ACTION_SCHEDULE_ONCE, atts);
 
         Thread.sleep(100 * PERIODMS);
 
@@ -88,6 +89,7 @@ public class ActionTriggerTest {
 
     @Test
     public void actionTriggerStart_FilenameScripts_Test() throws Exception {
+
         String uuid = UUID.randomUUID().toString();
         Map<String, String> atts = getCreationActionTriggerAttributes(uuid);
 
@@ -108,24 +110,24 @@ public class ActionTriggerTest {
         // If condition is true, true action script will be executed. This test
         // executes a true action script that increases a trueActions counter.
         // The test is based in counting if these variables are incremented or not.
-        ActionTrigger actionTrigger = ActionTrigger.getInstance();
+        ActionTriggerHandler actionTrigger = ActionTriggerHandler.getInstance();
 
         initializeCallbackCounters();
 
         Assert.assertTrue(trueActions == 0);
         Assert.assertTrue(falseActions == 0);
-        Assert.assertTrue(ActionTrigger.getTimers().size() == 0);
+        Assert.assertTrue(ActionTriggerHandler.getTimers().size() == 0);
 
         actionTrigger.request(
-          "create",
-                "schedule", atts); // rule started
+                "create",
+                ActionTriggerHandler.ACTION_SCHEDULE, atts); // rule started
 
         Thread.sleep(100 * PERIODMS);
         if (withStartStopScript) Assert.assertTrue(initActions == 1);
         Assert.assertTrue(trueActions > 20);
         Assert.assertTrue(falseActions > 20);
         if (withStartStopScript) Assert.assertTrue(stopActions == 0);
-        Assert.assertTrue(ActionTrigger.getTimers().size() == 1);
+        Assert.assertTrue(ActionTriggerHandler.getTimers().size() == 1);
 
         actionTrigger.request(
           "update", "delete",
@@ -142,7 +144,7 @@ public class ActionTriggerTest {
         Assert.assertTrue(trueActions == 0);
         Assert.assertTrue(falseActions == 0);
 
-        Assert.assertTrue(ActionTrigger.getTimers().size() == 0);
+        Assert.assertTrue(ActionTriggerHandler.getTimers().size() == 0);
 
     }
 
@@ -153,7 +155,7 @@ public class ActionTriggerTest {
 
         String uuid = UUID.randomUUID().toString();
 
-        ActionTrigger actionTrigger = ActionTrigger.getInstance();
+        ActionTriggerHandler actionTrigger = ActionTriggerHandler.getInstance();
 
         Map<String, String> actionTriggerAttributes =
                 getCreationActionTriggerAttributes(uuid);
@@ -162,7 +164,7 @@ public class ActionTriggerTest {
 
         References references = actionTrigger.request(
           "create",
-                "schedule", actionTriggerAttributes);
+                ActionTriggerHandler.ACTION_SCHEDULE, actionTriggerAttributes);
 
         Assert.assertFalse(references.areAllSubmitted());
         Assert.assertTrue(references.getSummary().contains("delay"));
