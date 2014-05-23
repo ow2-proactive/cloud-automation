@@ -34,7 +34,10 @@
             </td>
             <td>
                 <!--<a class="btn btn-warning">Stop</a>-->
-                <!--<a class="btn btn-danger">Delete</a>-->
+                <a class="btn" title="Remove service" data-toggle="modal"
+                   ng-click="controller.deleteService(service)">
+                    <i class="glyphicon glyphicon-trash"></i>
+                </a>
             </td>
         </tr>
     </table>
