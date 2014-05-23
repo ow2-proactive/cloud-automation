@@ -1,11 +1,10 @@
-package unittests;
-
-import junit.framework.Assert;
-import org.junit.Test;
-import org.ow2.proactive.brokering.occi.client.ResourceInstance;
+package org.ow2.proactive.brokering.occi.client;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import junit.framework.Assert;
+import org.junit.Test;
 
 public class ResourceInstanceTest {
 

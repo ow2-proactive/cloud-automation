@@ -1,10 +1,10 @@
-package unittests;
+package org.ow2.proactive.brokering;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import org.ow2.proactive.brokering.Updater;
+
 import org.ow2.proactive.brokering.occi.Database;
 import org.ow2.proactive.brokering.occi.OcciServer;
 import org.ow2.proactive.brokering.occi.Resource;
@@ -56,9 +56,9 @@ public class UpdaterTest {
         // The output of the job's tasks must be used to update the resource's properties.
 
         Resource resource = ResourcesHandler.factory(
-                UUID.randomUUID().toString(),
-                COMPUTE_NAME,
-                getDefaultComputeAttributes());
+          UUID.randomUUID().toString(),
+          COMPUTE_NAME,
+          getDefaultComputeAttributes());
         Reference jobReference = jobReferences.get(JOB_ID_ALL_TASKS_PRODUCE_JSON);
 
         Updater updater = new Updater(occiServer, scheduler, UPDATE_PERIOD);
@@ -75,12 +75,12 @@ public class UpdaterTest {
 
     @Test
     public void verifyOuputJsonTaskOutputIsInsertedIntoResourcePropertiesIfTaskOutputIsNotJson_Test()
-            throws Exception {
+      throws Exception {
 
         Resource resource = ResourcesHandler.factory(
-                UUID.randomUUID().toString(),
-                COMPUTE_NAME,
-                getDefaultComputeAttributes());
+          UUID.randomUUID().toString(),
+          COMPUTE_NAME,
+          getDefaultComputeAttributes());
         Reference jobReference = jobReferences.get(JOB_ID_NO_TASK_PRODUCES_JSON);
 
         Updater updater = new Updater(occiServer, scheduler, UPDATE_PERIOD);
@@ -98,12 +98,12 @@ public class UpdaterTest {
 
     @Test
     public void verifyAllOuputJsonTaskOutputAreInsertedIntoResourcePropertiesEvenIfNotAllTaskOutputsAreJson_Test()
-            throws Exception {
+      throws Exception {
 
         Resource resource = ResourcesHandler.factory(
-                UUID.randomUUID().toString(),
-                COMPUTE_NAME,
-                getDefaultComputeAttributes());
+          UUID.randomUUID().toString(),
+          COMPUTE_NAME,
+          getDefaultComputeAttributes());
         Reference jobReference = jobReferences.get(JOB_ID_SOME_TASKS_PRODUCE_JSON);
 
         Updater updater = new Updater(occiServer, scheduler, UPDATE_PERIOD);
@@ -121,12 +121,12 @@ public class UpdaterTest {
 
     @Test
     public void verifyResourcePropertiesAreUpdatedIfJobError_Test()
-            throws Exception {
+      throws Exception {
 
         Resource resource = ResourcesHandler.factory(
-                UUID.randomUUID().toString(),
-                COMPUTE_NAME,
-                getDefaultComputeAttributes());
+          UUID.randomUUID().toString(),
+          COMPUTE_NAME,
+          getDefaultComputeAttributes());
         Reference jobReference = jobReferences.get(JOB_ID_TASKS_WITH_ERROR);
 
         Updater updater = new Updater(occiServer, scheduler, UPDATE_PERIOD);

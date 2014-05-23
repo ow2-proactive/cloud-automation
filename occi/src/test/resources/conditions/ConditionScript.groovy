@@ -1,4 +1,4 @@
-package triggering
+package conditions
 
 import org.ow2.proactive.brokering.triggering.Condition
 

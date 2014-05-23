@@ -1,4 +1,4 @@
-package unittests;
+package org.ow2.proactive.brokering.occi;
 
 import org.junit.*;
 import java.util.*;
@@ -49,13 +49,13 @@ public class DatabaseTest {
         final Resource res = generateStandardResource();
 
         Thread t = new Thread(
-            new Runnable() {
-                public void run() {
-                    final Database dbi = Database.getDatabase();
-                    dbi.store(res);
-                    dbi.close();
-                }
-            }
+          new Runnable() {
+              public void run() {
+                  final Database dbi = Database.getDatabase();
+                  dbi.store(res);
+                  dbi.close();
+              }
+          }
         );
 
         t.start();

@@ -1,14 +1,10 @@
-package unittests;
+package org.ow2.proactive.brokering.occi;
+
+import javax.ws.rs.core.Response;
 
 import org.apache.log4j.Logger;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.ow2.proactive.brokering.occi.Database;
-import org.ow2.proactive.brokering.occi.OcciServer;
-import org.ow2.proactive.brokering.occi.Resource;
-
-import javax.ws.rs.core.Response;
-import java.util.UUID;
 
 public class TestCompute {
     private static Logger logger = Logger.getLogger(TestCompute.class.getName());

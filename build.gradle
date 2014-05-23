@@ -114,9 +114,14 @@ project(':workflow-catalog-rest-cli') {
 
 project(':occi') {
     apply plugin: 'war'
+    apply plugin: 'groovy'
     apply plugin: 'jetty'
 
     httpPort = 8081
+
+
+    sourceSets.main.groovy.srcDir 'src/main/java'
+    sourceSets.main.java.srcDirs = []
 
     dependencies {
 

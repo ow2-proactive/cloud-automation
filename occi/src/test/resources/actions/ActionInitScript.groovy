@@ -1,7 +1,7 @@
 package actions
 
+import org.ow2.proactive.brokering.occi.categories.trigger.ActionTriggerTest
 import org.ow2.proactive.brokering.triggering.Action
-import unittests.ActionTriggerTest
 
 public class ActionInitScript extends Action {
 

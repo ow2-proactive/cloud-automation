@@ -1,4 +1,4 @@
-package unittests;
+package org.ow2.proactive.brokering.occi.categories.trigger;
 
 import java.io.File;
 import java.io.IOException;
@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.ow2.proactive.brokering.Configuration;
-import org.ow2.proactive.brokering.occi.categories.trigger.ActionTrigger;
 import org.ow2.proactive.brokering.occi.client.ActionTriggerHandler;
 import org.ow2.proactive.brokering.triggering.ScriptUtils;
 import org.ow2.proactive.workflowcatalog.References;
@@ -41,7 +40,7 @@ public class ActionTriggerTest {
     public void actionTriggerStartScheduleOnce_EncodedScripts_Test() throws Exception {
 
         Map<String, String> actionTriggerAttributes =
-                getCreationScheduleOnceActionTriggerAttributes();
+          getCreationScheduleOnceActionTriggerAttributes();
 
         actionTriggerStartScheduleOnce(actionTriggerAttributes);
 
@@ -51,9 +50,9 @@ public class ActionTriggerTest {
     public void actionTriggerStartScheduleOnce_FilenameScripts_Test() throws Exception {
 
         Map<String, String> actionTriggerAttributes =
-                getCreationScheduleOnceActionTriggerAttributes();
+          getCreationScheduleOnceActionTriggerAttributes();
 
-        actionTriggerAttributes.put(ActionTrigger.OCCI_MONITORING_ACTION, "ActionTrueScript.groovy-script");
+        actionTriggerAttributes.put(ActionTrigger.OCCI_MONITORING_ACTION, "ActionTrueScript.groovy");
 
         actionTriggerStartScheduleOnce(actionTriggerAttributes);
 
@@ -70,7 +69,7 @@ public class ActionTriggerTest {
 
         References references = actionTrigger.request(
           "create",
-                ActionTriggerHandler.ACTION_SCHEDULE_ONCE, atts);
+          ActionTriggerHandler.ACTION_SCHEDULE_ONCE, atts);
 
         Thread.sleep(100 * PERIODMS);
 
@@ -93,11 +92,11 @@ public class ActionTriggerTest {
         String uuid = UUID.randomUUID().toString();
         Map<String, String> atts = getCreationActionTriggerAttributes(uuid);
 
-        atts.put(ActionTrigger.OCCI_CONDITION_SCRIPT, "ConditionScript.groovy-script");
-        atts.put(ActionTrigger.OCCI_MONITORING_INITACTION, "ActionInitScript.groovy-script");
-        atts.put(ActionTrigger.OCCI_MONITORING_FALSEACTION, "ActionFalseScript.groovy-script");
-        atts.put(ActionTrigger.OCCI_MONITORING_TRUEACTION, "ActionTrueScript.groovy-script");
-        atts.put(ActionTrigger.OCCI_MONITORING_STOPACTION, "ActionStopScript.groovy-script");
+        atts.put(ActionTrigger.OCCI_CONDITION_SCRIPT, "ConditionScript.groovy");
+        atts.put(ActionTrigger.OCCI_MONITORING_INITACTION, "ActionInitScript.groovy");
+        atts.put(ActionTrigger.OCCI_MONITORING_FALSEACTION, "ActionFalseScript.groovy");
+        atts.put(ActionTrigger.OCCI_MONITORING_TRUEACTION, "ActionTrueScript.groovy");
+        atts.put(ActionTrigger.OCCI_MONITORING_STOPACTION, "ActionStopScript.groovy");
 
         actionTriggerStart_BaseTest(atts, true);
     }
@@ -119,8 +118,8 @@ public class ActionTriggerTest {
         Assert.assertTrue(ActionTriggerHandler.getTimers().size() == 0);
 
         actionTrigger.request(
-                "create",
-                ActionTriggerHandler.ACTION_SCHEDULE, atts); // rule started
+          "create",
+          ActionTriggerHandler.ACTION_SCHEDULE, atts); // rule started
 
         Thread.sleep(100 * PERIODMS);
         if (withStartStopScript) Assert.assertTrue(initActions == 1);
@@ -131,7 +130,7 @@ public class ActionTriggerTest {
 
         actionTrigger.request(
           "update", "delete",
-                atts); // rule stopped
+          atts); // rule stopped
 
         Thread.sleep(10 * PERIODMS);
 
@@ -158,13 +157,13 @@ public class ActionTriggerTest {
         ActionTriggerHandler actionTrigger = ActionTriggerHandler.getInstance();
 
         Map<String, String> actionTriggerAttributes =
-                getCreationActionTriggerAttributes(uuid);
+          getCreationActionTriggerAttributes(uuid);
 
         actionTriggerAttributes.remove(ActionTrigger.OCCI_MONITORING_PERIODMS);
 
         References references = actionTrigger.request(
           "create",
-                ActionTriggerHandler.ACTION_SCHEDULE, actionTriggerAttributes);
+          ActionTriggerHandler.ACTION_SCHEDULE, actionTriggerAttributes);
 
         Assert.assertFalse(references.areAllSubmitted());
         Assert.assertTrue(references.getSummary().contains("delay"));
@@ -173,14 +172,14 @@ public class ActionTriggerTest {
 
 
     private Map<String, String> getCreationScheduleOnceActionTriggerAttributes()
-            throws IOException {
+      throws IOException {
         Map<String, String> actionTriggerAttributes = new HashMap<String, String>();
         actionTriggerAttributes.put(
-                ActionTrigger.OCCI_MONITORING_ACTION,
-                getScriptAsEncodedString("/actions/ActionTrueScript.groovy-script"));
+          ActionTrigger.OCCI_MONITORING_ACTION,
+          getScriptAsEncodedString("/actions/ActionTrueScript.groovy"));
         actionTriggerAttributes.put(
-                ActionTrigger.OCCI_CORE_ID,
-                UUID.randomUUID().toString());
+          ActionTrigger.OCCI_CORE_ID,
+          UUID.randomUUID().toString());
         return actionTriggerAttributes;
     }
 
@@ -188,11 +187,11 @@ public class ActionTriggerTest {
         Map<String, String> actionTriggerAttributes = new HashMap<String, String>();
         actionTriggerAttributes.put(ActionTrigger.OCCI_CORE_ID, uuid);
         actionTriggerAttributes.put(ActionTrigger.OCCI_CONDITION_SCRIPT,
-                                   getScriptAsEncodedString("/conditions/ConditionScript.groovy-script"));      // half times true, half times false
+          getScriptAsEncodedString("/conditions/ConditionScript.groovy"));      // half times true, half times false
         actionTriggerAttributes.put(ActionTrigger.OCCI_MONITORING_FALSEACTION,
-                                   getScriptAsEncodedString("/actions/ActionFalseScript.groovy-script"));
+          getScriptAsEncodedString("/actions/ActionFalseScript.groovy"));
         actionTriggerAttributes.put(ActionTrigger.OCCI_MONITORING_TRUEACTION,
-                                   getScriptAsEncodedString("/actions/ActionTrueScript.groovy-script"));
+          getScriptAsEncodedString("/actions/ActionTrueScript.groovy"));
         actionTriggerAttributes.put(ActionTrigger.OCCI_MONITORING_PERIODMS, PERIODMS.toString());
         return actionTriggerAttributes;
     }
