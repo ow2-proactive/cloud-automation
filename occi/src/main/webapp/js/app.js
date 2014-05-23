@@ -34,7 +34,7 @@
                     templateUrl: 'partials/services.html',
                     controller: 'ServicesCtrl'
                 }).
-                when('/services/:serviceId', {
+                when('/services/:category/:serviceId', {
                     templateUrl: 'partials/service-details.html',
                     controller: 'ServiceDetailsCtrl'
                 }).
