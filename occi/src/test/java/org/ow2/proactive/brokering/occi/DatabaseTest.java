@@ -1,15 +1,21 @@
-package org.ow2.proactive.brokering.occi;
+package unittests;
 
-import org.junit.*;
-import java.util.*;
+import junit.framework.Assert;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.ow2.proactive.brokering.occi.Resource;
+import org.ow2.proactive.brokering.occi.ResourcesHandler;
+import org.ow2.proactive.brokering.occi.database.Database;
+import org.ow2.proactive.brokering.occi.database.DatabaseFactory;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
-import junit.framework.Assert;
-import org.ow2.proactive.brokering.occi.Database;
-import org.ow2.proactive.brokering.occi.Resource;
-import org.ow2.proactive.brokering.occi.ResourcesHandler;
 
 public class DatabaseTest {
 
@@ -19,17 +25,19 @@ public class DatabaseTest {
     @Before
     public void before() throws Exception {
         Random r = new Random();
-        Database.setDatabaseName(TEST_DB_NAME_PREFIX + r.nextInt(Integer.MAX_VALUE));
+        DatabaseFactory.setDatabaseName(TEST_DB_NAME_PREFIX + r.nextInt(Integer.MAX_VALUE));
     }
 
     @After
     public void after() throws Exception {
-        Database.dropDB(Database.getDatabaseName());
+        Database db = DatabaseFactory.build();
+        db.drop();
+        db.close();
     }
 
     @Test
     public void createDatabaseSimple_Test() throws Exception {
-        Database db = Database.getDatabase();
+        Database db = DatabaseFactory.build();
 
         Assert.assertTrue(db.getAllResources().isEmpty());
 
@@ -43,19 +51,19 @@ public class DatabaseTest {
 
     @Test
     public void createDatabaseSimpleMultithreaded_Test() throws Exception {
-        final Database dbe = Database.getDatabase();
+        final Database dbe = DatabaseFactory.build();
         Assert.assertTrue(dbe.getAllResources().isEmpty());
 
         final Resource res = generateStandardResource();
 
         Thread t = new Thread(
-          new Runnable() {
-              public void run() {
-                  final Database dbi = Database.getDatabase();
-                  dbi.store(res);
-                  dbi.close();
-              }
-          }
+            new Runnable() {
+                public void run() {
+                    final Database dbi = DatabaseFactory.build();
+                    dbi.store(res);
+                    dbi.close();
+                }
+            }
         );
 
         t.start();
@@ -74,12 +82,12 @@ public class DatabaseTest {
 
         ExecutorService executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
 
-        final Database dbe = Database.getDatabase();
+        final Database dbe = DatabaseFactory.build();
         Assert.assertTrue(dbe.getAllResources().isEmpty());
 
         Runnable r = new Runnable() {
             public void run() {
-                final Database dbi = Database.getDatabase();
+                final Database dbi = DatabaseFactory.build();
                 Resource res = generateStandardResource();
                 dbi.store(res);
                 dbi.close();
@@ -104,7 +112,7 @@ public class DatabaseTest {
 
     @Test
     public void persistentDatabaseSingleItem_Test() throws Exception {
-        final Database db = Database.getDatabase();
+        final Database db = DatabaseFactory.build();
 
         Assert.assertTrue(db.getAllResources().isEmpty());
 
@@ -115,7 +123,7 @@ public class DatabaseTest {
 
         db.close();
 
-        final Database db1 = Database.getDatabase();
+        final Database db1 = DatabaseFactory.build();
 
         Assert.assertTrue(db1.getAllResources().size() == 1);
 
@@ -128,7 +136,7 @@ public class DatabaseTest {
     @Test
     public void persistentDatabaseMultipleItems_Test() throws Exception {
 
-        final Database db = Database.getDatabase();
+        final Database db = DatabaseFactory.build();
 
         Map<String, Resource> checkMap = new HashMap<String, Resource>();
 
@@ -144,7 +152,7 @@ public class DatabaseTest {
 
         db.close();
 
-        final Database db1 = Database.getDatabase();
+        final Database db1 = DatabaseFactory.build();
 
         Assert.assertTrue(db1.getAllResources().size() == NRO_RESOURCES);
 

@@ -1,57 +1,38 @@
-package org.ow2.proactive.brokering.occi;
+package org.ow2.proactive.brokering.occi.database;
 
-import com.orientechnologies.orient.core.db.ODatabaseRecordThreadLocal;
 import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery;
 import com.orientechnologies.orient.object.db.OObjectDatabaseTx;
 import org.apache.log4j.Logger;
+import org.ow2.proactive.brokering.occi.Resource;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
-public class Database {
+public class OrientDB implements Database {
 
-    private static String DB_NAME = "occi-database";
     private static String DB_DEFAULT_USERNAME = "admin";
     private static String DB_DEFAULT_PASSWORD = "admin";
 
-    private static Logger logger = Logger.getLogger(Database.class);
-    private static Database instance;
+    private static Logger logger = Logger.getLogger(OrientDB.class);
 
     private OObjectDatabaseTx db;
 
-    public static void setDatabaseName(String databaseName) {
-        DB_NAME = databaseName;
-    }
+    public OrientDB (String name) {
 
-    public static String getDatabaseName() {
-        return DB_NAME;
-    }
-
-    public static void dropDB(String dbName) {
-        OObjectDatabaseTx dba = new OObjectDatabaseTx(generateDatabaseUrl(dbName));
-        if (dba.exists()) {
-            dba = dba.open(DB_DEFAULT_USERNAME, DB_DEFAULT_PASSWORD);
-            dba.drop();
-            dba.close();
-        }
-    }
-
-    public static Database getDatabase() {
-        return new Database();
-    }
-
-    private Database() {
         logger.info("Setting up DB");
 
-        db = new OObjectDatabaseTx(generateDatabaseUrl(DB_NAME));
+        db = new OObjectDatabaseTx(generateDatabaseUrl(name));
 
         this.createIfNeeded();
         this.openIfNeeded();
         this.registerEntities();
 
         logger.info("DB correctly started");
+
     }
 
+    @Override
     public void store(Resource resource) {
         try {
             logger.info("Resource to store in DB : " + resource.getUuid());
@@ -61,6 +42,7 @@ public class Database {
         }
     }
 
+    @Override
     public void delete(String uuid) {
         try {
             Resource res = load(uuid);
@@ -71,6 +53,7 @@ public class Database {
         }
     }
 
+    @Override
     public Resource load(String uuid) {
         OSQLSynchQuery<Resource> q =
             new OSQLSynchQuery<Resource>("select * from Resource where uuid = '" + uuid + "'");
@@ -86,6 +69,7 @@ public class Database {
         }
     }
 
+    @Override
     public List<Resource> getAllResources() {
         logger.info("Load all resources");
         List<Resource> list = new ArrayList<Resource>();
@@ -94,6 +78,13 @@ public class Database {
         return list;
     }
 
+    @Override
+    public void drop() {
+        db.drop();
+    }
+
+
+    @Override
     public void close() {
         db.close();
     }

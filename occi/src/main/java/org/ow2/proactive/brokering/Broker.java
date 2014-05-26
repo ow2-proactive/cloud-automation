@@ -1,24 +1,22 @@
 package org.ow2.proactive.brokering;
 
-import java.io.File;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
+import groovy.lang.GroovyClassLoader;
+import org.apache.commons.io.FileUtils;
+import org.apache.log4j.Logger;
 import org.ow2.proactive.brokering.occi.categories.Categories;
-import org.ow2.proactive.brokering.occi.categories.Utils;
-import org.ow2.proactive.brokering.occi.categories.trigger.ActionTrigger;
 import org.ow2.proactive.brokering.occi.client.ActionTriggerHandler;
+import org.ow2.proactive.brokering.updater.Updater;
 import org.ow2.proactive.workflowcatalog.Catalog;
 import org.ow2.proactive.workflowcatalog.Reference;
 import org.ow2.proactive.workflowcatalog.References;
 import org.ow2.proactive.workflowcatalog.Workflow;
-import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerLoginData;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerProxy;
 import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobIdData;
-import groovy.lang.GroovyClassLoader;
-import org.apache.commons.io.FileUtils;
-import org.apache.log4j.Logger;
+
+import java.io.File;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 
 public class Broker {
@@ -33,26 +31,16 @@ public class Broker {
     private Rules rules;
 
     private Broker() {
-        try {
+    }
 
-            Configuration config = Utils.getConfiguration();
+    public void initialize(Configuration config, Updater updater, SchedulerProxy sched) {
+        File catalogPath = getPath(config.catalog.path, "/config/catalog");
+        File rulesPath = getPath(config.rules.path, "/config/rules");
 
-            SchedulerLoginData loginData = new SchedulerLoginData(
-                    config.scheduler.url, config.scheduler.username,
-                    config.scheduler.password, config.security.insecuremode);
-
-            scheduler = new SchedulerProxy(loginData);
-
-            File catalogPath = getPath(config.catalog.path, "/config/catalog");
-            File rulesPath = getPath(config.rules.path, "/config/rules");
-
-            catalog = new Catalog(catalogPath, config.catalog.refresh * 1000, new CatalogToResource());
-            rules = new Rules(rulesPath, config.rules.refresh * 1000);
-            updater = new Updater(new SchedulerProxy(loginData), config.updater.refresh * 1000);
-
-        } catch (Exception e) {
-            logger.error("Could not initialize server", e);
-        }
+        this.scheduler = sched;
+        this.catalog = new Catalog(catalogPath, config.catalog.refresh * 1000, new CatalogToResource());
+        this.rules = new Rules(rulesPath, config.rules.refresh * 1000);
+        this.updater = updater;
     }
 
     public static Broker getInstance() {
@@ -124,7 +112,7 @@ public class Broker {
                 references.add(ref);
                 logger.info(
                         String.format("Workflow '%s' configured ('%d' rules applied) and submitted (Job ID='%s')",
-                                      workflow, appliedRules, ref.getId()));
+                                      workflow.getName(), appliedRules, ref.getId()));
             }
         }
 

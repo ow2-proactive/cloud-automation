@@ -1,10 +1,13 @@
-package org.ow2.proactive.brokering.occi;
-
-import javax.ws.rs.core.Response;
+package unittests;
 
 import org.apache.log4j.Logger;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.ow2.proactive.brokering.occi.OcciServer;
+import org.ow2.proactive.brokering.occi.Resource;
+import org.ow2.proactive.brokering.occi.database.DatabaseFactory;
+
+import javax.ws.rs.core.Response;
 
 public class TestCompute {
     private static Logger logger = Logger.getLogger(TestCompute.class.getName());
@@ -53,7 +56,7 @@ public class TestCompute {
         Response result = server.getAllResources("compute");
         String[] urlTab = result.getEntity().toString().trim().split("/");
         String uuid = urlTab[urlTab.length - 1];
-        Resource resource = Database.getDatabase().load(uuid);
+        Resource resource = DatabaseFactory.build().load(uuid);
         System.out.println("LoadResource: resource = \n" + resource);
     }
 }

@@ -1,20 +1,5 @@
 package org.ow2.proactive.workflowcatalog.utils.scheduling;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.util.Map;
-
-import javax.security.auth.login.LoginException;
-
-import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
-import org.ow2.proactive.workflowcatalog.Reference;
-import org.ow2.proactive.workflowcatalog.utils.HttpUtility;
-import org.ow2.proactive_grid_cloud_portal.scheduler.client.SchedulerRestClient;
-import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobIdData;
-import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobStateData;
-import org.ow2.proactive_grid_cloud_portal.scheduler.exception.NotConnectedRestException;
-import org.ow2.proactive_grid_cloud_portal.scheduler.exception.SchedulerRestException;
-import org.apache.http.auth.AuthenticationException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -22,6 +7,15 @@ import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.params.HttpParams;
 import org.apache.log4j.Logger;
 import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient4Engine;
+import org.ow2.proactive.workflowcatalog.utils.HttpUtility;
+import org.ow2.proactive_grid_cloud_portal.scheduler.client.SchedulerRestClient;
+import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobIdData;
+import org.ow2.proactive_grid_cloud_portal.scheduler.exception.NotConnectedRestException;
+import org.ow2.proactive_grid_cloud_portal.scheduler.exception.SchedulerRestException;
+
+import javax.security.auth.login.LoginException;
+import java.io.File;
+import java.io.FileInputStream;
 
 
 public class SchedulerProxy {
@@ -51,16 +45,16 @@ public class SchedulerProxy {
         sessionId = connectToScheduler(loginData);
     }
 
-    public Map<String, String> getAllTaskResults(String jobId)
+    public TasksResults getAllTaskResults(String jobId)
       throws JobNotFinishedException, JobStatusRetrievalException {
 
-        Map<String, String> jobResultValue = null;
+        TasksResults jobResultValue = null;
         try {
             try {
-                jobResultValue = restClient.getScheduler().jobResultValue(sessionId, jobId);
+                jobResultValue = new TasksResults(restClient.getScheduler().jobResultValue(sessionId, jobId));
              } catch (NotConnectedRestException e) {
                 sessionId = connectToScheduler(loginData);
-                jobResultValue = restClient.getScheduler().jobResultValue(sessionId, jobId);
+                jobResultValue = new TasksResults(restClient.getScheduler().jobResultValue(sessionId, jobId));
             }
         } catch (Exception e) {
             throw new JobStatusRetrievalException(

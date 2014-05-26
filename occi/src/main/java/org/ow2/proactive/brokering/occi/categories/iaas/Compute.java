@@ -1,10 +1,10 @@
 package org.ow2.proactive.brokering.occi.categories.iaas;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.ow2.proactive.brokering.occi.Attribute;
 import org.ow2.proactive.brokering.occi.categories.BaseCategory;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class Compute extends BaseCategory {
@@ -24,7 +24,7 @@ public class Compute extends BaseCategory {
         attributeList.add(new Attribute("occi.compute.hostname", !mutable, !required));
         attributeList.add(new Attribute("occi.compute.memory", mutable, !required));
         attributeList.add(new Attribute("occi.compute.state", mutable, !required, "inactive"));
-        attributeList.add(new Attribute("occi.compute.localstorage", !mutable, !required, "20"));
+        attributeList.add(new Attribute("occi.compute.localstorage", !mutable, !required));
         attributeList.add(new Attribute("occi.compute.organization.name", mutable, !required));
         attributeList.add(new Attribute("occi.compute.vendor.location", mutable, !required));
         attributeList.add(new Attribute("occi.compute.vendor.uuid", mutable, !required));

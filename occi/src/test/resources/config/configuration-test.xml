@@ -1,0 +1,10 @@
+<configuration>
+    <scheduler username="admin" password="admin" url="http://test.cloudautomation.com/rest/rest"/>
+    <catalog path="config/catalog/" refresh="10"/>
+    <rules path="config/rules/" refresh="10"/>
+    <actions path="config/actions/" refresh="10"/>
+    <conditions path="config/conditions/" refresh="10"/>
+    <updater refresh="30"/>
+    <security insecuremode="true"/>
+    <server prefix="http://test.cloudautomation.com/cloudautomation/"/>
+</configuration>

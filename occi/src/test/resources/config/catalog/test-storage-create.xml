@@ -1,0 +1,23 @@
+<job xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:proactive:jobdescriptor:dev"
+     xsi:schemaLocation="urn:proactive:jobdescriptor:dev http://www.activeeon.com/public_content/schemas/proactive/jobdescriptor/dev/schedulerjob.xsd" name="test" projectName="UnivCloud">
+    <variables>
+        <variable name="occi.core.id"/>
+    </variables>
+    <genericInformation>
+        <info name="category" value="storage"/>
+        <info name="operation" value="create"/>
+        <info name="provider" value="test"/>
+    </genericInformation>
+    <taskFlow>
+        <task name="occiUpdate">
+            <javaExecutable class="org.ow2.proactive.iaas.vcloud.tasks.OcciUpdate">
+                <forkEnvironment></forkEnvironment>
+                <parameters>
+                    <parameter name="occi_endpoint" value="${occi_endpoint}"/>
+                    <parameter name="occi.core.id" value="${occi.core.id}"/>
+                    <parameter name="category" value="storage"/>
+                </parameters>
+            </javaExecutable>
+        </task>
+    </taskFlow>
+</job>

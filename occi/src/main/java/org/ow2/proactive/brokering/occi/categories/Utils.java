@@ -6,6 +6,7 @@ import org.ow2.proactive.brokering.occi.Attribute;
 
 import javax.json.Json;
 import javax.json.JsonObject;
+import javax.ws.rs.core.Response;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
@@ -91,28 +92,35 @@ public class Utils {
         return resultMap;
     }
 
-    /**
-     * @param str a json formatted string
-     * @return the json object
-     */
     public static JsonObject convertToJson(String str) {
         return Json.createReader(new StringReader(str)).readObject();
     }
 
-    /**
-     * @param json json to be converted to a map
-     * @return resulting map
-     */
     public static Map<String, String> convertToMap(JsonObject json) {
-        Map<String, String> o = new HashMap<String, String>();
-        for (String key : json.keySet())
-            o.put(key, json.getString(key));
-        return o;
+        Map<String, String> map = new HashMap<String, String>();
+        for (String key: json.keySet()) {
+            String value = null;
+            try {
+                value = json.getString(key);
+            } catch (ClassCastException e) {
+                value = Integer.toString(json.getInt(key));
+            }
+            map.put(key, value);
+        }
+        return map;
     }
 
 
+    public static Configuration getConfigurationTest() throws JAXBException {
+        return getConfiguration("/config/configuration-test.xml");
+    }
+
     public static Configuration getConfiguration() throws JAXBException {
-        File configFile = new File(Utils.class.getResource("/config/configuration.xml").getFile());
+        return getConfiguration("/config/configuration.xml");
+    }
+
+    public static Configuration getConfiguration(String file) throws JAXBException {
+        File configFile = new File(Utils.class.getResource(file).getFile());
         JAXBContext jaxbContext = JAXBContext.newInstance(Configuration.class);
         Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
         return (Configuration) jaxbUnmarshaller.unmarshal(configFile);
@@ -120,6 +128,26 @@ public class Utils {
 
     public static String escapeAttribute(String attribute) {
         return attribute.replace(",", ";");
+    }
+
+    public static String toUrl(Response response) {
+        String str = response.getEntity().toString();
+
+        if (!str.contains("X-OCCI-Location: "))
+            throw new RuntimeException("Bad url: " + str);
+
+        return str.replace("X-OCCI-Location: ", "");
+    }
+
+    public static int countOccurrences(String str, String target) {
+        return str.split("\\Q"+target+"\\E", -1).length - 1;
+    }
+
+    public static void checkResponse(Response response) {
+        int status = response.getStatus();
+        if (status < 200 && status >= 300) {
+            throw new RuntimeException("Bad response: " + response.getEntity().toString());
+        }
     }
 
 }

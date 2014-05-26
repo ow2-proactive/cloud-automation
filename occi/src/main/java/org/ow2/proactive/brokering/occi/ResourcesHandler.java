@@ -1,8 +1,14 @@
 package org.ow2.proactive.brokering.occi;
 
-import java.util.*;
 import org.apache.log4j.Logger;
 import org.ow2.proactive.brokering.occi.categories.Categories;
+import org.ow2.proactive.brokering.occi.database.Database;
+import org.ow2.proactive.brokering.occi.database.DatabaseFactory;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ResourcesHandler {
 
@@ -12,7 +18,7 @@ public class ResourcesHandler {
     public static Map<String, Resource> getResources() {
         if (resources == null) {
             resources = new HashMap<String, Resource>();
-            loadDatabase(Database.getDatabase());
+            loadDatabase(DatabaseFactory.build());
         }
         return resources;
     }

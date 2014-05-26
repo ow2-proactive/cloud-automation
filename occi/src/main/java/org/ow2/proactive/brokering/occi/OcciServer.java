@@ -1,20 +1,25 @@
 package org.ow2.proactive.brokering.occi;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import javax.ws.rs.core.Response;
-import javax.xml.bind.JAXBException;
-
+import org.apache.log4j.Logger;
 import org.ow2.proactive.brokering.Broker;
 import org.ow2.proactive.brokering.Configuration;
 import org.ow2.proactive.brokering.occi.api.Occi;
 import org.ow2.proactive.brokering.occi.categories.Categories;
 import org.ow2.proactive.brokering.occi.categories.Utils;
+import org.ow2.proactive.brokering.occi.database.DatabaseFactory;
+import org.ow2.proactive.brokering.updater.Updater;
 import org.ow2.proactive.workflowcatalog.References;
-import org.apache.log4j.Logger;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerLoginData;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerProxy;
+import org.ow2.proactive_grid_cloud_portal.scheduler.exception.SchedulerRestException;
+
+import javax.security.auth.login.LoginException;
+import javax.ws.rs.core.Response;
+import javax.xml.bind.JAXBException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public class OcciServer implements Occi {
 
@@ -47,7 +52,7 @@ public class OcciServer implements Occi {
             attributes += ",action.state=pending,occi.core.id=" + uuid;
             //            attributes += ",action.state=\"pending\", occi.core.id=\"" + uuid + "\"";
             Resource resource = ResourcesHandler.factory(uuid, category, Utils.buildMap(attributes));
-            Database.getDatabase().store(resource);
+            DatabaseFactory.build().store(resource);
 
             References references = resource.create();
             if (!references.areAllSubmitted()) {
@@ -152,7 +157,8 @@ public class OcciServer implements Occi {
                 }
                 resource.getAttributes().put(key, newAttributes.get(key));
             }
-            Database.getDatabase().store(resource);
+
+            DatabaseFactory.build().store(resource);
 
             if (action != null) {
                 resource.getAttributes().put("action.state", "pending");
@@ -199,7 +205,7 @@ public class OcciServer implements Occi {
             logger.info("Delete URL : category = [" + category + "], uuid = [" + uuid + "], status = [" + status + "]");
             if (status.equalsIgnoreCase("done")) {
                 ResourcesHandler.getResources().remove(uuid);
-                Database.getDatabase().delete(uuid);
+                DatabaseFactory.build().delete(uuid);
                 logger.info("------------------------------------------------------------------------");
                 return Response.status(Response.Status.OK).build();
             }
@@ -211,18 +217,37 @@ public class OcciServer implements Occi {
         }
     }
 
-    public OcciServer() {
-        if (prefixUrl == null) {
 
-            try {
-                Configuration config = Utils.getConfiguration();
-                prefixUrl = config.server.prefix;
-            } catch (JAXBException e) {
-                logger.warn(e);
-            }
+    public OcciServer(Configuration config, SchedulerProxy scheduler) {
+        initialize(config, scheduler);
+    }
+
+    public OcciServer() {
+        // This empty constructor is used by resteasy at runtime.
+        try {
+            Configuration config = Utils.getConfiguration();
+            final SchedulerLoginData loginData = new SchedulerLoginData(
+                    config.scheduler.url, config.scheduler.username,
+                    config.scheduler.password, config.security.insecuremode);
+            SchedulerProxy scheduler = new SchedulerProxy(loginData);
+            initialize(config, scheduler);
+        } catch (JAXBException e) {
+            throw new RuntimeException("Error parsing configuration file", e);
+        } catch (LoginException e) {
+            throw new RuntimeException("Could not login to scheduler", e);
+        } catch (SchedulerRestException e) {
+            throw new RuntimeException("Error Could not initialize server", e);
         }
-        // force creation when REST API is started
-        Broker.getInstance();
+    }
+
+    public void initialize(Configuration config, SchedulerProxy scheduler) {
+        if (prefixUrl == null) {
+            logger.info("Initializing broker...");
+            prefixUrl = config.server.prefix;
+            Broker broker = Broker.getInstance();
+            Updater updater = new Updater(new OcciServer(config, scheduler), scheduler, config.updater.refresh * 1000);
+            broker.initialize(config, updater, scheduler);
+        }
     }
 
 }

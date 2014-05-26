@@ -1,25 +1,23 @@
-package org.ow2.proactive.brokering;
+package org.ow2.proactive.brokering.updater;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.LinkedBlockingQueue;
-
-import javax.json.JsonObject;
-import javax.ws.rs.core.Response;
-
-import org.ow2.proactive.brokering.occi.OcciServer;
+import org.apache.log4j.Logger;
 import org.ow2.proactive.brokering.occi.Resource;
 import org.ow2.proactive.brokering.occi.ResourcesHandler;
 import org.ow2.proactive.brokering.occi.api.Occi;
 import org.ow2.proactive.brokering.occi.categories.Utils;
+import org.ow2.proactive.brokering.updater.requests.CreateInstanceRequest;
+import org.ow2.proactive.brokering.updater.requests.FailedRequest;
+import org.ow2.proactive.brokering.updater.requests.UpdateAttributeRequest;
+import org.ow2.proactive.brokering.updater.requests.UpdateInstanceRequest;
 import org.ow2.proactive.workflowcatalog.Reference;
 import org.ow2.proactive.workflowcatalog.utils.HttpUtility;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.JobNotFinishedException;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerProxy;
-import org.apache.log4j.Logger;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.TasksResults;
+
+import javax.ws.rs.core.Response;
+import java.util.*;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class Updater {
 
@@ -29,15 +27,11 @@ public class Updater {
     private SchedulerProxy scheduler;
     private LinkedBlockingQueue<UpdateUnit> queue;
 
-    public Updater(SchedulerProxy scheduler, Long periodMs) {
-        this(new OcciServer(), scheduler, periodMs);
-    }
-
     public Updater(Occi occi, SchedulerProxy scheduler, Long periodMs) {
         this.occi = occi;
         this.scheduler = scheduler;
         this.queue = new LinkedBlockingQueue<UpdateUnit>();
-        Timer timer = new Timer();
+        Timer timer = new Timer("Updater");
         timer.schedule(new UpdaterTask(), 0, periodMs);
     }
 
@@ -83,39 +77,72 @@ public class Updater {
             Iterator<UpdateUnit> it = queue.iterator();
 
             while (it.hasNext()) {
-
                 UpdateUnit u = it.next();
-
-                try {
-                    updateOcciResource(u);
-                } catch (Throwable e) {
-                    logger.warn("Error updating: " + u, e);
-                }
-
+                handleJobResult(u);
             }
 
         }
 
-        private void updateOcciResource(UpdateUnit u) {
-            try {
-                Map<String, String> taskResults = scheduler.getAllTaskResults(u.reference.getId());
-                String attributes = flattenTaskResultsAndConvertJsonTaskResultsToMap(taskResults);
+        private void handleJobResult(UpdateUnit u) {
 
+            try {
+
+                TasksResults tasksResults = scheduler.getAllTaskResults(u.reference.getId());
+                OcciTasksResults occiTaskResults = new OcciTasksResults(tasksResults);
+
+
+                // Create new category instances if required
+                List<CreateInstanceRequest> createRequests = occiTaskResults.getCreateInstanceRequests();
+                for (CreateInstanceRequest request: createRequests) {
+                    try {
+                        String location = createAnotherCategoryInstance(request);
+                        occiTaskResults.add(
+                                new UpdateAttributeRequest(
+                                        request.getAttributeToUpdateWithLocation(), location));
+                    } catch (Exception e) {
+                        occiTaskResults.add(
+                                new FailedRequest(e.getMessage()));
+                    }
+                }
+
+                // Update categories' instances if required
+                List<UpdateInstanceRequest> updateRequests = occiTaskResults.getUpdateInstanceRequests();
+                for (UpdateInstanceRequest request: updateRequests) {
+                    updateAnotherCategoryInstance(request);
+                }
+
+                // Get the attributes to update the current category instance
+                Map<String, String> attributesToUpdate = occiTaskResults.getUpdateAttributes();
+
+                // Update the attributes of the current category instance
                 Response r = occi.updateResource(
                         u.resource.getCategory(), u.resource.getUuid(),
-                        null, attributes);
-
+                        null, Utils.buildString(attributesToUpdate));
                 printLogsIfIncorrectExecution(r);
 
                 removeUpdateItem(u);
 
             } catch (JobNotFinishedException e) {
-                logger.debug("Waiting for update job: " + u);
+                logger.debug("Waiting for: " + u);
             } catch (Exception e) {
                 logger.warn("Unexpected error while updating: " + u, e);
                 removeUpdateItem(u);
             }
 
+        }
+
+        private String createAnotherCategoryInstance(CreateInstanceRequest request) {
+            logger.debug("Create requested: " + request);
+            Response response = occi.createResource(null, request.getCategory(),
+                                                    Utils.buildString(request.getAttributes()));
+
+            Utils.checkResponse(response);
+            return Utils.toUrl(response);
+        }
+
+        private void updateAnotherCategoryInstance(UpdateInstanceRequest request) {
+            logger.debug("Update requested: " + request);
+            logger.debug("Not implemented yet.");
         }
 
         private void printLogsIfIncorrectExecution(Response r) {
@@ -128,29 +155,6 @@ public class Updater {
             queue.remove(u);
         }
 
-        private String flattenTaskResultsAndConvertJsonTaskResultsToMap(
-                Map<String, String> allProperties) {
-
-            Map<String, String> flattenTaskResults = new HashMap<String, String>();
-            StringBuilder errorsString = new StringBuilder();
-            for (Map.Entry<String, String> taskEntry : allProperties.entrySet()) {
-                String taskName = taskEntry.getKey();
-                String taskResult = taskEntry.getValue();
-
-                try {
-                    JsonObject taskResultJson = Utils.convertToJson(taskResult);
-                    flattenTaskResults.putAll(Utils.convertToMap(taskResultJson));
-                } catch (Exception e) {
-                    errorsString.append(taskName);
-                    errorsString.append(": '");
-                    errorsString.append(taskResult);
-                    errorsString.append("'\n");
-                }
-            }
-            flattenTaskResults.put("occi.error.description", // TODO improve attribute rendering on OCCIServer (use json)
-                                   Utils.escapeAttribute(errorsString.toString()));
-            return Utils.buildString(flattenTaskResults);
-        }
     }
 
 }
