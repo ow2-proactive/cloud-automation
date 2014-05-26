@@ -1,4 +1,4 @@
-package unittests;
+package org.ow2.proactive.brokering;
 
 import junit.framework.Assert;
 import net.minidev.json.JSONObject;
@@ -6,7 +6,6 @@ import org.apache.http.auth.AuthenticationException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.ow2.proactive.brokering.Configuration;
 import org.ow2.proactive.brokering.occi.OcciServer;
 import org.ow2.proactive.brokering.occi.Resource;
 import org.ow2.proactive.brokering.occi.ResourcesHandler;

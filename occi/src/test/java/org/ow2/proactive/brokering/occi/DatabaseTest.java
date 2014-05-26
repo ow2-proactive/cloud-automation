@@ -1,11 +1,9 @@
-package unittests;
+package org.ow2.proactive.brokering.occi;
 
 import junit.framework.Assert;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.ow2.proactive.brokering.occi.Resource;
-import org.ow2.proactive.brokering.occi.ResourcesHandler;
 import org.ow2.proactive.brokering.occi.database.Database;
 import org.ow2.proactive.brokering.occi.database.DatabaseFactory;
 

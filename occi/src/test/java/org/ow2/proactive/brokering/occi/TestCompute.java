@@ -1,10 +1,8 @@
-package unittests;
+package org.ow2.proactive.brokering.occi;
 
 import org.apache.log4j.Logger;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.ow2.proactive.brokering.occi.OcciServer;
-import org.ow2.proactive.brokering.occi.Resource;
 import org.ow2.proactive.brokering.occi.database.DatabaseFactory;
 
 import javax.ws.rs.core.Response;
