@@ -18,6 +18,7 @@
         <info name="category" value="storage" />
         <info name="operation" value="update" />
         <info name="action" value="hw_update" />
+        <info name="provider" value="vmware" />
 	</genericInformation>
 	<taskFlow>
         <task name="occiGetVmPath">

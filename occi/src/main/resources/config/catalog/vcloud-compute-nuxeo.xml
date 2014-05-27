@@ -19,6 +19,9 @@
 		<variable name="nbOfSlaves" value="3"/>
 		<variable name="vappName" value="Nuxeo-FromWorkflow-${nbOfSlaves}"/>
 	</variables>
+	<genericInformation>
+		<info name="provider" value="vmware"/>
+	</genericInformation>
 	<taskFlow>
 		<task name="CreateNuxeoVapp">
 			<javaExecutable class="org.ow2.proactive.iaas.vcloud.tasks.ComposeVapp">

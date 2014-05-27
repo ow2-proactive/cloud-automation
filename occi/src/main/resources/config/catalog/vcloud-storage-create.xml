@@ -12,6 +12,7 @@
     <genericInformation>
         <info name="category" value="storage"/>
         <info name="operation" value="create"/>
+		<info name="provider" value="vmware" />
     </genericInformation>
     <taskFlow>
         <task name="occiUpdate">

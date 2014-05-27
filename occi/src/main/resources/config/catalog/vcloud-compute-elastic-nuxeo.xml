@@ -19,6 +19,9 @@
 		<variable name="maxNumberOfNodes" value="5"/>
 		<variable name="vappName" value="Nuxeo-Elastic"/>
 	</variables>
+	<genericInformation>
+		<info name="provider" value="vmware"/>
+	</genericInformation>
 	<taskFlow>
 		<task name="CreateNuxeoVapp">
 			<javaExecutable class="org.ow2.proactive.iaas.vcloud.tasks.ComposeVapp">

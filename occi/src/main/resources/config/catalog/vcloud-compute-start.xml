@@ -21,6 +21,7 @@
         <info name="category" value="compute"/>
         <info name="operation" value="update" />
         <info name="action" value="start" />
+		<info name="provider" value="vmware" />
     </genericInformation>
     <taskFlow>
         <task name="start">

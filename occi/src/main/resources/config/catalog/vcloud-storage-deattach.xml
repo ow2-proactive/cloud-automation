@@ -20,6 +20,7 @@
     <genericInformation>
         <info name="category" value="storagelink" />
         <info name="operation" value="delete" />
+		<info name="provider" value="vmware" />
     </genericInformation>
 	<taskFlow>
 	</taskFlow>
