@@ -166,7 +166,7 @@ public class DatabaseTest {
 
         }
 
-        db.close();
+        db1.close();
     }
 
     private Resource generateStandardResource() {
