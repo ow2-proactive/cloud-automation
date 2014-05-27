@@ -105,13 +105,32 @@ public class Utils {
     }
 
     public static String getString(JsonObject json, String key) {
-        String value = null;
+
         try {
-            value = json.getString(key);
-        } catch (ClassCastException e) {
-            value = Integer.toString(json.getInt(key));
-        }
-        return value;
+            return json.getString(key);
+        } catch (ClassCastException e) { }
+
+        try {
+            return Integer.toString(json.getInt(key));
+        } catch (ClassCastException e) { }
+
+        try {
+            return Boolean.toString(json.getBoolean(key));
+        } catch (ClassCastException e) { }
+
+        try {
+            return json.getJsonArray(key).toString();
+        } catch (ClassCastException e) { }
+
+        try {
+            return json.getJsonNumber(key).toString();
+        } catch (ClassCastException e) { }
+
+        try {
+            return json.getJsonObject(key).toString();
+        } catch (ClassCastException e) { }
+
+        return "unknown_type";
     }
 
 
