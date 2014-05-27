@@ -2,8 +2,6 @@ package org.ow2.proactive.brokering.occi;
 
 import org.apache.log4j.Logger;
 import org.ow2.proactive.brokering.occi.categories.Categories;
-import org.ow2.proactive.brokering.occi.database.Database;
-import org.ow2.proactive.brokering.occi.database.DatabaseFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,11 +13,14 @@ public class ResourcesHandler {
     private static Logger logger = Logger.getLogger(ResourcesHandler.class.getName());
     private static Map<String, Resource> resources = new HashMap<String, Resource>();
 
-    public static Map<String, Resource> getResources() {
-        if (resources == null) {
-            resources = new HashMap<String, Resource>();
-            loadDatabase(DatabaseFactory.build());
+    public static void initialize(List<Resource> resourceList) {
+        for (Resource r : resourceList) {
+            logger.debug("Loading a resource : r.getUuid() = " + r.getUuid());
+            resources.put(r.getUuid(), r);
         }
+    }
+
+    public static Map<String, Resource> getResources() {
         return resources;
     }
 
@@ -28,14 +29,6 @@ public class ResourcesHandler {
         Resource resource = new Resource(uuid, category, attributes);
         resources.put(uuid, resource);
         return resource;
-    }
-
-    private static void loadDatabase(Database db) {
-        List<Resource> resourceList = db.getAllResources();
-        for (Resource r : resourceList) {
-            logger.debug("Loading a resource : r.getUuid() = " + r.getUuid());
-            resources.put(r.getUuid(), r);
-        }
     }
 
     private static void fillAttributes(String category, Map<String, String> attributes) {

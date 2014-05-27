@@ -3,6 +3,7 @@ package org.ow2.proactive.brokering.occi;
 import org.apache.log4j.Logger;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.ow2.proactive.brokering.occi.database.Database;
 import org.ow2.proactive.brokering.occi.database.DatabaseFactory;
 
 import javax.ws.rs.core.Response;
@@ -54,7 +55,9 @@ public class TestCompute {
         Response result = server.getAllResources("compute");
         String[] urlTab = result.getEntity().toString().trim().split("/");
         String uuid = urlTab[urlTab.length - 1];
-        Resource resource = DatabaseFactory.build().load(uuid);
+        Database db = DatabaseFactory.build();
+        Resource resource = db.load(uuid);
         System.out.println("LoadResource: resource = \n" + resource);
+        db.close();
     }
 }

@@ -6,6 +6,7 @@ import org.ow2.proactive.brokering.Configuration;
 import org.ow2.proactive.brokering.occi.api.Occi;
 import org.ow2.proactive.brokering.occi.categories.Categories;
 import org.ow2.proactive.brokering.occi.categories.Utils;
+import org.ow2.proactive.brokering.occi.database.Database;
 import org.ow2.proactive.brokering.occi.database.DatabaseFactory;
 import org.ow2.proactive.brokering.updater.Updater;
 import org.ow2.proactive.workflowcatalog.References;
@@ -52,7 +53,7 @@ public class OcciServer implements Occi {
             attributes += ",action.state=pending,occi.core.id=" + uuid;
             //            attributes += ",action.state=\"pending\", occi.core.id=\"" + uuid + "\"";
             Resource resource = ResourcesHandler.factory(uuid, category, Utils.buildMap(attributes));
-            DatabaseFactory.build().store(resource);
+            storeInDB(resource);
 
             References references = resource.create();
             if (!references.areAllSubmitted()) {
@@ -158,7 +159,7 @@ public class OcciServer implements Occi {
                 resource.getAttributes().put(key, newAttributes.get(key));
             }
 
-            DatabaseFactory.build().store(resource);
+            storeInDB(resource);
 
             if (action != null) {
                 resource.getAttributes().put("action.state", "pending");
@@ -205,7 +206,7 @@ public class OcciServer implements Occi {
             logger.info("Delete URL : category = [" + category + "], uuid = [" + uuid + "], status = [" + status + "]");
             if (status.equalsIgnoreCase("done")) {
                 ResourcesHandler.getResources().remove(uuid);
-                DatabaseFactory.build().delete(uuid);
+                deleteFromDB(uuid);
                 logger.info("------------------------------------------------------------------------");
                 return Response.status(Response.Status.OK).build();
             }
@@ -215,6 +216,18 @@ public class OcciServer implements Occi {
             logger.info("------------------------------------------------------------------------");
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
+    }
+
+    private void storeInDB(Resource resource) {
+        Database db = DatabaseFactory.build();
+        db.store(resource);
+        db.close();
+    }
+
+    private void deleteFromDB(String uuid) {
+        Database db = DatabaseFactory.build();
+        db.delete(uuid);
+        db.close();
     }
 
 
@@ -245,11 +258,14 @@ public class OcciServer implements Occi {
             logger.info("Initializing broker...");
             prefixUrl = config.server.prefix;
             Broker broker = Broker.getInstance();
-            Updater updater = new Updater(new OcciServer(config, scheduler), scheduler, config.updater.refresh * 1000);
+            Updater updater = new Updater(this, scheduler, config.updater.refresh * 1000);
             broker.initialize(config, updater, scheduler);
+            Database db = DatabaseFactory.build();
+            List<Resource> resourceList = db.getAllResources();
+            ResourcesHandler.initialize(resourceList);
+            db.close();
         }
     }
-
 
     public static String getPrefixUrl() {
         return prefixUrl;
