@@ -10,6 +10,7 @@ import org.ow2.proactive.brokering.occi.database.Database;
 import org.ow2.proactive.brokering.occi.database.DatabaseFactory;
 import org.ow2.proactive.brokering.updater.Updater;
 import org.ow2.proactive.workflowcatalog.References;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.ISchedulerProxy;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerLoginData;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerProxy;
 import org.ow2.proactive_grid_cloud_portal.scheduler.exception.SchedulerRestException;
@@ -231,7 +232,7 @@ public class OcciServer implements Occi {
     }
 
 
-    public OcciServer(Configuration config, SchedulerProxy scheduler) {
+    public OcciServer(Configuration config, ISchedulerProxy scheduler) {
         initialize(config, scheduler);
     }
 
@@ -242,7 +243,7 @@ public class OcciServer implements Occi {
             final SchedulerLoginData loginData = new SchedulerLoginData(
                     config.scheduler.url, config.scheduler.username,
                     config.scheduler.password, config.security.insecuremode);
-            SchedulerProxy scheduler = new SchedulerProxy(loginData);
+            ISchedulerProxy scheduler = new SchedulerProxy(loginData);
             initialize(config, scheduler);
         } catch (JAXBException e) {
             throw new RuntimeException("Error parsing configuration file", e);
@@ -253,7 +254,7 @@ public class OcciServer implements Occi {
         }
     }
 
-    public void initialize(Configuration config, SchedulerProxy scheduler) {
+    public void initialize(Configuration config, ISchedulerProxy scheduler) {
         if (prefixUrl == null) {
             logger.info("Initializing broker...");
             prefixUrl = config.server.prefix;

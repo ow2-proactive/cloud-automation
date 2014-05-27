@@ -11,6 +11,7 @@ import org.ow2.proactive.brokering.updater.requests.UpdateAttributeRequest;
 import org.ow2.proactive.brokering.updater.requests.UpdateInstanceRequest;
 import org.ow2.proactive.workflowcatalog.Reference;
 import org.ow2.proactive.workflowcatalog.utils.HttpUtility;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.ISchedulerProxy;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.JobNotFinishedException;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerProxy;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.TasksResults;
@@ -24,10 +25,10 @@ public class Updater {
     private static final Logger logger = Logger.getLogger(Updater.class.getName());
 
     private Occi occi;
-    private SchedulerProxy scheduler;
+    private ISchedulerProxy scheduler;
     private LinkedBlockingQueue<UpdateUnit> queue;
 
-    public Updater(Occi occi, SchedulerProxy scheduler, Long periodMs) {
+    public Updater(Occi occi, ISchedulerProxy scheduler, Long periodMs) {
         this.occi = occi;
         this.scheduler = scheduler;
         this.queue = new LinkedBlockingQueue<UpdateUnit>();

@@ -14,4 +14,10 @@ public class TasksResults {
         return this.results;
     }
 
+    @Override
+    public String toString() {
+        return "TasksResults{" +
+          "results=" + results +
+          '}';
+    }
 }

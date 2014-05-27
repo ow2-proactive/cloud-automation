@@ -18,8 +18,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.Map;
 
-
-public class SchedulerProxy {
+public class SchedulerProxy implements ISchedulerProxy {
 
     private static final Logger logger = Logger.getLogger(SchedulerProxy.class.getName());
 

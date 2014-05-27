@@ -10,7 +10,7 @@ import org.ow2.proactive.workflowcatalog.Catalog;
 import org.ow2.proactive.workflowcatalog.Reference;
 import org.ow2.proactive.workflowcatalog.References;
 import org.ow2.proactive.workflowcatalog.Workflow;
-import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerProxy;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.ISchedulerProxy;
 import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobIdData;
 
 import java.io.File;
@@ -25,15 +25,15 @@ public class Broker {
 
     private static Broker instance = new Broker();
 
-    private SchedulerProxy scheduler;
+    private ISchedulerProxy scheduler;
     private Updater updater;
     private Catalog catalog;
     private Rules rules;
 
     private Broker() { }
 
-    public void initialize(Configuration config, Updater updater, SchedulerProxy sched) {
-        File catalogPath = getPath(config.catalog.path, "/config/catalog");
+    public void initialize(Configuration config, Updater updater, ISchedulerProxy sched) {
+        File catalogPath = getPath(config.catalog.path, "/config/catalog-test");
         File rulesPath = getPath(config.rules.path, "/config/rules");
 
         this.scheduler = sched;
