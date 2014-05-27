@@ -6,7 +6,7 @@ import org.ow2.proactive.brokering.occi.ResourcesHandler;
 import org.ow2.proactive.brokering.occi.api.Occi;
 import org.ow2.proactive.brokering.occi.categories.Utils;
 import org.ow2.proactive.brokering.updater.requests.CreateInstanceRequest;
-import org.ow2.proactive.brokering.updater.requests.FailedRequest;
+import org.ow2.proactive.brokering.updater.requests.UnknownRequest;
 import org.ow2.proactive.brokering.updater.requests.UpdateAttributeRequest;
 import org.ow2.proactive.brokering.updater.requests.UpdateInstanceRequest;
 import org.ow2.proactive.workflowcatalog.Reference;
@@ -85,6 +85,8 @@ public class Updater {
 
         private void handleJobResult(UpdateUnit u) {
 
+            String resourceUrl = u.resource.getUrl().toString();
+
             try {
 
                 TasksResults tasksResults = scheduler.getAllTaskResults(u.reference.getId());
@@ -94,6 +96,7 @@ public class Updater {
                 // Create new category instances if required
                 List<CreateInstanceRequest> createRequests = occiTaskResults.getCreateInstanceRequests();
                 for (CreateInstanceRequest request: createRequests) {
+                    request.processSpecialAttributes(resourceUrl);
                     try {
                         String location = createAnotherCategoryInstance(request);
                         occiTaskResults.add(
@@ -101,14 +104,20 @@ public class Updater {
                                         request.getAttributeToUpdateWithLocation(), location));
                     } catch (Exception e) {
                         occiTaskResults.add(
-                                new FailedRequest(e.getMessage()));
+                                new UnknownRequest(e.getMessage()));
                     }
                 }
 
                 // Update categories' instances if required
                 List<UpdateInstanceRequest> updateRequests = occiTaskResults.getUpdateInstanceRequests();
                 for (UpdateInstanceRequest request: updateRequests) {
-                    updateAnotherCategoryInstance(request);
+                    request.processSpecialAttributes(resourceUrl);
+                    try {
+                        updateAnotherCategoryInstance(request);
+                    } catch (Exception e) {
+                        occiTaskResults.add(
+                                new UnknownRequest(e.getMessage()));
+                    }
                 }
 
                 // Get the attributes to update the current category instance
@@ -142,7 +151,10 @@ public class Updater {
 
         private void updateAnotherCategoryInstance(UpdateInstanceRequest request) {
             logger.debug("Update requested: " + request);
-            logger.debug("Not implemented yet.");
+            Response response = occi.updateResource(request.getCategory(),
+                                                    request.getUuid(), request.getAction(),
+                                                    Utils.buildString(request.getAttributes()));
+            Utils.checkResponse(response);
         }
 
         private void printLogsIfIncorrectExecution(Response r) {

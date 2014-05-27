@@ -1,16 +1,13 @@
 package org.ow2.proactive.brokering.occi;
 
+import org.apache.log4j.Logger;
+import org.ow2.proactive.brokering.Broker;
+import org.ow2.proactive.workflowcatalog.References;
+
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-
-import org.ow2.proactive.brokering.Broker;
-import org.ow2.proactive.brokering.occi.categories.Categories;
-import org.ow2.proactive.workflowcatalog.References;
-import org.apache.log4j.Logger;
 
 public class Resource {
     public static final String OP_CREATE = "create";
@@ -44,11 +41,11 @@ public class Resource {
         return attributes;
     }
 
-    public URL getUrl(String prefix) {
+    public URL getUrl() {
         try {
-            return new URL(prefix + category + "/" + uuid);
-        } catch (Throwable e) {
-            return null;
+            return new URL(OcciServer.getPrefixUrl() + category + "/" + uuid);
+        } catch (Exception e) {
+            throw new RuntimeException("Cannot create url", e);
         }
     }
 

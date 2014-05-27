@@ -37,8 +37,8 @@ public class OcciTasksResults {
         return attributes;
     }
 
-    public List<FailedRequest> getFailedRequests() {
-        return filter(new FailedRequest());
+    public List<UnknownRequest> getFailedRequests() {
+        return filter(new UnknownRequest());
     }
 
     public void add(UpdaterRequest request) {
@@ -54,6 +54,7 @@ public class OcciTasksResults {
         return attributes;
     }
 
+    @SuppressWarnings("unchecked")
     private <T> List<T> filter(T obj) {
         List<T> list = new ArrayList<T>();
         for (UpdaterRequest r: requests)
@@ -89,8 +90,10 @@ public class OcciTasksResults {
                 requests.add(processValue(key, taskResultJson));
 
         } catch (Exception e) {
-            logger.warn("Could not interpret: " + taskResult, e);
-            requests.add(new FailedRequest(taskName + ": '" + taskResult + "'\n"));
+            String message = "Error parsing json (" + e.getMessage() + ") for task '" +
+                    taskName + "' result '" + taskResult + "'";
+            logger.warn(message);
+            requests.add( new UnknownRequest(message + "\n"));
         }
 
     }
@@ -100,15 +103,16 @@ public class OcciTasksResults {
             JsonObject createData = taskResultJson.getJsonObject(key);
             return new CreateInstanceRequest(createData);
         } else if (key.equals(UpdaterRequest.UPDATE_KEY)) {
-            throw new RuntimeException("Not implemented yet");
+            JsonObject updateData = taskResultJson.getJsonObject(key);
+            return new UpdateInstanceRequest(updateData);
         } else {
-            return new UpdateAttributeRequest(key, taskResultJson.getString(key));
+            return new UpdateAttributeRequest(key, Utils.getString(taskResultJson, key));
         }
     }
 
-    private String toString(List<FailedRequest> requests) {
+    private String toString(List<UnknownRequest> requests) {
         StringBuilder s = new StringBuilder();
-        for (FailedRequest f: requests) {
+        for (UnknownRequest f: requests) {
             s.append(f.getErrorMessage());
             s.append("\n\n\n");
         }

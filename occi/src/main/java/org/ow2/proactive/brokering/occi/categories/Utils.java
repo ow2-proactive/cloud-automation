@@ -99,15 +99,19 @@ public class Utils {
     public static Map<String, String> convertToMap(JsonObject json) {
         Map<String, String> map = new HashMap<String, String>();
         for (String key: json.keySet()) {
-            String value = null;
-            try {
-                value = json.getString(key);
-            } catch (ClassCastException e) {
-                value = Integer.toString(json.getInt(key));
-            }
-            map.put(key, value);
+            map.put(key, getString(json, key));
         }
         return map;
+    }
+
+    public static String getString(JsonObject json, String key) {
+        String value = null;
+        try {
+            value = json.getString(key);
+        } catch (ClassCastException e) {
+            value = Integer.toString(json.getInt(key));
+        }
+        return value;
     }
 
 
@@ -145,8 +149,8 @@ public class Utils {
 
     public static void checkResponse(Response response) {
         int status = response.getStatus();
-        if (status < 200 && status >= 300) {
-            throw new RuntimeException("Bad response: " + response.getEntity().toString());
+        if (status < 200 || status >= 300) {
+            throw new RuntimeException("Bad response (" + status + "):" + response.getEntity());
         }
     }
 

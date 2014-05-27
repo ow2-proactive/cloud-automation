@@ -56,4 +56,14 @@ public class CreateInstanceRequest extends UpdaterRequest {
     public String getAttributeToUpdateWithLocation() {
         return update;
     }
+
+    public void processSpecialAttributes(String locationUrl) {
+        for (String key: attributes.keySet()) {
+            String value = attributes.get(key);
+            if (UpdaterRequest.LOCATION_OF_PARENT_KEY.equals(value)) {
+                attributes.put(key, locationUrl);
+            }
+        }
+    }
+
 }

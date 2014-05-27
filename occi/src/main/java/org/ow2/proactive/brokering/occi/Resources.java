@@ -39,11 +39,9 @@ import java.util.Collection;
 
 public class Resources {
     private Collection<Resource> resources;
-    private String prefixUrl;
 
-    public Resources(Collection<Resource> resources, String prefixUrl) {
+    public Resources(Collection<Resource> resources) {
         this.resources = resources;
-        this.prefixUrl = prefixUrl;
     }
 
     public Collection<Resource> getResources() {
@@ -59,7 +57,7 @@ public class Resources {
     public String toString() {
         String locations = "";
         for (Resource resource : resources) {
-            locations += "X-OCCI-Location: " + resource.getUrl(prefixUrl) + "\n";
+            locations += "X-OCCI-Location: " + resource.getUrl() + "\n";
         }
         return locations;
     }

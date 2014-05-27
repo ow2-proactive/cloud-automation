@@ -30,8 +30,7 @@ public class Broker {
     private Catalog catalog;
     private Rules rules;
 
-    private Broker() {
-    }
+    private Broker() { }
 
     public void initialize(Configuration config, Updater updater, SchedulerProxy sched) {
         File catalogPath = getPath(config.catalog.path, "/config/catalog");

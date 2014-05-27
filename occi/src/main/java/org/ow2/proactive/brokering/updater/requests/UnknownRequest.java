@@ -1,12 +1,12 @@
 package org.ow2.proactive.brokering.updater.requests;
 
-public class FailedRequest extends UpdaterRequest {
+public class UnknownRequest extends UpdaterRequest {
 
     private String errorMessage;
 
-    public FailedRequest() { }
+    public UnknownRequest() { }
 
-    public FailedRequest (String errorMessage) {
+    public UnknownRequest(String errorMessage) {
         this.errorMessage = errorMessage;
     }
 

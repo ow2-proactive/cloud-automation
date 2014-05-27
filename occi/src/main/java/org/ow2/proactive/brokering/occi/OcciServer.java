@@ -61,9 +61,9 @@ public class OcciServer implements Occi {
             }
 
             Response.ResponseBuilder responseBuilder = Response.status(Response.Status.CREATED);
-            responseBuilder.header("X-OCCI-Location", resource.getUrl(prefixUrl));
-            responseBuilder.entity("X-OCCI-Location: " + resource.getUrl(prefixUrl) + "\n");
-            logger.debug("Response : [X-OCCI-Location: " + resource.getUrl(prefixUrl) + "] CODE:" + Response.Status.CREATED);
+            responseBuilder.header("X-OCCI-Location", resource.getUrl());
+            responseBuilder.entity("X-OCCI-Location: " + resource.getUrl() + "\n");
+            logger.debug("Response : [X-OCCI-Location: " + resource.getUrl() + "] CODE:" + Response.Status.CREATED);
             return responseBuilder.build();
 
         } catch (Throwable e) {
@@ -85,7 +85,7 @@ public class OcciServer implements Occi {
                     filteredResources.add(resource);
                 }
             }
-            Resources resources = new Resources(filteredResources, prefixUrl);
+            Resources resources = new Resources(filteredResources);
             Response.ResponseBuilder response = Response.status(Response.Status.OK);
             response.entity(resources);
             logger.debug("Response : *" + resources.size() + " locations* CODE:" + Response.Status.OK);
@@ -176,9 +176,9 @@ public class OcciServer implements Occi {
                 response = Response.status(Response.Status.OK);
             }
             response.entity(references.getSummary());
-            response.header("X-OCCI-Location", resource.getUrl(prefixUrl));
-            response.entity("X-OCCI-Location: " + resource.getUrl(prefixUrl) + "\n");
-            logger.debug("Response : [X-OCCI-Location: " + resource.getUrl(prefixUrl) + "] CODE:" + Response.Status.OK);
+            response.header("X-OCCI-Location", resource.getUrl());
+            response.entity("X-OCCI-Location: " + resource.getUrl() + "\n");
+            logger.debug("Response : [X-OCCI-Location: " + resource.getUrl() + "] CODE:" + Response.Status.OK);
             return response.build();
 
         } catch (Throwable e) {
@@ -248,6 +248,11 @@ public class OcciServer implements Occi {
             Updater updater = new Updater(new OcciServer(config, scheduler), scheduler, config.updater.refresh * 1000);
             broker.initialize(config, updater, scheduler);
         }
+    }
+
+
+    public static String getPrefixUrl() {
+        return prefixUrl;
     }
 
 }
