@@ -16,6 +16,7 @@ import org.ow2.proactive_grid_cloud_portal.scheduler.exception.SchedulerRestExce
 import javax.security.auth.login.LoginException;
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.Map;
 
 
 public class SchedulerProxy {
@@ -48,13 +49,13 @@ public class SchedulerProxy {
     public TasksResults getAllTaskResults(String jobId)
       throws JobNotFinishedException, JobStatusRetrievalException {
 
-        TasksResults jobResultValue = null;
+        Map<String, String> results;
         try {
             try {
-                jobResultValue = new TasksResults(restClient.getScheduler().jobResultValue(sessionId, jobId));
+                results = restClient.getScheduler().jobResultValue(sessionId, jobId);
              } catch (NotConnectedRestException e) {
                 sessionId = connectToScheduler(loginData);
-                jobResultValue = new TasksResults(restClient.getScheduler().jobResultValue(sessionId, jobId));
+                results = restClient.getScheduler().jobResultValue(sessionId, jobId);
             }
         } catch (Exception e) {
             throw new JobStatusRetrievalException(
@@ -62,11 +63,10 @@ public class SchedulerProxy {
                         " : " + e.getClass().getName() + " " + e.getMessage());
         }
 
-        if (jobResultValue == null)
+        if (results == null)
             throw new JobNotFinishedException("No result for job " + jobId + " is available yet.");
 
-        return jobResultValue;
-
+        return new TasksResults(results);
     }
 
     public JobIdData submitJob(File jobFile) throws JobSubmissionException {
