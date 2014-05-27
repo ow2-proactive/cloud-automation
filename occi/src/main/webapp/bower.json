@@ -1,11 +1,16 @@
 {
-    "name": "Cloud Automation",
-    "private": true,
-    "dependencies": {
-        "angular": "1.2.x",
-        "bootstrap": "~3.1.1",
-        "angular-bootstrap": "~0.11.0",
-        "angular-route": "~1.2.x",
-        "angular-pines-notify": "0.1.0"
-    }
+  "name": "Cloud Automation",
+  "private": true,
+  "dependencies": {
+    "angular": "1.2.x",
+    "bootstrap": "~3.1.1",
+    "angular-bootstrap": "~0.11.0",
+    "angular-route": "~1.2.x",
+    "angular-cookies": "~1.2.x",
+    "angular-pines-notify": "0.1.0",
+    "fontawesome": "4.1.0"
+  },
+  "resolutions": {
+    "angular": "1.2.16"
+  }
 }

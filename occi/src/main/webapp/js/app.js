@@ -3,6 +3,7 @@
         'catalog',
         'services',
         'ngRoute',
+        'ngCookies',
         'ui.bootstrap',
         'ui.notify'
     ]);
@@ -28,15 +29,18 @@
             $routeProvider.
                 when('/catalog', {
                     templateUrl: 'partials/catalog.html',
-                    controller: 'CatalogCtrl'
+                    controller: 'CatalogCtrl',
+                    controllerAs: 'catalog'
                 }).
                 when('/services', {
                     templateUrl: 'partials/services.html',
-                    controller: 'ServicesCtrl'
+                    controller: 'ServicesCtrl',
+                    controllerAs: 'controller'
                 }).
                 when('/services/:category/:serviceId', {
                     templateUrl: 'partials/service-details.html',
-                    controller: 'ServiceDetailsCtrl'
+                    controller: 'ServiceDetailsCtrl',
+                    controllerAs: 'controller'
                 }).
                 otherwise({
                     redirectTo: '/services'

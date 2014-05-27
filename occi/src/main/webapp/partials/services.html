@@ -1,6 +1,12 @@
-<div class="col-sm-12 main" ng-controller="ServicesCtrl as controller">
+<div class="col-sm-12 main">
     <h2 class="page-header">Services
         <small class="pull-right">
+            <a href="" class="refresh glyphicon glyphicon-refresh"
+               ng-class="{ 'refresh-on': controller.autoRefresh }"
+               ng-click="controller.refresh(!controller.autoRefresh)"
+                    title="Automatic Update">
+            </a>
+            &nbsp;
             <i class="glyphicon glyphicon-filter"></i>
             <input type="text" ng-model="query"/>
         </small>

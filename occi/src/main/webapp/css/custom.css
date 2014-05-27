@@ -6,21 +6,32 @@
 .navbar {
     background-color: #FFFFFF;
 }
+.navbar-default .navbar-nav > li > a {
+    color: #5c96bc;
+}
+.navbar-default .navbar-nav > .active > a, .navbar-default .navbar-nav > .active > a:hover, .navbar-default .navbar-nav > .active > a:focus {
+    color: #5c96bc;
+}
+.navbar-default .navbar-brand {
+    color: #5c96bc;
+}
 
 .btn-group {
     margin: 2px;
 }
 
-.form-horizontal .control-label{
-    text-align:left;
+.form-horizontal .control-label {
+    text-align: left;
 }
-.form-horizontal .control-label-right{
-    text-align:right;
+
+.form-horizontal .control-label-right {
+    text-align: right;
 }
 
 .templates a:hover, a:visited, a:link, a:active {
     text-decoration: none;
 }
+
 .modal {
     overflow-y: auto;
 }
@@ -29,11 +40,10 @@
     overflow: auto;
 }
 
-
 a, a:visited {
-    text-decoration:none;
-    color:#5c96bc !important;
-    border-radius:0.2em;
+    text-decoration: none;
+    color: #5c96bc;
+    border-radius: 0.2em;
     -webkit-transition: color 0.15s ease-in;
     -moz-transition: color 0.15s ease-in;
     -o-transition: color 0.15s ease-in;
@@ -41,5 +51,13 @@ a, a:visited {
 }
 
 a:hover {
-    color:#E87224 !important;
+    color: #E87224 !important;
+}
+
+.refresh {
+    color: #999 !important;
+}
+
+.refresh-on {
+    color: #E87224 !important;
 }
