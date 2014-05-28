@@ -1,28 +1,24 @@
 package org.ow2.proactive.brokering;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import java.io.File;
+
+import org.mortbay.jetty.Server;
+import org.mortbay.jetty.webapp.WebAppContext;
+
 
 public class Main {
 
-    /**
-     * @param args
-     */
-    public static void main(String[] args) {
-        try {
-
-            File file = new File("configuration/config.xml");
-            JAXBContext jaxbContext = JAXBContext.newInstance(Configuration.class);
-
-            Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-            Configuration rules = (Configuration) jaxbUnmarshaller.unmarshal(file);
-            System.out.println(rules);
-
-        } catch (JAXBException e) {
-            e.printStackTrace();
-        }
+    public static void main(String[] args) throws Exception {
+        Server server = new Server(8081);
+        WebAppContext webApp = new WebAppContext();
+        webApp.setParentLoaderPriority(true);
+        webApp.setContextPath("/ca");
+        webApp.setDescriptor(new File("src/main/webapp/WEB-INF/web.xml").getAbsolutePath());
+        webApp.setResourceBase("src/main/webapp");
+        server.addHandler(webApp);
+        server.start();
+        System.out.println("---------- Started -------------");
+        server.join();
     }
 
 }

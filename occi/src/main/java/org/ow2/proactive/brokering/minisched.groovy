@@ -19,7 +19,7 @@ class MiniScheduler implements ISchedulerProxy {
 
     long ids = 1
     Map<String, Map<String, String>> jobResults = new ConcurrentHashMap<>()
-    Executor workers = Executors.newWorkStealingPool()
+    Executor workers = Executors.newCachedThreadPool()
 
     @Override
     TasksResults getAllTaskResults(String jobId) throws JobNotFinishedException, JobStatusRetrievalException {
