@@ -30,6 +30,7 @@ public class Scripts {
         Iterator<File> iterator = scripts.iterator();
         while (iterator.hasNext()) {
             File f = iterator.next();
+            logger.debug("Script found: " + f.getName());
             if (f.getName().equals(name))
                 return f;
         }
@@ -69,11 +70,11 @@ public class Scripts {
         }
 
         private void addNewScripts() {
-            // Add new scripts
             for (File f : path.listFiles()) {
                 if (!scripts.contains(f) && isValidScriptFile(f)) {
                     scripts.add(f);
-                    logger.info("Added script : " + f.getName());
+                    logger.info("Added script : " + f.getName() + " at " +
+                                        path.getAbsolutePath());
                 }
             }
         }

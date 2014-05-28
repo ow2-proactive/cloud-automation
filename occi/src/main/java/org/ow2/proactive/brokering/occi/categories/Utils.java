@@ -173,4 +173,15 @@ public class Utils {
         }
     }
 
+    public static File getScriptsPath(String path, String defaultPath) {
+        File c = new File(path);
+        if (!c.isDirectory()) {
+            c = new File(Utils.class.getResource(defaultPath).getFile());
+            logger.info("Using default scripts directory: " + c.getAbsolutePath());
+        } else {
+            logger.info("Using specified scripts directory: " + c.getAbsolutePath());
+        }
+        return c;
+    }
+
 }

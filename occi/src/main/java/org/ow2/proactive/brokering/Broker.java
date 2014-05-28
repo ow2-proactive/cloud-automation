@@ -1,13 +1,10 @@
 package org.ow2.proactive.brokering;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
+import groovy.lang.GroovyClassLoader;
+import org.apache.commons.io.FileUtils;
+import org.apache.log4j.Logger;
 import org.ow2.proactive.brokering.occi.categories.Categories;
+import org.ow2.proactive.brokering.occi.categories.Utils;
 import org.ow2.proactive.brokering.occi.client.ActionTriggerHandler;
 import org.ow2.proactive.brokering.updater.Updater;
 import org.ow2.proactive.workflowcatalog.Catalog;
@@ -16,9 +13,9 @@ import org.ow2.proactive.workflowcatalog.References;
 import org.ow2.proactive.workflowcatalog.Workflow;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.ISchedulerProxy;
 import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobIdData;
-import groovy.lang.GroovyClassLoader;
-import org.apache.commons.io.FileUtils;
-import org.apache.log4j.Logger;
+
+import java.io.File;
+import java.util.*;
 
 
 public class Broker {
@@ -35,8 +32,8 @@ public class Broker {
     private Broker() { }
 
     public void initialize(Configuration config, Updater updater, ISchedulerProxy sched) {
-        File catalogPath = getPath(config.catalog.path, "/config/catalog-test");
-        File rulesPath = getPath(config.rules.path, "/config/rules");
+        File catalogPath = Utils.getScriptsPath(config.catalog.path, "/config/catalog");
+        File rulesPath = Utils.getScriptsPath(config.rules.path, "/config/rules");
 
         this.scheduler = sched;
         this.catalog = new Catalog(catalogPath, config.catalog.refresh * 1000, new CatalogToResource());
@@ -78,14 +75,6 @@ public class Broker {
     //
     ///////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////
-
-    private File getPath(String path, String defaultPath) {
-        File c = new File(path);
-        if (!c.isDirectory()) {
-            c = new File(Broker.class.getResource(defaultPath).getFile());
-        }
-        return c;
-    }
 
     private String getUuid(Map<String, String> attributes) {
         return attributes.get("occi.core.id");

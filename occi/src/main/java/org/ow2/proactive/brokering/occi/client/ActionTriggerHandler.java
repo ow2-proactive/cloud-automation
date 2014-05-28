@@ -9,13 +9,15 @@ import org.ow2.proactive.workflowcatalog.Reference;
 import org.ow2.proactive.workflowcatalog.References;
 
 import javax.xml.bind.JAXBException;
-import java.io.File;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Timer;
 
 import static org.ow2.proactive.brokering.occi.Resource.OP_CREATE;
 import static org.ow2.proactive.brokering.occi.Resource.OP_UPDATE;
-
-import static org.ow2.proactive.brokering.occi.categories.trigger.ActionTrigger.*;
+import static org.ow2.proactive.brokering.occi.categories.trigger.ActionTrigger.OCCI_CORE_ID;
+import static org.ow2.proactive.brokering.occi.categories.trigger.ActionTrigger
+        .OCCI_MONITORING_PERIODMS;
 
 public class ActionTriggerHandler {
 
@@ -30,20 +32,16 @@ public class ActionTriggerHandler {
     private static Actions actions;
     private static Conditions conditions;
 
-    private File getPath(String path) {
-        File c = new File(path);
-        if (!c.isDirectory()) {
-            throw new RuntimeException("Not a directory: " + c.getAbsolutePath());
-        }
-        return c;
-    }
-
     private static ActionTriggerHandler instance;
 
     private ActionTriggerHandler(Configuration config) {
         timers = new HashMap<String, Timer>();
-        actions = new Actions(getPath(config.actions.path), config.actions.refresh);
-        conditions = new Conditions(getPath(config.conditions.path), config.conditions.refresh);
+        actions = new Actions(
+                Utils.getScriptsPath(config.actions.path, "config/actions"),
+                config.actions.refresh);
+        conditions = new Conditions(
+                Utils.getScriptsPath(config.conditions.path, "config/conditions"),
+                config.conditions.refresh);
     }
 
     private ActionTriggerHandler() throws JAXBException {
