@@ -60,8 +60,10 @@
 
     function attributesToOcciFormat(newInstance) {
         var attributesAsString = "";
-        for (var i in newInstance.attributes) {
-            attributesAsString += i + "=" + newInstance.attributes[i] + ",";
+        for (var key in newInstance.attributes) {
+            if (key == "provider" || key.indexOf("occi") > -1) {
+                attributesAsString += key + "=" + newInstance.attributes[key] + ",";
+            }
         }
         attributesAsString = attributesAsString.substring(0, attributesAsString.length - 1);
         return attributesAsString;

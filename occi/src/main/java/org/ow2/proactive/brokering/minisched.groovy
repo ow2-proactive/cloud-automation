@@ -10,11 +10,13 @@ import java.util.concurrent.Executors
 def jobFile = new File('/home/ybonnaffe/src/brokering/occi/src/main/resources/config/catalog-test/test-create.xml')
 def job = new XmlSlurper().parse(jobFile)
 
-def scheduler = new MiniScheduler()
+def scheduler = MiniScheduler.instance
 jobId = scheduler.submitJob(jobFile)
 println scheduler.getAllTaskResults(jobId.id as String)
 
 class MiniScheduler implements ISchedulerProxy {
+    public static MiniScheduler instance = new MiniScheduler()
+
     long ids = 1
     Map<String, Map<String, String>> jobResults = new ConcurrentHashMap<>()
     Executor workers = Executors.newWorkStealingPool()
@@ -46,7 +48,7 @@ class MiniScheduler implements ISchedulerProxy {
                 def shell = new GroovyShell()
                 shell.evaluate(code)
                 def taskResult = shell.getVariable("result")
-                println "--- ---"
+                println "--- Done ($taskResult) ---"
 
                 taskResults.put(task.@name.text(), taskResult as String)
             }

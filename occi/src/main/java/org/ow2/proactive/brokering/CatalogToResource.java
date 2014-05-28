@@ -46,24 +46,37 @@ import org.ow2.proactive.workflowcatalog.Workflow;
 class CatalogToResource implements CatalogListener {
     @Override
     public void added(Workflow addedWorkflow) {
-        Map<String, String> attributes = new HashMap<String, String>();
-        attributes.putAll(addedWorkflow.getVariables());
-        attributes.putAll(addedWorkflow.getGenericInformation());
-        String resourceId = resourceIdFromWorkflow(addedWorkflow);
-        attributes.put("occi.core.id", resourceId);
-        ResourcesHandler.factory(resourceId, "template", attributes);
+        if (isAWorkflowToCreate(addedWorkflow)) {
+            Map<String, String> attributes = new HashMap<String, String>();
+            attributes.putAll(addedWorkflow.getVariables());
+            attributes.putAll(addedWorkflow.getGenericInformation());
+            // FIXME it is not clear which attributes/generic information from the workflow should be exposed
+            attributes.remove("action");
+            String resourceId = resourceIdFromWorkflow(addedWorkflow);
+            attributes.put("occi.core.id", resourceId);
+            ResourcesHandler.factory(resourceId, "template", attributes);
+        }
     }
 
     @Override
     public void updated(Workflow updatedWorkflow) {
-        Resource resource = ResourcesHandler.getResources().get(resourceIdFromWorkflow(updatedWorkflow));
-        resource.getAttributes().putAll(updatedWorkflow.getVariables());
-        resource.getAttributes().putAll(updatedWorkflow.getGenericInformation());
+        if (isAWorkflowToCreate(updatedWorkflow)) {
+            Resource resource = ResourcesHandler.getResources().get(resourceIdFromWorkflow(updatedWorkflow));
+            resource.getAttributes().putAll(updatedWorkflow.getVariables());
+            resource.getAttributes().putAll(updatedWorkflow.getGenericInformation());
+            resource.getAttributes().remove("action");
+        }
     }
 
     @Override
     public void removed(Workflow removedWorkflow) {
-        ResourcesHandler.getResources().remove(resourceIdFromWorkflow(removedWorkflow));
+        if (isAWorkflowToCreate(removedWorkflow)) {
+            ResourcesHandler.getResources().remove(resourceIdFromWorkflow(removedWorkflow));
+        }
+    }
+
+    private boolean isAWorkflowToCreate(Workflow workflow) {
+        return "create".equals(workflow.getGenericInformation("operation"));
     }
 
     private String resourceIdFromWorkflow(Workflow addedWorkflow) {

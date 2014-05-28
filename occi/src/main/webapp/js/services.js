@@ -57,6 +57,15 @@
             });
         }
 
+        this.action = function (service, action) {
+            var controller = this;
+            var config = { params: {action: action.title}}
+            $http.post('/ca/api/occi/' + service.category + '/' + service.uuid, {}, config).success(function (date) {
+                notificationService.success("Action " + action.title + " for " + service.uuid + " performed")
+                controller.doRefresh();
+            });
+        }
+
         this.doRefresh();
         this.refresh($cookieStore.get('autoRefresh') || false);
     });

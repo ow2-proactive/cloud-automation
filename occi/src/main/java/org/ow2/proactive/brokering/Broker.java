@@ -1,8 +1,12 @@
 package org.ow2.proactive.brokering;
 
-import groovy.lang.GroovyClassLoader;
-import org.apache.commons.io.FileUtils;
-import org.apache.log4j.Logger;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
 import org.ow2.proactive.brokering.occi.categories.Categories;
 import org.ow2.proactive.brokering.occi.client.ActionTriggerHandler;
 import org.ow2.proactive.brokering.updater.Updater;
@@ -12,11 +16,9 @@ import org.ow2.proactive.workflowcatalog.References;
 import org.ow2.proactive.workflowcatalog.Workflow;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.ISchedulerProxy;
 import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobIdData;
-
-import java.io.File;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import groovy.lang.GroovyClassLoader;
+import org.apache.commons.io.FileUtils;
+import org.apache.log4j.Logger;
 
 
 public class Broker {
@@ -136,8 +138,6 @@ public class Broker {
     /**
      * Apply proper rules
      *
-     * @param attributes
-     * @param rules
      * @return the number of rules applied
      */
     private int applyRules(Map<String, String> attributes, Rules rules) {
@@ -166,4 +166,16 @@ public class Broker {
         return new TreeMap<String, String>(map).toString();
     }
 
+    public List<String> listPossibleActions(String category, Map<String, String> attributes) {
+        List<String> possibleActions = new ArrayList<String>();
+        Map<String, String> copy = new HashMap<String, String>(attributes);
+        // FIXME find out resource state with a better way
+        copy.put("action.from-states", copy.get("occi.compute.state"));
+        for (Workflow workflow : catalog.getWorkflows()) {
+            if (OcciWorkflowUtils.isCompliant(workflow, category, null, null, copy)) {
+                possibleActions.add(workflow.getGenericInformation("action"));
+            }
+        }
+        return possibleActions;
+    }
 }

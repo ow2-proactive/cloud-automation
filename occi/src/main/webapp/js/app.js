@@ -65,4 +65,19 @@
         };
     });
 
+    app.filter('actionToIcon', function () {
+        return function (action) {
+            switch (action) {
+                case "suspend":
+                    return "fa-pause";
+                case "stop":
+                    return "fa-stop";
+                case "start":
+                    return "fa-play";
+                default: return '';
+            }
+        };
+    });
+
+
 })();

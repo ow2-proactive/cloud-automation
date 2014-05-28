@@ -33,13 +33,19 @@
                 {{ service.category }}
             </td>
             <td>
-                {{ service.attributes['action.state'] }}
+                <i class="fa fa-spin fa-spinner"
+                   ng-show="service.attributes['action.state'] == 'pending'"></i>
+                {{ service.attributes['occi.compute.state'] }}
             </td>
             <td>
                 <a href="#/services/{{service.category}}/{{ service.uuid }}">{{ service['uuid'] }}</a>
             </td>
             <td>
-                <!--<a class="btn btn-warning">Stop</a>-->
+                <a class="btn" title="{{ action.title | capitalize }}" href=""
+                   ng-click="controller.action(service, action)" ng-repeat="action in service.links"
+                   ng-hide="(action.title | actionToIcon) == ''">
+                    <i class="fa {{ action.title | actionToIcon}}"></i>
+                </a>
                 <a class="btn" title="Remove service" data-toggle="modal"
                    ng-click="controller.deleteService(service)">
                     <i class="glyphicon glyphicon-trash"></i>

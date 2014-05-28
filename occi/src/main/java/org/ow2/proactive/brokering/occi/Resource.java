@@ -1,21 +1,19 @@
 package org.ow2.proactive.brokering.occi;
 
-import org.apache.log4j.Logger;
-import org.ow2.proactive.brokering.Broker;
-import org.ow2.proactive.workflowcatalog.References;
-
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+
+import org.ow2.proactive.brokering.Broker;
+import org.ow2.proactive.workflowcatalog.References;
 
 public class Resource {
     public static final String OP_CREATE = "create";
     public static final String OP_READ = "read";
     public static final String OP_UPDATE = "update";
     public static final String OP_DELETE = "delete";
-
-    private static Logger logger = Logger.getLogger(Resource.class.getName());
 
     private String uuid;
     private String category;
@@ -65,8 +63,13 @@ public class Resource {
         return Broker.getInstance().request(category, OP_DELETE, getAttributes());
     }
 
-    public List<Resource> getLinkedResources() {
-        return null;
+    public List<Action> getLinks() {
+        List<String> actionTitles = Broker.getInstance().listPossibleActions(category, getAttributes());
+        List<Action> actions = new ArrayList<Action>();
+        for (String actionTitle : actionTitles) {
+            actions.add(new Action(actionTitle));
+        }
+        return actions;
     }
 
     public String toString() {

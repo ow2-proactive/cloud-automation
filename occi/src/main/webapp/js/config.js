@@ -29,6 +29,9 @@
                 'application': {
                     visible: false
                 },
+                'action.from-states': {
+                    visible: false
+                },
                 'occi.compute.value': {
                     visible: true,
                     label: "A compute value"
