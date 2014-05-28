@@ -62,10 +62,10 @@ public class OrientDB implements Database {
         if (list.size() == 0) {
             return null;
         } else if (list.size() == 1) {
-            return list.get(0);
+            return db.detach(list.get(0), true);
         } else {
             logger.warn("Repeated uuid: " + uuid);
-            return list.get(0);
+            return db.detach(list.get(0), true);
         }
     }
 
@@ -73,8 +73,9 @@ public class OrientDB implements Database {
     public List<Resource> getAllResources() {
         logger.info("Load all resources");
         List<Resource> list = new ArrayList<Resource>();
-        for (Resource r : db.browseClass(Resource.class))
-            list.add(r);
+        for (Resource r : db.browseClass(Resource.class)) {
+            list.add((Resource)db.detach(r, true));
+        }
         return list;
     }
 
