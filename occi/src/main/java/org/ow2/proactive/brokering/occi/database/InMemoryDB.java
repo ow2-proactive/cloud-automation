@@ -32,35 +32,47 @@
  *
  *  * $$PROACTIVE_INITIAL_DEV$$
  */
-package org.ow2.proactive.brokering.occi;
-
-import java.util.Collection;
+package org.ow2.proactive.brokering.occi.database;
 
 
-public class Resources {
-    private Collection<Resource> resources;
-    private String serverUrl;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-    public Resources(Collection<Resource> resources, String serverUrl) {
-        this.resources = resources;
-        this.serverUrl = serverUrl;
-    }
+import org.ow2.proactive.brokering.occi.Resource;
 
-    public Collection<Resource> getResources() {
-        return resources;
-    }
 
-    public int size() {
-        return resources.size();
-    }
+public class InMemoryDB implements Database {
+    private Map<String, Resource> resources = new ConcurrentHashMap<String, Resource>();
 
-    /** Poor hack for the text/plain representation */
     @Override
-    public String toString() {
-        String locations = "";
-        for (Resource resource : resources) {
-            locations += "X-OCCI-Location: " + resource.getFullPath(serverUrl) + "\n";
-        }
-        return locations;
+    public void store(Resource resource) {
+        resources.put(resource.getUuid(), resource);
+    }
+
+    @Override
+    public List<Resource> getAllResources() {
+        return new ArrayList<Resource>(resources.values());
+    }
+
+    @Override
+    public Resource load(String uuid) {
+        return resources.get(uuid);
+    }
+
+    @Override
+    public void delete(String uuid) {
+        resources.remove(uuid);
+    }
+
+    @Override
+    public void drop() {
+        resources.clear();
+    }
+
+    @Override
+    public void close() {
+
     }
 }

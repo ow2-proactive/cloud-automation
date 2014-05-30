@@ -1,48 +1,39 @@
 package org.ow2.proactive.brokering;
 
-import groovy.lang.GroovyClassLoader;
-import org.apache.commons.io.FileUtils;
-import org.apache.log4j.Logger;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
 import org.ow2.proactive.brokering.occi.categories.Categories;
-import org.ow2.proactive.brokering.occi.categories.Utils;
 import org.ow2.proactive.brokering.occi.client.ActionTriggerHandler;
-import org.ow2.proactive.brokering.updater.Updater;
 import org.ow2.proactive.workflowcatalog.Catalog;
 import org.ow2.proactive.workflowcatalog.Reference;
 import org.ow2.proactive.workflowcatalog.References;
 import org.ow2.proactive.workflowcatalog.Workflow;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.ISchedulerProxy;
 import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobIdData;
-
-import java.io.File;
-import java.util.*;
+import com.google.inject.Inject;
+import groovy.lang.GroovyClassLoader;
+import org.apache.commons.io.FileUtils;
+import org.apache.log4j.Logger;
 
 
 public class Broker {
 
     private static final Logger logger = Logger.getLogger(Broker.class.getName());
 
-    private static Broker instance = new Broker();
-
     private ISchedulerProxy scheduler;
-    private Updater updater;
     private Catalog catalog;
     private Rules rules;
 
-    private Broker() { }
-
-    public void initialize(Configuration config, Updater updater, ISchedulerProxy sched) {
-        File catalogPath = Utils.getScriptsPath(config.catalog.path, "/config/catalog");
-        File rulesPath = Utils.getScriptsPath(config.rules.path, "/config/rules");
-
-        this.scheduler = sched;
-        this.catalog = new Catalog(catalogPath, config.catalog.refresh * 1000, new CatalogToResource());
-        this.rules = new Rules(rulesPath, config.rules.refresh * 1000);
-        this.updater = updater;
-    }
-
-    public static Broker getInstance() {
-        return instance;
+    @Inject
+    public Broker(ISchedulerProxy scheduler, Catalog catalog, Rules rules) {
+        this.scheduler = scheduler;
+        this.catalog = catalog;
+        this.rules = rules;
     }
 
     public References request(String category, String operation, Map<String, String> attributes) throws Exception {
@@ -60,24 +51,7 @@ public class Broker {
         references.addAll(refNonWorkflow);
         references.addAll(refWorkflow);
 
-        for (Reference ref : refWorkflow) {
-            updater.addResourceToTheUpdateQueue(ref, getUuid(attributes));
-        }
-
         return references;
-    }
-
-
-    ///////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////
-    //
-    //                  PRIVATE METHODS
-    //
-    ///////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////
-
-    private String getUuid(Map<String, String> attributes) {
-        return attributes.get("occi.core.id");
     }
 
     private References processWorkflowRequest(

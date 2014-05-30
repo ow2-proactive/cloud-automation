@@ -38,15 +38,33 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.ow2.proactive.brokering.occi.Resource;
-import org.ow2.proactive.brokering.occi.ResourcesHandler;
+import org.ow2.proactive.brokering.occi.ResourceBuilder;
+import org.ow2.proactive.brokering.occi.database.Database;
+import org.ow2.proactive.brokering.occi.database.DatabaseFactory;
 import org.ow2.proactive.workflowcatalog.CatalogListener;
 import org.ow2.proactive.workflowcatalog.Workflow;
 
 
 class CatalogToResource implements CatalogListener {
+    private static final String TEMPLATE_CATEGORY = "template";
+
+    private DatabaseFactory databaseFactory;
+
+    public CatalogToResource(DatabaseFactory databaseFactory) {
+        this.databaseFactory = databaseFactory;
+        Database database = databaseFactory.build();
+        for (Resource resource : database.getAllResources()) {
+            if(TEMPLATE_CATEGORY.equals(resource.getCategory())){
+                database.delete(resource.getUuid());
+            }
+        }
+        database.close();
+    }
+
     @Override
     public void added(Workflow addedWorkflow) {
         if (isAWorkflowToCreate(addedWorkflow)) {
+            Database database = databaseFactory.build();
             Map<String, String> attributes = new HashMap<String, String>();
             attributes.putAll(addedWorkflow.getVariables());
             attributes.putAll(addedWorkflow.getGenericInformation());
@@ -54,24 +72,31 @@ class CatalogToResource implements CatalogListener {
             attributes.remove("action");
             String resourceId = resourceIdFromWorkflow(addedWorkflow);
             attributes.put("occi.core.id", resourceId);
-            ResourcesHandler.factory(resourceId, "template", attributes);
+            Resource resource = ResourceBuilder.factory(resourceId, "template", attributes);
+            database.store(resource);
+            database.close();
         }
     }
 
     @Override
     public void updated(Workflow updatedWorkflow) {
         if (isAWorkflowToCreate(updatedWorkflow)) {
-            Resource resource = ResourcesHandler.getResources().get(resourceIdFromWorkflow(updatedWorkflow));
+            Database database = databaseFactory.build();
+            Resource resource = database.load(resourceIdFromWorkflow(updatedWorkflow));
             resource.getAttributes().putAll(updatedWorkflow.getVariables());
             resource.getAttributes().putAll(updatedWorkflow.getGenericInformation());
             resource.getAttributes().remove("action");
+            database.store(resource);
+            database.close();
         }
     }
 
     @Override
     public void removed(Workflow removedWorkflow) {
         if (isAWorkflowToCreate(removedWorkflow)) {
-            ResourcesHandler.getResources().remove(resourceIdFromWorkflow(removedWorkflow));
+            Database database = databaseFactory.build();
+            database.delete(resourceIdFromWorkflow(removedWorkflow));
+            database.close();
         }
     }
 

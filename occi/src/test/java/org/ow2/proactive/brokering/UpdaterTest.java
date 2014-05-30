@@ -1,35 +1,34 @@
 package org.ow2.proactive.brokering;
 
-import junit.framework.Assert;
-import net.minidev.json.JSONObject;
-import org.apache.http.auth.AuthenticationException;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
+import javax.ws.rs.core.Response;
+import javax.xml.bind.JAXBException;
+
 import org.ow2.proactive.brokering.occi.OcciServer;
 import org.ow2.proactive.brokering.occi.Resource;
-import org.ow2.proactive.brokering.occi.ResourcesHandler;
-import org.ow2.proactive.brokering.occi.api.Occi;
+import org.ow2.proactive.brokering.occi.ResourceBuilder;
 import org.ow2.proactive.brokering.occi.categories.Utils;
-import org.ow2.proactive.brokering.occi.database.Database;
 import org.ow2.proactive.brokering.occi.database.DatabaseFactory;
+import org.ow2.proactive.brokering.occi.database.InMemoryDB;
 import org.ow2.proactive.brokering.updater.Updater;
 import org.ow2.proactive.brokering.updater.requests.UpdaterRequest;
+import org.ow2.proactive.workflowcatalog.Catalog;
 import org.ow2.proactive.workflowcatalog.Reference;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.JobNotFinishedException;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.JobStatusRetrievalException;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerProxy;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.TasksResults;
 import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobIdData;
-
-import javax.ws.rs.core.Response;
-import javax.xml.bind.JAXBException;
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
+import junit.framework.Assert;
+import net.minidev.json.JSONObject;
+import org.apache.http.auth.AuthenticationException;
+import org.junit.Before;
+import org.junit.Test;
 
 import static org.mockito.Matchers.notNull;
 import static org.mockito.Mockito.mock;
@@ -49,24 +48,22 @@ public class UpdaterTest {
 
     private static final String ERROR_STRING = "Exception";
     private static final String TASK_RESULT_WHEN_ERROR = ERROR_STRING + ": , = '' \"\"...";
+    private int jobId;
 
-    private static Occi occiServer;
-    private static SchedulerProxy scheduler;
-    private static Map<String, Reference> jobReferences = new HashMap<String, Reference>();
+    private OcciServer occiServer;
+    private SchedulerProxy scheduler;
+    private Map<String, Reference> jobReferences = new HashMap<String, Reference>();
+    private Updater updater;
+    private InMemoryDB database;
 
-    @BeforeClass
-    public static void beforeClass() throws Exception {
-        Random r = new Random();
-        Database db = mock(Database.class);
-        DatabaseFactory.mockupWith(db);
-
+    @Before
+    public void setUp() throws Exception {
+        jobId = 1;
         scheduler = createMockOfSchedulerProxy();
-        occiServer = createMockOfOcciServer(scheduler);
-    }
-
-    @AfterClass
-    public static void afterClass() throws Exception {
-        DatabaseFactory.mockupWith(null);
+        database = new InMemoryDB();
+        occiServer = createMockOfOcciServer(scheduler, database);
+        updater = new Updater(occiServer, scheduler, UPDATE_PERIOD, BROKER_URL);
+        occiServer.setUpdater(updater);
     }
 
     /**
@@ -76,10 +73,11 @@ public class UpdaterTest {
     public void verifyJsonTaskOutputsAreInsertedIntoResourceProperties_Test() throws Exception {
 
 
-        Resource resource = ResourcesHandler.factory(
-                UUID.randomUUID().toString(),
-                COMPUTE_NAME,
-                getDefaultComputeResourceAttributes());
+        Resource resource = ResourceBuilder.factory(
+          UUID.randomUUID().toString(),
+          COMPUTE_NAME,
+          getDefaultComputeResourceAttributes());
+        database.store(resource);
 
         {
             // This tasks results response is a expected response, where tasks have results
@@ -91,12 +89,9 @@ public class UpdaterTest {
         }
         Reference jobReference = jobReferences.get(JOB_ID);
 
-        Updater updater = new Updater(occiServer, scheduler, UPDATE_PERIOD);
         updater.addResourceToTheUpdateQueue(jobReference, resource);
 
-        assertThereIsOneJobPendingForUpdate(updater);
-
-        waitUntilUpdaterReacts(updater);
+        waitUntilUpdateProcessedEverything(updater);
 
         assertResourceAttributesAreCorrectlyTakenFromTaskResults(resource);
 
@@ -111,10 +106,11 @@ public class UpdaterTest {
     public void verifyOuputJsonTaskOutputIsInsertedIntoResourcePropertiesIfTaskOutputIsNotJson_Test()
             throws Exception {
 
-        Resource resource = ResourcesHandler.factory(
-                UUID.randomUUID().toString(),
-                COMPUTE_NAME,
-                getDefaultComputeResourceAttributes());
+        Resource resource = ResourceBuilder.factory(
+          UUID.randomUUID().toString(),
+          COMPUTE_NAME,
+          getDefaultComputeResourceAttributes());
+        database.store(resource);
 
         {
             Map<String, String> badTaskResults = new HashMap<String, String>();
@@ -124,12 +120,9 @@ public class UpdaterTest {
         }
         Reference jobReference = jobReferences.get(JOB_ID);
 
-        Updater updater = new Updater(occiServer, scheduler, UPDATE_PERIOD);
         updater.addResourceToTheUpdateQueue(jobReference, resource);
 
-        assertThereIsOneJobPendingForUpdate(updater);
-
-        waitUntilUpdaterReacts(updater);
+        waitUntilUpdateProcessedEverything(updater);
 
     }
 
@@ -137,10 +130,11 @@ public class UpdaterTest {
     public void verifyAllOuputJsonTaskOutputAreInsertedIntoResourcePropertiesEvenIfNotAllTaskOutputsAreJson_Test()
             throws Exception {
 
-        Resource resource = ResourcesHandler.factory(
-                UUID.randomUUID().toString(),
-                COMPUTE_NAME,
-                getDefaultComputeResourceAttributes());
+        Resource resource = ResourceBuilder.factory(
+          UUID.randomUUID().toString(),
+          COMPUTE_NAME,
+          getDefaultComputeResourceAttributes());
+        database.store(resource);
 
         {
             // This tasks results response is a sort of expected response, where some tasks have results
@@ -153,12 +147,9 @@ public class UpdaterTest {
 
         Reference jobReference = jobReferences.get(JOB_ID);
 
-        Updater updater = new Updater(occiServer, scheduler, UPDATE_PERIOD);
         updater.addResourceToTheUpdateQueue(jobReference, resource);
 
-        assertThereIsOneJobPendingForUpdate(updater);
-
-        waitUntilUpdaterReacts(updater);
+        waitUntilUpdateProcessedEverything(updater);
 
         assertSomeResourceAttributesAreCorrectlyTakenFromTaskResults(resource);
 
@@ -168,10 +159,11 @@ public class UpdaterTest {
     public void verifyResourcePropertiesAreUpdatedIfJobError_Test()
             throws Exception {
 
-        Resource resource = ResourcesHandler.factory(
-                UUID.randomUUID().toString(),
-                COMPUTE_NAME,
-                getDefaultComputeResourceAttributes());
+        Resource resource = ResourceBuilder.factory(
+          UUID.randomUUID().toString(),
+          COMPUTE_NAME,
+          getDefaultComputeResourceAttributes());
+        database.store(resource);
 
         {
             // This tasks results response is a non expected response, where some tasks fail.
@@ -184,12 +176,9 @@ public class UpdaterTest {
 
         Reference jobReference = jobReferences.get(JOB_ID);
 
-        Updater updater = new Updater(occiServer, scheduler, UPDATE_PERIOD);
         updater.addResourceToTheUpdateQueue(jobReference, resource);
 
-        assertThereIsOneJobPendingForUpdate(updater);
-
-        waitUntilUpdaterReacts(updater);
+        waitUntilUpdateProcessedEverything(updater);
 
         assertSomeResourceAttributesAreCorrectlyTakenFromTaskResults(resource);
         assertResourceAttributesErrorDescriptionContains(resource, ERROR_STRING);
@@ -205,10 +194,11 @@ public class UpdaterTest {
 
         String PARENT_UPDATE_LOCATION_ATTRIBUTE = "occi.compute.localstorage";
 
-        Resource compute = ResourcesHandler.factory(
-                UUID.randomUUID().toString(),
-                COMPUTE_NAME,
-                getDefaultComputeResourceAttributes());
+        Resource compute = ResourceBuilder.factory(
+          UUID.randomUUID().toString(),
+          COMPUTE_NAME,
+          getDefaultComputeResourceAttributes());
+        database.store(compute);
 
         {
 
@@ -220,7 +210,11 @@ public class UpdaterTest {
             // This tasks results response is a resource creation response, a new resource should be created
             Map<String, String> creationTaskResults = new HashMap<String, String>();
             creationTaskResults.put("task1", buildStorageCreationJsonTaskResult(createStorage).toJSONString());
-            mockJobResults(scheduler, JOB_ID, new TasksResults(creationTaskResults));
+            mockJobResults(scheduler, "0", new TasksResults(creationTaskResults));
+
+            Map<String, String> storageCreationTaskResults = new HashMap<String, String>();
+            storageCreationTaskResults.put("task1", "{}");
+            mockJobResults(scheduler, "1", new TasksResults(storageCreationTaskResults));
 
         }
 
@@ -229,14 +223,11 @@ public class UpdaterTest {
         Integer storages = getAmountOfInstancesForACategory(STORAGE_NAME);
         assertAmountOfInstancesForACategory(STORAGE_NAME, storages + 0);
 
-        Updater updater = new Updater(occiServer, scheduler, UPDATE_PERIOD);
         updater.addResourceToTheUpdateQueue(jobReference, compute);
 
-        assertThereIsOneJobPendingForUpdate(updater);
-
-        waitUntilUpdaterReacts(updater);
+        waitUntilUpdateProcessedEverything(updater);
         assertParentUpdateLocationAttributeIsAValidResourceLocation(compute,
-                                                                    PARENT_UPDATE_LOCATION_ATTRIBUTE);
+          PARENT_UPDATE_LOCATION_ATTRIBUTE);
 
         assertAmountOfInstancesForACategory(STORAGE_NAME, storages + 1);
 
@@ -251,10 +242,11 @@ public class UpdaterTest {
 
         String PARENT_UPDATE_LOCATION_ATTRIBUTE = "occi.compute.localstorage";
 
-        Resource resource = ResourcesHandler.factory(
-                UUID.randomUUID().toString(),
-                COMPUTE_NAME,
-                getDefaultComputeResourceAttributes());
+        Resource resource = ResourceBuilder.factory(
+          UUID.randomUUID().toString(),
+          COMPUTE_NAME,
+          getDefaultComputeResourceAttributes());
+        database.store(resource);
 
         {
 
@@ -271,12 +263,9 @@ public class UpdaterTest {
 
         Reference jobReference = jobReferences.get(JOB_ID);
 
-        Updater updater = new Updater(occiServer, scheduler, UPDATE_PERIOD);
         updater.addResourceToTheUpdateQueue(jobReference, resource);
 
-        assertThereIsOneJobPendingForUpdate(updater);
-
-        waitUntilUpdaterReacts(updater);
+        waitUntilUpdateProcessedEverything(updater);
 
         assertAttributeContains(resource, "occi.error.description", "WRONG_CATEGORY_NAME");
 
@@ -291,10 +280,11 @@ public class UpdaterTest {
         String PARENT_UPDATE_LOCATION_ATTRIBUTE1 = "occi.compute.localstorage";
         String PARENT_UPDATE_LOCATION_ATTRIBUTE2 = "occi.compute.architecture";
 
-        Resource resource = ResourcesHandler.factory(
-                UUID.randomUUID().toString(),
-                COMPUTE_NAME,
-                getDefaultComputeResourceAttributes());
+        Resource resource = ResourceBuilder.factory(
+          UUID.randomUUID().toString(),
+          COMPUTE_NAME,
+          getDefaultComputeResourceAttributes());
+        database.store(resource);
 
         {
             JSONObject create1 = new JSONObject();
@@ -315,9 +305,6 @@ public class UpdaterTest {
             creationTaskResults.put("task2", buildStorageCreationJsonTaskResult(create2).toJSONString());
             creationTaskResults.put("task3", TASK_RESULT_WHEN_ERROR);
             mockJobResults(scheduler, JOB_ID, new TasksResults(creationTaskResults));
-
-            // This submission is expected when creating the new resource
-            when(scheduler.submitJob((File)notNull())).thenReturn(new JobIdData());
         }
 
         Reference jobReference = jobReferences.get(JOB_ID);
@@ -325,15 +312,14 @@ public class UpdaterTest {
         Integer storages = getAmountOfInstancesForACategory(STORAGE_NAME);
         assertAmountOfInstancesForACategory(STORAGE_NAME, storages + 0);
 
-        Updater updater = new Updater(occiServer, scheduler, UPDATE_PERIOD);
         updater.addResourceToTheUpdateQueue(jobReference, resource);
 
-        assertThereIsOneJobPendingForUpdate(updater);
+        waitUntilUpdateProcessedEverything(updater);
 
-        waitUntilUpdaterReacts(updater);
-
-        assertParentUpdateLocationAttributeIsAValidResourceLocation(resource, PARENT_UPDATE_LOCATION_ATTRIBUTE1);
-        assertParentUpdateLocationAttributeIsAValidResourceLocation(resource, PARENT_UPDATE_LOCATION_ATTRIBUTE2);
+        assertParentUpdateLocationAttributeIsAValidResourceLocation(resource,
+          PARENT_UPDATE_LOCATION_ATTRIBUTE1);
+        assertParentUpdateLocationAttributeIsAValidResourceLocation(resource,
+          PARENT_UPDATE_LOCATION_ATTRIBUTE2);
 
         assertAmountOfInstancesForACategory(STORAGE_NAME, storages + 2);
 
@@ -349,22 +335,24 @@ public class UpdaterTest {
         // - compute(occi.compute.localstorage) attached to storage
         // - storage(occi.core.target) attached to compute
 
-        Resource compute = ResourcesHandler.factory(
-                UUID.randomUUID().toString(),
-                COMPUTE_NAME,
-                getDefaultComputeResourceAttributes());
+        Resource compute = ResourceBuilder.factory(
+          UUID.randomUUID().toString(),
+          COMPUTE_NAME,
+          getDefaultComputeResourceAttributes());
+        database.store(compute);
 
-        Resource storage = ResourcesHandler.factory(
-                UUID.randomUUID().toString(),
-                STORAGE_NAME,
-                getDefaultStorageResourceAttributes());
+        Resource storage = ResourceBuilder.factory(
+          UUID.randomUUID().toString(),
+          STORAGE_NAME,
+          getDefaultStorageResourceAttributes());
+        database.store(storage);
 
         {
 
             JSONObject task = new JSONObject();
             // These two will update the storage instance
             task.put("occi.storage.size", 30);
-            task.put("occi.core.target", compute.getUrl().toString());
+            task.put("occi.core.target", compute.getFullPath(BROKER_URL));
             JSONObject update = new JSONObject();
             JSONObject attributes = new JSONObject();
             attributes.put("occi.compute.localstorage", UpdaterRequest.LOCATION_OF_PARENT_KEY);
@@ -386,20 +374,15 @@ public class UpdaterTest {
 
         Reference jobReference = jobReferences.get(JOB_ID);
 
-        Updater updater = new Updater(occiServer, scheduler, UPDATE_PERIOD);
         updater.addResourceToTheUpdateQueue(jobReference, storage);
 
-        assertThereIsOneJobPendingForUpdate(updater);
-
-        waitUntilUpdaterReacts(updater);
+        waitUntilUpdateProcessedEverything(updater);
 
         String error = storage.getAttributes().get("occi.error.description");
         Assert.assertTrue(error, error.isEmpty());
-        Assert.assertTrue(storage.getAttributes().get("occi.storage.size").equals("30"));
-        Assert.assertTrue(storage.getAttributes().get("occi.core.target").equals(compute.getUrl().toString()));
-
-        Assert.assertTrue(compute.getAttributes().get("occi.compute.localstorage").equals(storage.getUrl().toString()));
-
+        Assert.assertEquals("30", storage.getAttributes().get("occi.storage.size"));
+        Assert.assertEquals(compute.getFullPath(BROKER_URL), storage.getAttributes().get("occi.core.target"));
+        Assert.assertEquals(storage.getFullPath(BROKER_URL), compute.getAttributes().get("occi.compute.localstorage"));
     }
 
 
@@ -425,8 +408,7 @@ public class UpdaterTest {
         String target = "X-OCCI-Location";
         Response response = occiServer.getAllResources(category);
         String str = response.getEntity().toString();
-        Integer occurrencesFromResponse = Utils.countOccurrences(str, target);
-        return occurrencesFromResponse;
+        return Utils.countOccurrences(str, target);
     }
 
     private void assertAmountOfInstancesForACategory(String category, int targetAmount) {
@@ -445,14 +427,22 @@ public class UpdaterTest {
         return task;
     }
 
-    private static Occi createMockOfOcciServer(SchedulerProxy scheduler) throws JAXBException {
+    private static OcciServer createMockOfOcciServer(SchedulerProxy scheduler, InMemoryDB db) throws JAXBException {
         Configuration config = Utils.getConfigurationTest();
-        return new OcciServer(config, scheduler);
+        DatabaseFactory mockedDatabaseFactory = mock(DatabaseFactory.class);
+        when(mockedDatabaseFactory.build()).thenReturn(db);
+        File catalogPath = Utils.getScriptsPath(config.catalog.path, "/config/catalog");
+        Catalog catalog = new Catalog(catalogPath, config.catalog.refresh);
+        Rules rules = mock(Rules.class);
+        Broker broker = new Broker(scheduler, catalog, rules);
+        return new OcciServer(broker, null, mockedDatabaseFactory, BROKER_URL);
     }
 
-    private static SchedulerProxy createMockOfSchedulerProxy() throws Exception {
+    private SchedulerProxy createMockOfSchedulerProxy() throws Exception {
         SchedulerProxy scheduler =  mock(SchedulerProxy.class);
-        when(scheduler.submitJob((File)notNull())).thenReturn(new JobIdData());
+        JobIdData jobIdData = new JobIdData();
+        jobIdData.setId(jobId++);
+        when(scheduler.submitJob((File)notNull())).thenReturn(jobIdData);
         return scheduler;
     }
 
@@ -471,7 +461,7 @@ public class UpdaterTest {
     }
 
 
-    private static void mockJobResults(SchedulerProxy scheduler,
+    private void mockJobResults(SchedulerProxy scheduler,
       String jobId, TasksResults taskResults) throws AuthenticationException, JobNotFinishedException, JobStatusRetrievalException {
         JobIdData jobIdData = new JobIdData();
         jobIdData.setId(Long.parseLong(jobId));
@@ -491,9 +481,9 @@ public class UpdaterTest {
         return map;
     }
 
-    private void waitUntilUpdaterReacts(Updater updater) throws InterruptedException {
-        int MAX_ATTEMPTS = 100;
-        int RETRY_TIME_MSEC = 1 * 100;
+    private void waitUntilUpdateProcessedEverything(Updater updater) throws InterruptedException {
+        int MAX_ATTEMPTS = 1000;
+        int RETRY_TIME_MSEC = 10;
         int attempts = 0;
         while (updater.getUpdateQueueSize() != 0) {
             if (attempts++ >= MAX_ATTEMPTS)
@@ -503,23 +493,19 @@ public class UpdaterTest {
     }
 
     private void assertResourceAttributesAreCorrectlyTakenFromTaskResults(Resource resource) {
-        Assert.assertTrue(resource.getAttributes().get("occi.compute.state").equalsIgnoreCase("up"));
-        Assert.assertTrue(resource.getAttributes().get("occi.compute.cores").equalsIgnoreCase("1"));
-        Assert.assertTrue(resource.getAttributes().get("occi.compute.memory").equalsIgnoreCase("1024"));
-        Assert.assertTrue(resource.getAttributes().get("occi.compute.hostname").equalsIgnoreCase("pepa"));
+        Assert.assertEquals(resource.getAttributes().get("occi.compute.state"), "up");
+        Assert.assertEquals(resource.getAttributes().get("occi.compute.cores"), "1");
+        Assert.assertEquals(resource.getAttributes().get("occi.compute.memory"), "1024");
+        Assert.assertEquals(resource.getAttributes().get("occi.compute.hostname"), "pepa");
     }
 
     private void assertSomeResourceAttributesAreCorrectlyTakenFromTaskResults(Resource resource) {
-        Assert.assertTrue(resource.getAttributes().get("occi.compute.state").equalsIgnoreCase("up"));
-        Assert.assertTrue(resource.getAttributes().get("occi.compute.hostname").equalsIgnoreCase("pepa"));
+        Assert.assertEquals(resource.getAttributes().get("occi.compute.state"), "up");
+        Assert.assertEquals(resource.getAttributes().get("occi.compute.hostname"), "pepa");
     }
 
     private void assertResourceAttributesErrorDescriptionContains(Resource resource, String message) {
         Assert.assertTrue(resource.getAttributes().get("occi.error.description").contains(message));
-    }
-
-    private void assertThereIsOneJobPendingForUpdate(Updater updater) {
-        Assert.assertTrue(updater.getUpdateQueueSize() == 1);
     }
 
 }

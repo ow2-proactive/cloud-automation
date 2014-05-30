@@ -132,6 +132,9 @@ project(':occi') {
         compile project(':workflow-catalog')
         compile project(':monitoring')
 
+        compile 'com.google.inject:guice:3.0'
+        compile 'org.jboss.resteasy:resteasy-guice:3.0.6.Final'
+
         compile 'com.orientechnologies:orient-commons:1.6.6'
         compile 'com.orientechnologies:orientdb-core:1.6.6'
         compile 'com.orientechnologies:orientdb-object:1.6.6'
@@ -144,6 +147,7 @@ project(':occi') {
         compile 'javax.json:javax.json-api:1.0'
         compile 'org.glassfish:javax.json:1.0.2'
         compile 'com.jayway.jsonpath:json-path:0.9.1'
+        compile 'org.slf4j:slf4j-log4j12:1.7.5'
         compile 'com.google.code.gson:gson:2.2.4'
 
         compile 'org.mortbay.jetty:jetty:6.1.26'

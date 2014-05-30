@@ -1,19 +1,20 @@
 package org.ow2.proactive.brokering.occi;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.ow2.proactive.brokering.Broker;
-import org.ow2.proactive.workflowcatalog.References;
+import org.apache.log4j.Logger;
+
 
 public class Resource {
     public static final String OP_CREATE = "create";
-    public static final String OP_READ = "read";
     public static final String OP_UPDATE = "update";
-    public static final String OP_DELETE = "delete";
+
+    private static Logger logger = Logger.getLogger(Resource.class);
 
     private String uuid;
     private String category;
@@ -39,36 +40,25 @@ public class Resource {
         return attributes;
     }
 
-    public URL getUrl() {
+    public String getRelativePath() {
+        return "/" + category + "/" + uuid;
+    }
+
+    public String getFullPath(String prefixUrl) {
         try {
-            return new URL(OcciServer.getPrefixUrl() + category + "/" + uuid);
-        } catch (Exception e) {
-            throw new RuntimeException("Cannot create url", e);
+            return new URL(prefixUrl + getRelativePath()).toString();
+        } catch (MalformedURLException e) {
+            logger.warn("Server url is not an URL", e);
+            return getRelativePath();
         }
-    }
-
-    public References create() throws Exception {
-        return Broker.getInstance().request(category, OP_CREATE, getAttributes());
-    }
-
-    public References read() throws Exception {
-        return Broker.getInstance().request(category, OP_READ, getAttributes());
-    }
-
-    public References update(String action) throws Exception {
-        return Broker.getInstance().request(category, OP_UPDATE, action, getAttributes());
-    }
-
-    public References delete() throws Exception {
-        return Broker.getInstance().request(category, OP_DELETE, getAttributes());
     }
 
     public List<Action> getLinks() {
-        List<String> actionTitles = Broker.getInstance().listPossibleActions(category, getAttributes());
+//        List<String> actionTitles = Broker.getInstance().listPossibleActions(category, getAttributes());// TODO FIXME how to get this?
         List<Action> actions = new ArrayList<Action>();
-        for (String actionTitle : actionTitles) {
-            actions.add(new Action(actionTitle));
-        }
+//        for (String actionTitle : actionTitles) {
+//            actions.add(new Action(actionTitle));
+//        }
         return actions;
     }
 
@@ -104,5 +94,4 @@ public class Resource {
 
         return true;
     }
-
 }

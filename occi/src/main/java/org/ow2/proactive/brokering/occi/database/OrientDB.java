@@ -1,13 +1,13 @@
 package org.ow2.proactive.brokering.occi.database;
 
-import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery;
-import com.orientechnologies.orient.object.db.OObjectDatabaseTx;
-import org.apache.log4j.Logger;
-import org.ow2.proactive.brokering.occi.Resource;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.ow2.proactive.brokering.occi.Resource;
+import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery;
+import com.orientechnologies.orient.object.db.OObjectDatabaseTx;
+import org.apache.log4j.Logger;
 
 public class OrientDB implements Database {
 
@@ -45,7 +45,7 @@ public class OrientDB implements Database {
     @Override
     public void delete(String uuid) {
         try {
-            Resource res = load(uuid);
+            Resource res = loadUndetached(uuid);
             if (res != null)
                 db.delete(res);
         } catch (Throwable e) {
@@ -55,17 +55,21 @@ public class OrientDB implements Database {
 
     @Override
     public Resource load(String uuid) {
+        return db.detach(loadUndetached(uuid), true);
+    }
+
+    private Resource loadUndetached(String uuid) {
         OSQLSynchQuery<Resource> q =
-            new OSQLSynchQuery<Resource>("select * from Resource where uuid = '" + uuid + "'");
+          new OSQLSynchQuery<Resource>("select * from Resource where uuid = '" + uuid + "'");
         List<Resource> list = db.query(q);
 
         if (list.size() == 0) {
             return null;
         } else if (list.size() == 1) {
-            return db.detach(list.get(0), true);
+            return list.get(0);
         } else {
             logger.warn("Repeated uuid: " + uuid);
-            return db.detach(list.get(0), true);
+            return list.get(0);
         }
     }
 

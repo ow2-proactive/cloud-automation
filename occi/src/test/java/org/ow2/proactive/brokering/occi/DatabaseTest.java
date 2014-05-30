@@ -1,12 +1,5 @@
 package org.ow2.proactive.brokering.occi;
 
-import junit.framework.Assert;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.ow2.proactive.brokering.occi.database.Database;
-import org.ow2.proactive.brokering.occi.database.DatabaseFactory;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -15,27 +8,40 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.ow2.proactive.brokering.occi.database.Database;
+import org.ow2.proactive.brokering.occi.database.DatabaseFactory;
+import junit.framework.Assert;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import static junit.framework.Assert.assertEquals;
+
+
 public class DatabaseTest {
 
     private static final int NRO_RESOURCES = 100;
     private static final String TEST_DB_NAME_PREFIX = "occi-database-test-";
 
+    private DatabaseFactory databaseFactory;
+
     @Before
     public void before() throws Exception {
         Random r = new Random();
-        DatabaseFactory.setDatabaseName(TEST_DB_NAME_PREFIX + r.nextInt(Integer.MAX_VALUE));
+        databaseFactory = new DatabaseFactory();
+        databaseFactory.setDatabaseName(TEST_DB_NAME_PREFIX + r.nextInt(Integer.MAX_VALUE));
     }
 
     @After
     public void after() throws Exception {
-        Database db = DatabaseFactory.build();
+        Database db = databaseFactory.build();
         db.drop();
         db.close();
     }
 
     @Test
     public void createDatabaseSimple_Test() throws Exception {
-        Database db = DatabaseFactory.build();
+        Database db = databaseFactory.build();
 
         Assert.assertTrue(db.getAllResources().isEmpty());
 
@@ -48,8 +54,37 @@ public class DatabaseTest {
     }
 
     @Test
+    public void delete_resource() throws Exception {
+        Database db = databaseFactory.build();
+        Resource res = generateStandardResource();
+
+        db.store(res);
+        assertEquals(1, db.getAllResources().size());
+
+        db.delete(res.getUuid());
+        assertEquals(0, db.getAllResources().size());
+
+        db.close();
+    }
+
+    @Test
+    public void update_resource() throws Exception {
+        Database db = databaseFactory.build();
+        Resource res = generateStandardResource();
+        db.store(res);
+
+        res.getAttributes().put("foo", "poo");
+        db.store(res);
+
+        Resource updatedResource = db.load(res.getUuid());
+        assertEquals("poo", updatedResource.getAttributes().get("foo"));
+
+        db.close();
+    }
+
+    @Test
     public void createDatabaseSimpleMultithreaded_Test() throws Exception {
-        final Database dbe = DatabaseFactory.build();
+        final Database dbe = databaseFactory.build();
         Assert.assertTrue(dbe.getAllResources().isEmpty());
 
         final Resource res = generateStandardResource();
@@ -57,7 +92,7 @@ public class DatabaseTest {
         Thread t = new Thread(
             new Runnable() {
                 public void run() {
-                    final Database dbi = DatabaseFactory.build();
+                    final Database dbi = databaseFactory.build();
                     dbi.store(res);
                     dbi.close();
                 }
@@ -80,12 +115,12 @@ public class DatabaseTest {
 
         ExecutorService executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
 
-        final Database dbe = DatabaseFactory.build();
+        final Database dbe = databaseFactory.build();
         Assert.assertTrue(dbe.getAllResources().isEmpty());
 
         Runnable r = new Runnable() {
             public void run() {
-                final Database dbi = DatabaseFactory.build();
+                final Database dbi = databaseFactory.build();
                 Resource res = generateStandardResource();
                 dbi.store(res);
                 dbi.close();
@@ -110,7 +145,7 @@ public class DatabaseTest {
 
     @Test
     public void persistentDatabaseSingleItem_Test() throws Exception {
-        final Database db = DatabaseFactory.build();
+        final Database db = databaseFactory.build();
 
         Assert.assertTrue(db.getAllResources().isEmpty());
 
@@ -121,7 +156,7 @@ public class DatabaseTest {
 
         db.close();
 
-        final Database db1 = DatabaseFactory.build();
+        final Database db1 = databaseFactory.build();
 
         Assert.assertTrue(db1.getAllResources().size() == 1);
 
@@ -134,7 +169,7 @@ public class DatabaseTest {
     @Test
     public void persistentDatabaseMultipleItems_Test() throws Exception {
 
-        final Database db = DatabaseFactory.build();
+        final Database db = databaseFactory.build();
 
         Map<String, Resource> checkMap = new HashMap<String, Resource>();
 
@@ -150,7 +185,7 @@ public class DatabaseTest {
 
         db.close();
 
-        final Database db1 = DatabaseFactory.build();
+        final Database db1 = databaseFactory.build();
 
         Assert.assertTrue(db1.getAllResources().size() == NRO_RESOURCES);
 
@@ -175,7 +210,7 @@ public class DatabaseTest {
         String templateName = "template_name" + UUID.randomUUID().toString();
         map.put("occi.compute.template_name", templateName);
         map.put("occi.core.id", uuid);
-        return ResourcesHandler.factory(uuid, "compute", map);
+        return ResourceBuilder.factory(uuid, "compute", map);
     }
 
 }

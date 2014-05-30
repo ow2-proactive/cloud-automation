@@ -1,33 +1,43 @@
 package org.ow2.proactive.brokering.occi;
 
-import org.apache.log4j.Logger;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import javax.ws.rs.core.Response;
+
 import org.ow2.proactive.brokering.Broker;
-import org.ow2.proactive.brokering.Configuration;
 import org.ow2.proactive.brokering.occi.api.Occi;
 import org.ow2.proactive.brokering.occi.categories.Categories;
 import org.ow2.proactive.brokering.occi.categories.Utils;
 import org.ow2.proactive.brokering.occi.database.Database;
 import org.ow2.proactive.brokering.occi.database.DatabaseFactory;
 import org.ow2.proactive.brokering.updater.Updater;
+import org.ow2.proactive.workflowcatalog.Reference;
 import org.ow2.proactive.workflowcatalog.References;
-import org.ow2.proactive.workflowcatalog.utils.scheduling.ISchedulerProxy;
-import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerLoginData;
-import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerProxy;
-import org.ow2.proactive_grid_cloud_portal.scheduler.exception.SchedulerRestException;
-
-import javax.security.auth.login.LoginException;
-import javax.ws.rs.core.Response;
-import javax.xml.bind.JAXBException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
+import org.apache.log4j.Logger;
 
 public class OcciServer implements Occi {
 
     private static Logger logger = Logger.getLogger(OcciServer.class);
 
-    private static String prefixUrl;
+    private Broker broker;
+    private Updater updater;
+    private DatabaseFactory databaseFactory;
+
+    private String serverPrefixUrl;
+
+    @Inject
+    public OcciServer(Broker broker, Updater updater, DatabaseFactory databaseFactory,
+      @Named("server.prefix") String serverPrefixUrl) {
+        this.broker = broker;
+        this.updater = updater;
+        this.serverPrefixUrl = serverPrefixUrl;
+        this.databaseFactory = databaseFactory;
+    }
 
     // ************* OCCI SERVER MANAGEMENT **************
 
@@ -53,19 +63,21 @@ public class OcciServer implements Occi {
             String uuid = UUID.randomUUID().toString();
             attributes += ",action.state=pending,occi.core.id=" + uuid;
             //            attributes += ",action.state=\"pending\", occi.core.id=\"" + uuid + "\"";
-            Resource resource = ResourcesHandler.factory(uuid, category, Utils.buildMap(attributes));
+            Resource resource = ResourceBuilder.factory(uuid, category, Utils.buildMap(attributes));
             storeInDB(resource);
 
-            References references = resource.create();
+            References references = broker.request(category, Resource.OP_CREATE, resource.getAttributes());
+            addResourceToUpdateQueue(resource, references);
+
             if (!references.areAllSubmitted()) {
                 logger.debug("Response : CODE:" + Response.Status.BAD_REQUEST);
                 return Response.status(Response.Status.BAD_REQUEST).entity(references.getSummary()).build();
             }
 
             Response.ResponseBuilder responseBuilder = Response.status(Response.Status.CREATED);
-            responseBuilder.header("X-OCCI-Location", resource.getUrl());
-            responseBuilder.entity("X-OCCI-Location: " + resource.getUrl() + "\n");
-            logger.debug("Response : [X-OCCI-Location: " + resource.getUrl() + "] CODE:" + Response.Status.CREATED);
+            responseBuilder.header("X-OCCI-Location", resource.getFullPath(serverPrefixUrl));
+            responseBuilder.entity("X-OCCI-Location: " + resource.getFullPath(serverPrefixUrl) + "\n");
+            logger.debug("Response : [X-OCCI-Location: " + resource.getFullPath(serverPrefixUrl) + "] CODE:" + Response.Status.CREATED);
             return responseBuilder.build();
 
         } catch (Throwable e) {
@@ -82,12 +94,12 @@ public class OcciServer implements Occi {
         logger.info("Get list : category = [" + category + "]");
         try {
             List<Resource> filteredResources = new ArrayList<Resource>();
-            for (Resource resource : ResourcesHandler.getResources().values()) {
+            for (Resource resource : findAllInDB()) {
                 if (resource.getCategory().equalsIgnoreCase(category)) {
                     filteredResources.add(resource);
                 }
             }
-            Resources resources = new Resources(filteredResources);
+            Resources resources = new Resources(filteredResources, serverPrefixUrl);
             Response.ResponseBuilder response = Response.status(Response.Status.OK);
             response.entity(resources);
             logger.debug("Response : *" + resources.size() + " locations* CODE:" + Response.Status.OK);
@@ -116,7 +128,7 @@ public class OcciServer implements Occi {
         logger.info("------------------------------------------------------------------------");
         logger.info("Get : category = [" + category + "], uuid = [" + uuid + "], attribute = [" + attribute + "]");
         try {
-            Resource resource = ResourcesHandler.getResources().get(uuid);
+            Resource resource = findInDB(uuid);
             if (resource == null || !resource.getCategory().equalsIgnoreCase(category)) {
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
@@ -145,7 +157,7 @@ public class OcciServer implements Occi {
         logger.info("Update : category = [" + category + "], uuid = [" + uuid + "], action = [" + action + "]");
         logger.info("         attributes = [" + attributes + "]");
         try {
-            Resource resource = ResourcesHandler.getResources().get(uuid);
+            Resource resource = findInDB(uuid);
             if (resource == null || !resource.getCategory().equalsIgnoreCase(category)) {
                 logger.debug("Response : NOT_FOUND:" + Response.Status.NOT_FOUND);
                 return Response.status(Response.Status.NOT_FOUND).build();
@@ -167,20 +179,17 @@ public class OcciServer implements Occi {
             }
 
             References references = new References();
-            Response.ResponseBuilder response = null;
-            boolean brokerResponse = false;
+            Response.ResponseBuilder response;
             if (action != null) {
-                references = resource.update(action);
+                references = broker.request(category, Resource.OP_UPDATE, action, resource.getAttributes());
+                addResourceToUpdateQueue(resource, references);
+
             }
-            if (brokerResponse) {
-                response = Response.status(Response.Status.ACCEPTED); // Async operation is submitted
-            } else {
-                response = Response.status(Response.Status.OK);
-            }
+            response = Response.status(Response.Status.OK);
             response.entity(references.getSummary());
-            response.header("X-OCCI-Location", resource.getUrl());
-            response.entity("X-OCCI-Location: " + resource.getUrl() + "\n");
-            logger.debug("Response : [X-OCCI-Location: " + resource.getUrl() + "] CODE:" + Response.Status.OK);
+            response.header("X-OCCI-Location", resource.getFullPath(serverPrefixUrl));
+            response.entity("X-OCCI-Location: " + resource.getFullPath(serverPrefixUrl) + "\n");
+            logger.debug("Response : [X-OCCI-Location: " + resource.getFullPath(serverPrefixUrl) + "] CODE:" + Response.Status.OK);
             return response.build();
 
         } catch (Throwable e) {
@@ -206,7 +215,6 @@ public class OcciServer implements Occi {
             }
             logger.info("Delete URL : category = [" + category + "], uuid = [" + uuid + "], status = [" + status + "]");
             if (status.equalsIgnoreCase("done")) {
-                ResourcesHandler.getResources().remove(uuid);
                 deleteFromDB(uuid);
                 logger.info("------------------------------------------------------------------------");
                 return Response.status(Response.Status.OK).build();
@@ -219,57 +227,48 @@ public class OcciServer implements Occi {
         }
     }
 
+    private void addResourceToUpdateQueue(Resource resource,
+      References references) {
+        for (Reference ref : references) {
+            if(Reference.Nature.NATURE_JOB.equals(ref.getNatureOfReference())){
+                updater.addResourceToTheUpdateQueue(ref, getResource(resource.getAttributes()));
+            }
+        }
+    }
+
+    private Resource getResource(Map<String, String> attributes) {
+        return findInDB(attributes.get("occi.core.id"));
+    }
+
     private void storeInDB(Resource resource) {
-        Database db = DatabaseFactory.build();
+        Database db = databaseFactory.build();
         db.store(resource);
         db.close();
     }
 
+    private Resource findInDB(String uuid) {
+        Database db = databaseFactory.build();
+        Resource resource = db.load(uuid);
+        db.close();
+        return resource;
+    }
+
+    private List<Resource> findAllInDB() {
+        Database db = databaseFactory.build();
+        List<Resource> resources = db.getAllResources();
+        db.close();
+        return resources;
+    }
+
     private void deleteFromDB(String uuid) {
-        Database db = DatabaseFactory.build();
+        Database db = databaseFactory.build();
         db.delete(uuid);
         db.close();
     }
 
-
-    public OcciServer(Configuration config, ISchedulerProxy scheduler) {
-        initialize(config, scheduler);
-    }
-
-    public OcciServer() {
-        // This empty constructor is used by resteasy at runtime.
-        try {
-            Configuration config = Utils.getConfiguration();
-            final SchedulerLoginData loginData = new SchedulerLoginData(
-                    config.scheduler.url, config.scheduler.username,
-                    config.scheduler.password, config.security.insecuremode);
-            ISchedulerProxy scheduler = new SchedulerProxy(loginData);
-            initialize(config, scheduler);
-        } catch (JAXBException e) {
-            throw new RuntimeException("Error parsing configuration file", e);
-        } catch (LoginException e) {
-            throw new RuntimeException("Could not login to scheduler", e);
-        } catch (SchedulerRestException e) {
-            throw new RuntimeException("Error Could not initialize server", e);
-        }
-    }
-
-    public void initialize(Configuration config, ISchedulerProxy scheduler) {
-        if (prefixUrl == null) {
-            logger.info("Initializing broker...");
-            prefixUrl = config.server.prefix;
-            Broker broker = Broker.getInstance();
-            Updater updater = new Updater(this, scheduler, config.updater.refresh * 1000);
-            broker.initialize(config, updater, scheduler);
-            Database db = DatabaseFactory.build();
-            List<Resource> resourceList = db.getAllResources();
-            ResourcesHandler.initialize(resourceList);
-            db.close();
-        }
-    }
-
-    public static String getPrefixUrl() {
-        return prefixUrl;
+    /** For testing */
+    public void setUpdater(Updater updater) {
+        this.updater = updater;
     }
 
 }

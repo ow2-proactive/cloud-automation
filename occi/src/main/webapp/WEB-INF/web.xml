@@ -5,15 +5,15 @@
 <web-app>
     <display-name>ProActive Brokering</display-name>
 
+	<context-param>
+		<param-name>resteasy.guice.modules</param-name>
+		<param-value>org.ow2.proactive.brokering.OcciModule</param-value>
+	</context-param>
     <!-- Auto scan REST service -->
     <context-param>
         <param-name>resteasy.scan</param-name>
         <param-value>false</param-value>
     </context-param>
-	<context-param>
-		<param-name>resteasy.resources</param-name>
-		<param-value>org.ow2.proactive.brokering.occi.OcciServer</param-value>
-	</context-param>
 	<context-param>
 		<param-name>resteasy.providers</param-name>
 		<param-value>org.ow2.proactive.brokering.occi.api.provider.OcciCategoriesProvider,org.ow2.proactive.brokering.occi.api.provider.TextPlainCategoriesProvider</param-value>
@@ -25,11 +25,11 @@
         <param-value>/api</param-value>
     </context-param>
 
-    <listener>
-        <listener-class>
-            org.jboss.resteasy.plugins.server.servlet.ResteasyBootstrap
-        </listener-class>
-    </listener>
+	<listener>
+		<listener-class>
+			org.jboss.resteasy.plugins.guice.GuiceResteasyBootstrapServletContextListener
+		</listener-class>
+	</listener>
 
     <servlet>
         <servlet-name>resteasy-servlet</servlet-name>

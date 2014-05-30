@@ -1,34 +1,19 @@
 package org.ow2.proactive.brokering.occi;
 
-import org.apache.log4j.Logger;
-import org.ow2.proactive.brokering.occi.categories.Categories;
-
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ResourcesHandler {
+import org.ow2.proactive.brokering.occi.categories.Categories;
+import org.apache.log4j.Logger;
 
-    private static Logger logger = Logger.getLogger(ResourcesHandler.class.getName());
-    private static Map<String, Resource> resources = new HashMap<String, Resource>();
+public class ResourceBuilder {
 
-    public static void initialize(List<Resource> resourceList) {
-        for (Resource r : resourceList) {
-            logger.debug("Loading a resource : r.getUuid() = " + r.getUuid());
-            resources.put(r.getUuid(), r);
-        }
-    }
-
-    public static Map<String, Resource> getResources() {
-        return resources;
-    }
+    private static Logger logger = Logger.getLogger(ResourceBuilder.class.getName());
 
     public static Resource factory(String uuid, String category, Map<String, String> attributes) {
         fillAttributes(category, attributes);
-        Resource resource = new Resource(uuid, category, attributes);
-        resources.put(uuid, resource);
-        return resource;
+        return new Resource(uuid, category, attributes);
     }
 
     private static void fillAttributes(String category, Map<String, String> attributes) {

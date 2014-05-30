@@ -1,8 +1,15 @@
 package org.ow2.proactive.brokering.updater;
 
-import org.apache.log4j.Logger;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.LinkedBlockingQueue;
+
+import javax.ws.rs.core.Response;
+
 import org.ow2.proactive.brokering.occi.Resource;
-import org.ow2.proactive.brokering.occi.ResourcesHandler;
 import org.ow2.proactive.brokering.occi.api.Occi;
 import org.ow2.proactive.brokering.occi.categories.Utils;
 import org.ow2.proactive.brokering.updater.requests.CreateInstanceRequest;
@@ -13,12 +20,10 @@ import org.ow2.proactive.workflowcatalog.Reference;
 import org.ow2.proactive.workflowcatalog.utils.HttpUtility;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.ISchedulerProxy;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.JobNotFinishedException;
-import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerProxy;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.TasksResults;
-
-import javax.ws.rs.core.Response;
-import java.util.*;
-import java.util.concurrent.LinkedBlockingQueue;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
+import org.apache.log4j.Logger;
 
 public class Updater {
 
@@ -28,9 +33,16 @@ public class Updater {
     private ISchedulerProxy scheduler;
     private LinkedBlockingQueue<UpdateUnit> queue;
 
-    public Updater(Occi occi, ISchedulerProxy scheduler, Long periodMs) {
+    private String prefixUrl;
+
+    @Inject
+    public Updater(Occi occi, ISchedulerProxy scheduler,
+      @Named("updater.refresh") Long periodMs,
+      @Named("server.prefix") String prefixUrl) {
         this.occi = occi;
         this.scheduler = scheduler;
+        this.prefixUrl = prefixUrl;
+
         this.queue = new LinkedBlockingQueue<UpdateUnit>();
         Timer timer = new Timer("Updater");
         timer.schedule(new UpdaterTask(), 0, periodMs);
@@ -38,10 +50,6 @@ public class Updater {
 
     public synchronized int getUpdateQueueSize() {
         return queue.size();
-    }
-
-    public synchronized void addResourceToTheUpdateQueue(Reference jobReference, String resource) {
-        addResourceToTheUpdateQueue(jobReference, ResourcesHandler.getResources().get(resource));
     }
 
     public synchronized void addResourceToTheUpdateQueue(Reference jobReference, Resource resource) {
@@ -86,7 +94,7 @@ public class Updater {
 
         private void handleJobResult(UpdateUnit u) {
 
-            String resourceUrl = u.resource.getUrl().toString();
+            String resourceUrl = u.resource.getFullPath(prefixUrl);
 
             try {
 
