@@ -96,6 +96,7 @@ public class OcciServer implements Occi {
             List<Resource> filteredResources = new ArrayList<Resource>();
             for (Resource resource : findAllInDB()) {
                 if (resource.getCategory().equalsIgnoreCase(category)) {
+                    resource = addLinksToResource(resource);
                     filteredResources.add(resource);
                 }
             }
@@ -132,6 +133,7 @@ public class OcciServer implements Occi {
             if (resource == null || !resource.getCategory().equalsIgnoreCase(category)) {
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
+            resource = addLinksToResource(resource);
             Response.ResponseBuilder response = Response.status(Response.Status.OK);
             if (attribute == null) {
                 response.entity(resource);
@@ -149,6 +151,17 @@ public class OcciServer implements Occi {
         } finally {
             logger.info("------------------------------------------------------------------------");
         }
+    }
+
+    private Resource addLinksToResource(Resource resource) {
+        List<String> actionTitles = broker.listPossibleActions(resource.getCategory(),
+          resource.getAttributes());
+        List<Action> actions = new ArrayList<Action>();
+        for (String actionTitle : actionTitles) {
+            actions.add(new Action(actionTitle));
+        }
+        resource.setLinks(actions);
+        return resource;
     }
 
     @Override

@@ -2,7 +2,6 @@ package org.ow2.proactive.brokering.occi;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -19,6 +18,7 @@ public class Resource {
     private String uuid;
     private String category;
     private Map<String, String> attributes;
+    private List<Action> links;
 
     public Resource() {}
 
@@ -53,15 +53,6 @@ public class Resource {
         }
     }
 
-    public List<Action> getLinks() {
-//        List<String> actionTitles = Broker.getInstance().listPossibleActions(category, getAttributes());// TODO FIXME how to get this?
-        List<Action> actions = new ArrayList<Action>();
-//        for (String actionTitle : actionTitles) {
-//            actions.add(new Action(actionTitle));
-//        }
-        return actions;
-    }
-
     public String toString() {
         String result = "";
         TreeMap<String, String> map = new TreeMap<String, String>(attributes);
@@ -94,4 +85,13 @@ public class Resource {
 
         return true;
     }
+
+    public List<Action> getLinks() {
+        return links;
+    }
+
+    public void setLinks(List<Action> links) {
+        this.links = links;
+    }
+
 }
