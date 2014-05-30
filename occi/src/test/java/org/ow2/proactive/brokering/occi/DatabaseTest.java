@@ -30,10 +30,11 @@ public class DatabaseTest {
         Random r = new Random();
         databaseFactory = new DatabaseFactory();
         databaseFactory.setDatabaseName(TEST_DB_NAME_PREFIX + r.nextInt(Integer.MAX_VALUE));
+        dropDatabase();
     }
 
     @After
-    public void after() throws Exception {
+    public void dropDatabase() throws Exception {
         Database db = databaseFactory.build();
         db.drop();
         db.close();
@@ -158,7 +159,7 @@ public class DatabaseTest {
 
         final Database db1 = databaseFactory.build();
 
-        Assert.assertTrue(db1.getAllResources().size() == 1);
+        Assert.assertEquals(1, db1.getAllResources().size());
 
         Resource res2 = db1.getAllResources().get(0);
         Assert.assertTrue(res2.equals(res1));
