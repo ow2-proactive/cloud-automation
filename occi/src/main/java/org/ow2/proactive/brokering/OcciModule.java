@@ -61,14 +61,7 @@ import com.google.inject.name.Names;
 
 public class OcciModule implements Module {
     public void configure(final Binder binder) {
-
-        Properties props = new Properties();
-        try {
-            props.load(getClass().getResourceAsStream("/config/configuration.properties"));
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to read configuration", e);
-        }
-        Names.bindProperties(binder, props);
+        Names.bindProperties(binder, readConfigurationProperties());
 
         binder.bind(ISchedulerProxy.class).to(MiniScheduler.class).in(Singleton.class);
         binder.bind(DatabaseFactory.class).in(Singleton.class);
@@ -88,19 +81,29 @@ public class OcciModule implements Module {
           new SchedulerLoginData(schedulerUrl, schedulerUsername, schedulerPassword, insecureMode));
     }
 
-
     @Provides
     Catalog createCatalog(DatabaseFactory databaseFactory,
       @Named("catalog.path") String configCatalogPath,
       @Named("catalog.refresh.ms") long configCatalogRefresh) {
-        File catalogPath = Utils.getScriptsPath(configCatalogPath, "/config/catalog");
+        File catalogPath = Utils.getScriptsPath(configCatalogPath, "/config/catalog-test");
         return new Catalog(catalogPath, configCatalogRefresh, new CatalogToResource(databaseFactory));
     }
+
 
     @Provides
     Rules createRules(@Named("rules.path") String configRulesPath,
       @Named("rules.refresh.ms") long configRulesRefresh) {
         File rulesPath = Utils.getScriptsPath(configRulesPath, "/config/rules");
         return new Rules(rulesPath, configRulesRefresh);
+    }
+
+    private Properties readConfigurationProperties() {
+        Properties props = new Properties();
+        try {
+            props.load(getClass().getResourceAsStream("/config/configuration.properties"));
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read configuration", e);
+        }
+        return props;
     }
 }
