@@ -4,7 +4,7 @@
             <a href="" class="refresh glyphicon glyphicon-refresh"
                ng-class="{ 'refresh-on': controller.autoRefresh }"
                ng-click="controller.refresh(!controller.autoRefresh)"
-                    title="Automatic Update">
+               title="Automatic Refresh">
             </a>
             &nbsp;
             <i class="glyphicon glyphicon-filter"></i>
@@ -15,7 +15,7 @@
     <table class="table table-striped ng-cloak" ng-show="controller.services" ng-cloak>
         <thead>
         <tr>
-            <th></th>
+            <th>Provider</th>
             <th>Category</th>
             <th>State</th>
             <th>Instance</th>
@@ -23,7 +23,7 @@
         </tr>
         </thead>
 
-        <tr class="ng-cloak" ng-repeat="service in controller.services | filter:query | orderBy:'uuid'">
+        <tr class="ng-cloak vert-align" ng-repeat="service in controller.services | filter:query | orderBy:'uuid'">
             <td>
                 <img ng-src="{{ service | toLogo }}"
                      width="75px">
@@ -37,8 +37,10 @@
                    ng-show="service.attributes['action.state'] == 'pending'"></i>
                 {{ service.attributes['occi.compute.state'] }}
             </td>
-            <td>
-                <a href="#/services/{{service.category}}/{{ service.uuid }}">{{ service['uuid'] }}</a>
+            <td class="vert-align">
+                <a href="#/services/{{service.category}}/{{ service.uuid }}">
+                    {{ service.attributes['occi.compute.hostname'] || service['uuid'] }}
+                </a>
             </td>
             <td>
                 <a class="btn" title="{{ action.title | capitalize }}" href=""
@@ -46,7 +48,7 @@
                    ng-hide="(action.title | actionToIcon) == ''">
                     <i class="fa {{ action.title | actionToIcon}}"></i>
                 </a>
-                <a class="btn" title="Remove service" data-toggle="modal"
+                <a class="btn pull-right" title="Remove service" data-toggle="modal"
                    ng-click="controller.deleteService(service)">
                     <i class="glyphicon glyphicon-trash"></i>
                 </a>

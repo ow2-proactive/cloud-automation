@@ -25,7 +25,6 @@
         };
 
         this.refresh = function (autoRefresh) {
-            console.log("called " + autoRefresh)
             this.autoRefresh = autoRefresh
             $cookieStore.put('autoRefresh', autoRefresh)
             if (controller.autoRefresh) {
@@ -42,7 +41,6 @@
         }
 
         this.doRefresh = function (callback) {
-            console.log(new Date())
             var controller = this;
             var computes = $http.get('/ca/api/occi/compute');
             var storages = $http.get('/ca/api/occi/platform');

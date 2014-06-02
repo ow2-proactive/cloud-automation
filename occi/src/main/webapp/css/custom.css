@@ -6,12 +6,15 @@
 .navbar {
     background-color: #FFFFFF;
 }
+
 .navbar-default .navbar-nav > li > a {
     color: #5c96bc;
 }
+
 .navbar-default .navbar-nav > .active > a, .navbar-default .navbar-nav > .active > a:hover, .navbar-default .navbar-nav > .active > a:focus {
     color: #5c96bc;
 }
+
 .navbar-default .navbar-brand {
     color: #5c96bc;
 }
@@ -60,4 +63,8 @@ a:hover {
 
 .refresh-on {
     color: #E87224 !important;
+}
+
+.table > tbody > .vert-align > td {
+    vertical-align: middle;
 }

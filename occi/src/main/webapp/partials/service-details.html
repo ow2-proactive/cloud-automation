@@ -5,21 +5,25 @@
         <!--<li class="active">{{ controller.service.uuid }}</li>-->
     <!--</ol>-->
 
-    <h2 class="page-header"><a href="#/services">Services</a>
+    <h2 class="page-header">
+        <a href="#/services" title="Back">
+            Services</a>
         <small>/</small>
-        {{ controller.service.uuid }}
+        {{ controller.service.attributes['occi.compute.hostname'] || controller.service['uuid'] }}
+
+        <a href="#/services" title="Back"><small class="pull-right glyphicon glyphicon-arrow-left"></small></a>
     </h2>
 
     <form class="form" role="form">
         <div class="form-group"
              ng-repeat="(key,value) in controller.service.attributes | orderBy:'key'">
 
-            <label for="{{key}}" class="col-lg-2 control-label-right">
+            <label for="{{key}}" class="col-sm-6 col-md-3 col-lg-2 control-label-right">
                 {{config.attributes[key].label || key}}
                 <span style="color:#c7254e" ng-show="config.attributes[key].required">*</span>
             </label>
 
-            <div class="col-lg-2">
+            <div class="col-sm-6 col-md-3 col-lg-2">
                 <input id="{{key}}" type="text" class="form-control"
                        value="{{value}}" ng-model="controller.service.attributes[key]" disabled>
             </div>
