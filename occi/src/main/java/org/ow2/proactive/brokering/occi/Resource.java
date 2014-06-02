@@ -1,12 +1,12 @@
 package org.ow2.proactive.brokering.occi;
 
+import org.apache.log4j.Logger;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-
-import org.apache.log4j.Logger;
 
 
 public class Resource {

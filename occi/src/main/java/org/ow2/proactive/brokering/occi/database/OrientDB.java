@@ -1,13 +1,14 @@
 package org.ow2.proactive.brokering.occi.database;
 
+import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery;
+import com.orientechnologies.orient.core.tx.OTransaction;
+import com.orientechnologies.orient.object.db.OObjectDatabaseTx;
+import org.apache.log4j.Logger;
+import org.ow2.proactive.brokering.occi.Resource;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.ow2.proactive.brokering.occi.Resource;
-import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery;
-import com.orientechnologies.orient.object.db.OObjectDatabaseTx;
-import org.apache.log4j.Logger;
 
 public class OrientDB implements Database {
 
@@ -24,9 +25,7 @@ public class OrientDB implements Database {
 
         db = new OObjectDatabaseTx(generateDatabaseUrl(name));
 
-        this.createIfNeeded();
-        this.openIfNeeded();
-        this.registerEntities();
+        this.initialize();
 
         logger.info("DB correctly started");
 
@@ -36,16 +35,32 @@ public class OrientDB implements Database {
     public void store(Resource resource) {
         try {
             logger.info("Resource to store in DB : " + resource.getUuid());
-            db.save(resource);
+            Resource oldResource = loadAttached(resource.getUuid());
+            Resource newResource = resource;
+            updateResource(oldResource, newResource);
         } catch (Throwable e) {
             logger.error("Resource storage to DB failed", e);
+        }
+    }
+
+    private void updateResource(Resource oldResource, Resource newResource) {
+        try {
+            db.begin(OTransaction.TXTYPE.NOTX); // TODO Switch to a valid transaction
+                                                // mode for newer versions of OrientDB
+            db.save(newResource);
+            if (oldResource != null)
+                db.delete(oldResource);
+            db.commit();
+        } catch (Exception e) {
+            db.rollback();
+            throw new RuntimeException("Could not safely store resource", e);
         }
     }
 
     @Override
     public void delete(String uuid) {
         try {
-            Resource res = loadUndetached(uuid);
+            Resource res = loadAttached(uuid);
             if (res != null)
                 db.delete(res);
         } catch (Throwable e) {
@@ -55,12 +70,12 @@ public class OrientDB implements Database {
 
     @Override
     public Resource load(String uuid) {
-        return db.detach(loadUndetached(uuid), true);
+        return db.detach(loadAttached(uuid), true);
     }
 
-    private Resource loadUndetached(String uuid) {
+    private Resource loadAttached(String uuid) {
         OSQLSynchQuery<Resource> q =
-          new OSQLSynchQuery<Resource>("select * from Resource where uuid = '" + uuid + "'");
+                new OSQLSynchQuery<Resource>("select * from Resource where uuid = '" + uuid + "'");
         List<Resource> list = db.query(q);
 
         if (list.size() == 0) {
@@ -100,19 +115,28 @@ public class OrientDB implements Database {
         return "local:" + tmp + fs + name;
     }
 
-    private void registerEntities() {
-        db.getEntityManager().registerEntityClass(Resource.class);
-    }
+    private void initialize() {
+        boolean existedBefore;
 
-    private void createIfNeeded() {
-        if (!db.exists())
+        if (!db.exists()) {
+            existedBefore = false;
             db.create();
-    }
+        } else {
+            existedBefore = true;
+        }
 
-    private void openIfNeeded() {
         if (db.isClosed())
             db.open(DB_DEFAULT_USERNAME, DB_DEFAULT_PASSWORD);
+
+        db.getEntityManager().registerEntityClass(Resource.class);
+
+        if (!existedBefore) {
+            Resource init = new Resource();
+            init = db.save(init);
+            db.delete(init);
+        }
     }
+
 
 }
 
