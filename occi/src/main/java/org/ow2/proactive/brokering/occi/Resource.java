@@ -1,12 +1,12 @@
 package org.ow2.proactive.brokering.occi;
 
-import org.apache.log4j.Logger;
-
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+
+import org.apache.log4j.Logger;
 
 
 public class Resource {
@@ -18,7 +18,8 @@ public class Resource {
     private String uuid;
     private String category;
     private Map<String, String> attributes;
-    private List<Action> links;
+    private List<Action> actions;
+    private List<Resource> links;
 
     public Resource() {}
 
@@ -86,12 +87,19 @@ public class Resource {
         return true;
     }
 
-    public List<Action> getLinks() {
+    public List<Action> getActions() {
+        return actions;
+    }
+
+    public void setActions(List<Action> links) {
+        this.actions = links;
+    }
+
+    public List<Resource> getLinks() {
         return links;
     }
 
-    public void setLinks(List<Action> links) {
+    public void setLinks(List<Resource> links) {
         this.links = links;
     }
-
 }

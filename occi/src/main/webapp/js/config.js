@@ -14,6 +14,9 @@
                 'occi.core.id': {
                     visible: false
                 },
+                'occi.compute.id': {
+                    visible: false
+                },
                 'operation': {
                     visible: false
                 },
@@ -35,6 +38,10 @@
                 'occi.compute.value': {
                     visible: true,
                     label: "A compute value"
+                },
+                'occi.platform.value': {
+                    visible: true,
+                    label: "A platform value"
                 },
                 'flavor': {
                     visible: true,

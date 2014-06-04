@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd"
+     name="test-workflow"  priority="normal" cancelJobOnError="true">
+
+    <genericInformation>
+        <info name="category" value="compute"/>
+        <info name="operation" value="update"/>
+        <info name="action" value="suspend"/>
+        <info name="action.from-states" value="active"/>
+        <info name="provider" value="myprovider"/>
+    </genericInformation>
+
+    <taskFlow>
+
+        <task name="suspend-vm">
+            <scriptExecutable>
+                <script >
+                    <code language="groovy">
+						<![CDATA[
+						import groovy.json.JsonOutput
+
+						Thread.sleep(5000)
+						result = JsonOutput.toJson(["occi.compute.state": "suspended", "action.state": "done"])
+						]]>
+                    </code>
+                </script>
+            </scriptExecutable>
+        </task>
+    </taskFlow>
+
+</job>

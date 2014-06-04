@@ -51,4 +51,6 @@ public interface Occi {
     @DELETE
     @Path("/{category}/{uuid}")
     public Response deleteResource(@PathParam("category") String category, @PathParam("uuid") String uuid, @QueryParam("status") String status);
+
+    void linkResources(String sourceLocation, String targetLocation);
 }

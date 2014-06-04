@@ -61,7 +61,7 @@
     function attributesToOcciFormat(newInstance) {
         var attributesAsString = "";
         for (var key in newInstance.attributes) {
-            if (key == "provider" || key.indexOf("occi") > -1) {
+            if (key == "provider" || key == "application" || key.indexOf("occi") > -1) {
                 attributesAsString += key + "=" + newInstance.attributes[key] + ",";
             }
         }

@@ -20,6 +20,7 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import org.apache.log4j.Logger;
 
+
 public class OcciServer implements Occi {
 
     private static Logger logger = Logger.getLogger(OcciServer.class);
@@ -77,7 +78,8 @@ public class OcciServer implements Occi {
             Response.ResponseBuilder responseBuilder = Response.status(Response.Status.CREATED);
             responseBuilder.header("X-OCCI-Location", resource.getFullPath(serverPrefixUrl));
             responseBuilder.entity("X-OCCI-Location: " + resource.getFullPath(serverPrefixUrl) + "\n");
-            logger.debug("Response : [X-OCCI-Location: " + resource.getFullPath(serverPrefixUrl) + "] CODE:" + Response.Status.CREATED);
+            logger.debug("Response : [X-OCCI-Location: " + resource.getFullPath(
+              serverPrefixUrl) + "] CODE:" + Response.Status.CREATED);
             return responseBuilder.build();
 
         } catch (Throwable e) {
@@ -96,7 +98,8 @@ public class OcciServer implements Occi {
             List<Resource> filteredResources = new ArrayList<Resource>();
             for (Resource resource : findAllInDB()) {
                 if (resource.getCategory().equalsIgnoreCase(category)) {
-                    resource = addLinksToResource(resource);
+                    resource = fillLinks(resource);
+                    resource = fillActions(resource);
                     filteredResources.add(resource);
                 }
             }
@@ -127,13 +130,15 @@ public class OcciServer implements Occi {
     @Override
     public Response getResource(String category, String uuid, String attribute) {
         logger.info("------------------------------------------------------------------------");
-        logger.info("Get : category = [" + category + "], uuid = [" + uuid + "], attribute = [" + attribute + "]");
+        logger.info(
+          "Get : category = [" + category + "], uuid = [" + uuid + "], attribute = [" + attribute + "]");
         try {
             Resource resource = findInDB(uuid);
             if (resource == null || !resource.getCategory().equalsIgnoreCase(category)) {
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
-            resource = addLinksToResource(resource);
+            resource = fillLinks(resource);
+            resource = fillActions(resource);
             Response.ResponseBuilder response = Response.status(Response.Status.OK);
             if (attribute == null) {
                 response.entity(resource);
@@ -141,26 +146,43 @@ public class OcciServer implements Occi {
                 logger.info("Returning an attribute value : " + attribute);
                 response.entity(resource.getAttributes().get(attribute));
             }
-            logger.debug("Response : *Returned resource : " + resource.getUuid() + "* CODE:" + Response.Status.OK);
+            logger.debug(
+              "Response : *Returned resource : " + resource.getUuid() + "* CODE:" + Response.Status.OK);
             return response.build();
 
         } catch (Throwable e) {
             logger.error("Error", e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(e.getClass().getName() + ": " + e.getMessage()).build();
+              .entity(e.getClass().getName() + ": " + e.getMessage()).build();
         } finally {
             logger.info("------------------------------------------------------------------------");
         }
     }
 
-    private Resource addLinksToResource(Resource resource) {
+    private Resource fillLinks(Resource resource) {
+        if (resource.getAttributes().get("links") != null) {
+            String[] linksUuid = resource.getAttributes().get("links").split(",");
+            List<Resource> links = new ArrayList<Resource>();
+            for (String linkUuid : linksUuid) {
+                Resource linkedResource = findInDB(linkUuid);
+                if (linkedResource != null) {
+                    linkedResource = fillActions(linkedResource);
+                    links.add(linkedResource);
+                }
+            }
+            resource.setLinks(links);
+        }
+        return resource;
+    }
+
+    private Resource fillActions(Resource resource) {
         List<String> actionTitles = broker.listPossibleActions(resource.getCategory(),
           resource.getAttributes());
         List<Action> actions = new ArrayList<Action>();
         for (String actionTitle : actionTitles) {
             actions.add(new Action(actionTitle));
         }
-        resource.setLinks(actions);
+        resource.setActions(actions);
         return resource;
     }
 
@@ -202,7 +224,8 @@ public class OcciServer implements Occi {
             response.entity(references.getSummary());
             response.header("X-OCCI-Location", resource.getFullPath(serverPrefixUrl));
             response.entity("X-OCCI-Location: " + resource.getFullPath(serverPrefixUrl) + "\n");
-            logger.debug("Response : [X-OCCI-Location: " + resource.getFullPath(serverPrefixUrl) + "] CODE:" + Response.Status.OK);
+            logger.debug("Response : [X-OCCI-Location: " + resource.getFullPath(
+              serverPrefixUrl) + "] CODE:" + Response.Status.OK);
             return response.build();
 
         } catch (Throwable e) {
@@ -226,7 +249,8 @@ public class OcciServer implements Occi {
                 logger.info("Delete request : category = [" + category + "], uuid = [" + uuid + "]");
                 return updateResource(category, uuid, "delete", "");
             }
-            logger.info("Delete URL : category = [" + category + "], uuid = [" + uuid + "], status = [" + status + "]");
+            logger.info(
+              "Delete URL : category = [" + category + "], uuid = [" + uuid + "], status = [" + status + "]");
             if (status.equalsIgnoreCase("done")) {
                 deleteFromDB(uuid);
                 logger.info("------------------------------------------------------------------------");
@@ -243,7 +267,7 @@ public class OcciServer implements Occi {
     private void addResourceToUpdateQueue(Resource resource,
       References references) {
         for (Reference ref : references) {
-            if(Reference.Nature.NATURE_JOB.equals(ref.getNatureOfReference())){
+            if (Reference.Nature.NATURE_JOB.equals(ref.getNatureOfReference())) {
                 updater.addResourceToTheUpdateQueue(ref, getResource(resource.getAttributes()));
             }
         }
@@ -284,4 +308,29 @@ public class OcciServer implements Occi {
         this.updater = updater;
     }
 
+    public void linkResources(String sourceLocation, String targetLocation) {
+        String sourceUuid = toRelativePath(sourceLocation);
+        String targetUuid = toRelativePath(targetLocation);
+        Resource source = findInDB(sourceUuid);
+        Resource target = findInDB(targetUuid);
+        addLinkToResource(source, target);
+        addLinkToResource(target, source);
+
+        storeInDB(source);
+        storeInDB(target);
+    }
+
+    private void addLinkToResource(Resource source, Resource target) {
+        // links is comma separated resource uuids
+        if (source.getAttributes().get("links") == null) {
+            source.getAttributes().put("links", target.getUuid());
+        } else {
+            source.getAttributes().put("links", source.getAttributes().get("links") + "," + target.getUuid());
+        }
+    }
+
+    private String toRelativePath(String sourceLocation) {
+        String[] urlParts = sourceLocation.split("/");
+        return urlParts[urlParts.length - 1];
+    }
 }

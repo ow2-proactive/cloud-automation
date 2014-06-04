@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	 xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd"
+	 name="test-workflow" projectName="test-workflow" priority="normal" cancelJobOnError="true">
+	<variables>
+
+		<variable name="occi.platform.value"/>
+		<variable name="links"/>
+
+	</variables>
+
+	<genericInformation>
+		<info name="category" value="platform"/>
+		<info name="operation" value="update"/>
+		<info name="action" value="stop"/>
+		<info name="action.from-states" value="active"/>
+		<info name="provider" value="myprovider"/>
+		<info name="application" value="myapp"/>
+	</genericInformation>
+
+	<taskFlow>
+
+		<task name="stop-vm-web">
+			<scriptExecutable>
+				<script>
+					<code language="groovy">
+                        <![CDATA[
+						import groovy.json.JsonOutput
+
+						Thread.sleep(1000)
+						result = JsonOutput.toJson([
+								"update": [
+										"action"      : "stop",
+										"category"    : "compute",
+										"provider"    : "myprovider",
+										"occi.core.id": variables.links.split(",")[0],
+										"location"    : "occi.compute.id",
+										"links"       : variables.get("occi.core.id"),
+										"attributes"  : [
+												"occi.compute.state": "inactive",
+										]
+								]
+						])
+						]]>
+                    </code>
+				</script>
+			</scriptExecutable>
+		</task>
+		<task name="stop-vm-db">
+			<scriptExecutable>
+				<script>
+					<code language="groovy">
+						<![CDATA[
+						import groovy.json.JsonOutput
+
+						Thread.sleep(1000)
+						result = JsonOutput.toJson([
+								"update": [
+										"action"      : "stop",
+										"category"    : "compute",
+										"provider"    : "myprovider",
+										"location"    : "occi.compute.id",
+										"occi.core.id": variables.links.split(",")[1],
+										"links"       : variables.get("occi.core.id"),
+										"attributes"  : [
+												"occi.compute.state": "inactive",
+										]
+								]
+						])
+						]]>
+					</code>
+				</script>
+			</scriptExecutable>
+		</task>
+		<task name="done-stopping-platform">
+			<scriptExecutable>
+				<script>
+					<code language="groovy">
+						<![CDATA[
+						import groovy.json.JsonOutput
+
+						Thread.sleep(1000)
+						result = JsonOutput.toJson([
+								"occi.paas.state": "inactive",
+								"action.state"   : "done"])
+						]]>
+					</code>
+				</script>
+			</scriptExecutable>
+		</task>
+	</taskFlow>
+
+</job>

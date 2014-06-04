@@ -133,12 +133,20 @@ public class Broker {
         List<String> possibleActions = new ArrayList<String>();
         Map<String, String> copy = new HashMap<String, String>(attributes);
         // FIXME find out resource state with a better way
-        copy.put("action.from-states", copy.get("occi.compute.state"));
+        copy.put("action.from-states", copy.get("occi."+categoryToAttributeName(category)+".state"));
         for (Workflow workflow : catalog.getWorkflows()) {
             if (OcciWorkflowUtils.isCompliant(workflow, category, null, null, copy)) {
                 possibleActions.add(workflow.getGenericInformation("action"));
             }
         }
         return possibleActions;
+    }
+
+    private String categoryToAttributeName(String category) {
+        if ("platform".equals(category)) {
+            return "paas";
+        } else {
+            return category;
+        }
     }
 }

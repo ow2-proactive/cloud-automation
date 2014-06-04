@@ -1,5 +1,6 @@
 package org.ow2.proactive.brokering
 
+import groovy.util.logging.Log4j
 import org.ow2.proactive.workflowcatalog.utils.scheduling.*
 import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobIdData
 
@@ -7,13 +8,15 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 
-def jobFile = new File('/home/ybonnaffe/src/brokering/occi/src/main/resources/config/catalog-test/test-create.xml')
+def jobFile = new File('/home/ybonnaffe/src/brokering/occi/src/main/resources/config/catalog-test/compute-create.xml')
 def job = new XmlSlurper().parse(jobFile)
 
 def scheduler = MiniScheduler.instance
 jobId = scheduler.submitJob(jobFile)
+Thread.sleep(6000)
 println scheduler.getAllTaskResults(jobId.id as String)
 
+@Log4j
 class MiniScheduler implements ISchedulerProxy {
     public static MiniScheduler instance = new MiniScheduler()
 
@@ -36,22 +39,27 @@ class MiniScheduler implements ISchedulerProxy {
         def jobId = new JobIdData(id: ids++, readableName: job.@name)
 
         workers.execute({
-            println "Running $jobId.id $jobId.readableName"
+            log.debug "Running $jobId.id $jobId.readableName"
 
             def taskResults = [:]
-            jobResults.put(jobId.id as String, taskResults)
 
+            def variables = [:]
+            job.variables.variable.each { variable ->
+                variables << [(variable.@name as String): (variable.@value as String)]
+            }
             job.taskFlow.task.each { task ->
-                println "--- Running task ${task.@name} ---"
+                log.debug "--- Running task ${task.@name} ---"
                 String code = task.scriptExecutable.script.code
 
                 def shell = new GroovyShell()
+                shell.setVariable("variables", variables)
                 shell.evaluate(code)
                 def taskResult = shell.getVariable("result")
-                println "--- Done ($taskResult) ---"
+                log.debug "--- Done ($taskResult) ---"
 
                 taskResults.put(task.@name.text(), taskResult as String)
             }
+            jobResults.put(jobId.id as String, taskResults)
         })
 
         return jobId

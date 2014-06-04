@@ -94,7 +94,7 @@ public class Updater {
 
         private void handleJobResult(UpdateUnit u) {
 
-            String resourceUrl = u.resource.getFullPath(prefixUrl);
+            String currentInstanceUrl = u.resource.getFullPath(prefixUrl);
 
             try {
 
@@ -105,12 +105,13 @@ public class Updater {
                 // Create new category instances if required
                 List<CreateInstanceRequest> createRequests = occiTaskResults.getCreateInstanceRequests();
                 for (CreateInstanceRequest request: createRequests) {
-                    request.processSpecialAttributes(resourceUrl);
+                    request.processSpecialAttributes(currentInstanceUrl);
                     try {
-                        String location = createAnotherCategoryInstance(request);
+                        String newInstanceUrl = createAnotherCategoryInstance(request);
+                        linkCurrentInstanceAndNewInstance(currentInstanceUrl, newInstanceUrl);
                         occiTaskResults.add(
                                 new UpdateAttributeRequest(
-                                        request.getAttributeToUpdateWithLocation(), location));
+                                        request.getAttributeToUpdateWithLocation(), newInstanceUrl));
                     } catch (Exception e) {
                         occiTaskResults.add(
                                 new UnknownRequest(e.getMessage()));
@@ -120,7 +121,7 @@ public class Updater {
                 // Update categories' instances if required
                 List<UpdateInstanceRequest> updateRequests = occiTaskResults.getUpdateInstanceRequests();
                 for (UpdateInstanceRequest request: updateRequests) {
-                    request.processSpecialAttributes(resourceUrl);
+                    request.processSpecialAttributes(currentInstanceUrl);
                     try {
                         updateAnotherCategoryInstance(request);
                     } catch (Exception e) {
@@ -175,6 +176,11 @@ public class Updater {
             logger.debug("Removing '" + u + "' from update queue.");
             queue.remove(u);
         }
+
+    }
+
+    private void linkCurrentInstanceAndNewInstance(String sourceLocation, String targetLocation) {
+        occi.linkResources(sourceLocation, targetLocation.replace("\n", ""));
 
     }
 
