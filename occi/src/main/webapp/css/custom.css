@@ -68,3 +68,26 @@ a:hover {
 .table > tbody > .vert-align > td {
     vertical-align: middle;
 }
+
+.table > tbody > .tree  > td {
+ padding-left: 50px;
+}
+
+.table > tbody + tbody {
+    border-top: 0;
+}
+
+.row-selected {
+    background-color: #dff3ff;
+}
+.row-selected > tr {
+    background-color: #dff3ff;
+}
+
+.stripped {
+    background-color: #f9f9f9;
+}
+
+.pointer {
+    cursor: pointer;
+}

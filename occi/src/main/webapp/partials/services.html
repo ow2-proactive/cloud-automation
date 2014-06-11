@@ -12,19 +12,21 @@
         </small>
     </h2>
 
-    <table class="table table-striped ng-cloak" ng-show="controller.services" ng-cloak>
+    <table class="table ng-cloak" ng-show="controller.services" ng-cloak>
         <thead>
         <tr>
-            <th>Provider</th>
-            <th>Category</th>
-            <th>State</th>
-            <th>Instance</th>
-            <th>Actions</th>
+            <th class="col-sm-2">Provider</th>
+            <th class="col-sm-2">Category</th>
+            <th class="col-sm-2">State</th>
+            <th class="col-sm-3">Instance</th>
+            <th class="col-sm-4">Actions</th>
         </tr>
         </thead>
 
-        <tr class="ng-cloak vert-align" ng-repeat="service in controller.services | filter:query | orderBy:'uuid'">
-            <td>
+        <tbody ng-repeat="service in controller.services | filter:query | orderBy:'uuid'"
+               ng-class="{'row-selected' : controller.selectedResource == $index }">
+        <tr class="vert-align" ng-class-even="'stripped'">
+            <td class="pointer" ng-click="controller.toggle($index)">
                 <img ng-src="{{ service | toLogo }}"
                      width="75px">
             </td>
@@ -56,5 +58,43 @@
                 </a>
             </td>
         </tr>
+        <tr class="tree" ng-repeat="serviceLink in service.links"
+            ng-show="controller.isToggled($parent.$index)">
+            <td>
+                <img ng-src="{{ serviceLink | toLogo }}"
+                     width="75px">
+            </td>
+
+            <td>
+                {{ serviceLink.category }}
+            </td>
+            <td>
+                <i class="fa fa-spin fa-spinner"
+                   ng-show="serviceLink.attributes['action.state'] == 'pending'"></i>
+                {{ serviceLink.attributes['occi.paas.state'] || serviceLink.attributes['occi.compute.state']
+                }}
+            </td>
+            <td class="vert-align">
+                <a href="#/serviceLinks/{{serviceLink.category}}/{{ serviceLink.uuid }}">
+                    {{ serviceLink.attributes['occi.paas.application.endpoints']
+                    || serviceLink.attributes['occi.compute.hostname']
+                    || serviceLink['uuid'] }}
+                </a>
+            </td>
+            <td>
+                <a class="btn" title="{{ action.title | capitalize }}" href=""
+                   ng-click="controller.action(serviceLink, action)" ng-repeat="action in serviceLink.actions"
+                   ng-hide="(action.title | actionToIcon) == ''">
+                    <i class="fa {{ action.title | actionToIcon}}"></i>
+                </a>
+                <a class="btn pull-right" title="Remove service" data-toggle="modal"
+                   ng-click="controller.deleteService(serviceLink)">
+                    <i class="glyphicon glyphicon-trash"></i>
+                </a>
+            </td>
+        </tr>
+        </tbody>
+
     </table>
+
 </div>

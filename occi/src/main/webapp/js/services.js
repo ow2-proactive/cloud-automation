@@ -5,6 +5,7 @@
         var controller = this;
         this.services = [];
         this.autoRefresh = false;
+        this.selectedResource = -1;
 
         this.deleteService = function (service) {
             $scope.service = service
@@ -32,6 +33,19 @@
             }
         }
 
+        this.toggle = function (index) {
+            if (this.selectedResource == index) {
+                this.selectedResource = -1
+            } else {
+                this.selectedResource = index
+            }
+        }
+
+        this.isToggled = function (index) {
+            return this.selectedResource == index
+        }
+
+
         this.reschedule = function () {
             if (controller.autoRefresh) {
                 $timeout(function () {
@@ -47,7 +61,13 @@
             $q.all([computes, storages]).then(function (values) {
                 controller.services = [];
                 for (var i = 0; i < values.length; i++) {
-                    controller.services = controller.services.concat(values[i].data.resources);
+                    for (var j = 0; j < values[i].data.resources.length; j++) {
+                        var resource = values[i].data.resources[j];
+                        // take only parent resources: computes without links or platforms
+                        if (resource.category == 'platform' || !resource.links) {
+                            controller.services.push(resource);
+                        }
+                    }
                 }
                 if (callback) {
                     callback()
