@@ -18,28 +18,27 @@
                 <script >
                     <code language="groovy">
                         <![CDATA[
-import net.minidev.json.*
+                        import groovy.json.JsonOutput
 
-def variable1 = "${variable1}"
-def variable2 = "${variable2}"
+                        def variable1 = "${variable1}"
+                        def variable2 = "${variable2}"
 
-println "Variables provided: "
-println "variable1='$variable1'"
-println "variable2='$variable2'"
+                        println "Variables provided: "
+                        println "variable1='$variable1'"
+                        println "variable2='$variable2'"
 
-def files = (new File(new URI(localspace.getRealURI()))).list()
-println "localspace=$files"
+                        def files = (new File(new URI(localspace.getRealURI()))).list()
+                        println "localspace=$files"
 
-def json = new JSONObject()
-json.put("variable1", variable1)
-json.put("variable2", variable2)
-json.put("localspace", files)
+                        def json = [:]
+                        json.put("variable1", variable1)
+                        json.put("variable2", variable2)
+                        json.put("localspace", files)
 
-result = json.toJSONString()
+                        result = JsonOutput.toJson(json)
 
-println "Result: $result"
-
-]]>
+                        println "Result: $result"
+                        ]]>
                     </code>
                 </script>
             </scriptExecutable>
