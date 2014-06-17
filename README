@@ -16,11 +16,23 @@ The Workflow Catalog (WC) is a tool that provides the user with a list of alread
 
 ### Usage
 
+# If running with Gradle run (recommended)
+
+   cd workflow-catalog-rest-server
+   gradle clean :workflow-catalog-rest-server:run
+
+# If running with Gradle jettyRunWar
+
    gradle :workflow-catalog-rest:jettyRunWar
 
-## Curl examples
+## Curl examples (simple to test)
 
-   curl -X GET http://localhost:8080/workflow-catalog-rest/api/workflows/
+   curl http://localhost:8082/workflow-catalog-rest-server/
+   curl http://localhost:8082/workflow-catalog-rest-server/wc/workflow/
+   curl http://localhost:8082/workflow-catalog-rest-server/scheduling/rm/version
 
    curl -X POST --header "Content-Type: application/json"   http://localhost:8080/workflow-catalog-rest/api/workflows/job -d '{"name":"workflow1.xml","variables":{"genericInformation1":"genericInformationValue1", "genericInformation2":"genericInformationValue2", "variable1":"date", "variable2":"not-used"}}'
 
+## Client examples
+
+   ./cli.sh -u http://localhost:8082/workflow-catalog-rest-server
