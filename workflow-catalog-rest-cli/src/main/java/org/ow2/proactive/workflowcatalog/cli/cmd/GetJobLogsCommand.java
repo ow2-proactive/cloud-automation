@@ -37,11 +37,15 @@
 
 package org.ow2.proactive.workflowcatalog.cli.cmd;
 
+import org.apache.commons.io.IOUtils;
 import org.ow2.proactive.workflowcatalog.cli.ApplicationContext;
 import org.ow2.proactive.workflowcatalog.cli.CLIException;
 import org.ow2.proactive_grid_cloud_portal.scheduler.client.SchedulerRestClient;
+import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobStateData;
+import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobStatusData;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -49,11 +53,11 @@ import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.io.IOUtils.copy;
 import static org.ow2.proactive.workflowcatalog.cli.utils.FileUtility.buildOutputStream;
 
-public class GetLogsCommand extends AbstractCommand implements Command {
+public class GetJobLogsCommand extends AbstractCommand implements Command {
 
     private String jobId;
 
-    public GetLogsCommand(String jobId) {
+    public GetJobLogsCommand(String jobId) {
         this.jobId = jobId;
     }
 
@@ -61,10 +65,52 @@ public class GetLogsCommand extends AbstractCommand implements Command {
     public void execute(ApplicationContext currentContext) throws CLIException {
         SchedulerRestClient client = currentContext.getSchedulerClient();
         try {
-            String str = client.getScheduler().getLiveLogJob(currentContext.getSessionId(), jobId);
-            writeLine(currentContext, str);
+
+            JobStateData state = client.getScheduler().listJobs(
+                    currentContext.getSessionId(), jobId);
+            JobStatusData status = state.getJobInfo().getStatus();
+
+            if (status.equals(JobStatusData.FINISHED) ||
+                    status.equals(JobStatusData.CANCELED) ||
+                    status.equals(JobStatusData.FAILED) ) {
+
+                writeLine(currentContext, "### Server logs: ###\n\n\n");
+                String serverLog = client.getScheduler().jobServerLog(currentContext.getSessionId(), jobId);
+                writeLine(currentContext, serverLog);
+
+                writeLine(currentContext, "### Job logs: ###\n\n\n");
+                InputStream is = client.getScheduler().jobFullLogs(currentContext.getSessionId(), jobId, null);
+                String fullLogs = readAndClose(is);
+                writeLine(currentContext, fullLogs);
+
+            } else if (status.equals(JobStatusData.RUNNING)) {
+
+                writeLine(currentContext, "### Job logs: ###\n\n\n");
+                String str = client.getScheduler().getLiveLogJob(currentContext.getSessionId(), jobId);
+                writeLine(currentContext, str);
+
+            } else {
+
+                String str = client.getScheduler().getLiveLogJob(currentContext.getSessionId(), jobId);
+                writeLine(currentContext, str);
+            }
         } catch (Exception error) {
             handleError("An error occurred while downloading the file " + error, error, currentContext);
+        }
+    }
+
+
+    private String readAndClose(InputStream is) {
+        try {
+            return IOUtils.toString(is, "UTF-8");
+        } catch (IOException e) {
+            return "<unknown>";
+        } finally {
+            try {
+                is.close();
+            } catch (IOException e) {
+                // Ignore
+            }
         }
     }
 

@@ -42,6 +42,8 @@ import org.ow2.proactive.workflowcatalog.cli.CLIException;
 import org.ow2.proactive.workflowcatalog.cli.utils.StringUtility;
 import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobResultData;
 import org.ow2.proactive_grid_cloud_portal.scheduler.client.SchedulerRestClient;
+import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobStateData;
+import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobStatusData;
 
 public class GetJobResultCommand extends AbstractCommand implements Command {
 
@@ -55,9 +57,19 @@ public class GetJobResultCommand extends AbstractCommand implements Command {
     public void execute(ApplicationContext currentContext) throws CLIException {
         SchedulerRestClient client = currentContext.getSchedulerClient();
         try {
-            JobResultData result = client.getScheduler().jobResult(
+
+            JobStateData state = client.getScheduler().listJobs(
                     currentContext.getSessionId(), jobId);
-            writeLine(currentContext, "%s", StringUtility.string(result));
+            JobStatusData status = state.getJobInfo().getStatus();
+            if (status.equals(JobStatusData.FINISHED)) {
+                JobResultData result = client.getScheduler().jobResult(
+                        currentContext.getSessionId(), jobId);
+                writeLine(currentContext, "%s", StringUtility.string(result));
+            } else {
+                writeLine(currentContext, "Cannot get result (job %s is %s).",
+                          jobId, status.toString());
+            }
+
         } catch (Exception e) {
             handleError("An error occurred during job output retrieval: ", e, currentContext);
         }
