@@ -1,17 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd" name="job-slurm" priority="normal" cancelJobOnError="true">
+<job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd" name="slurm-job-submit" priority="normal" cancelJobOnError="true">
 
     <variables>
         <variable name="sbatch_arguments" value="--exclusive"/>
-        <variable name="sbatch_script" value="b.sh"/>
-        <variable name="sbatch_script_arguments" value="foo doo"/>
+        <variable name="sbatch_script" value="USERSPACE:/test.sh"/>
+        <variable name="sbatch_script_arguments" value=""/>
     </variables>
 
 	<taskFlow>
 
         <task name="submit-job">
             <inputFiles>
-                <files includes="${sbatch_script}" accessMode="transferFromUserSpace"/>
+                <!-- Only script -->
+                <!--<files includes="${sbatch_script}" accessMode="transferFromUserSpace"/>-->
+                <!-- All files -->
+                <files includes="*" accessMode="transferFromUserSpace"/>
             </inputFiles>
             <scriptExecutable>
                 <script >
@@ -26,15 +29,11 @@
                         def sbatch_script_arguments = "${sbatch_script_arguments}"
 
                         def root = new File(new URI(localspace.getRealURI()))
-                        def script = new File(root, sbatch_script).getAbsoluteFile()
-                        def scriptPath = script.getAbsolutePath()
 
-                        if (!script.exists()) {
-                            def files = root.list()
-                            throw new FileNotFoundException(scriptPath, "localspace contains: $files")
-                        }
+                        sbatch_script = sbatch_script.replace("USERSPACE:", root.getAbsolutePath())
+                        sbatch_script_arguments = sbatch_script_arguments.replace("USERSPACE:", root.getAbsolutePath())
 
-                        def cmd = sbatch + " " + " " + sbatch_arguments + " " + scriptPath + " " + sbatch_script_arguments
+                        def cmd = sbatch + " " + " " + sbatch_arguments + " " + sbatch_script + " " + sbatch_script_arguments
                         def p = cmd.execute()
                         p.waitFor()
                         def stderr = p.err.text
@@ -48,7 +47,7 @@
                                         job: job,
                                         errcode: errcode,
                                         cmd: cmd,
-                                        script: scriptPath,
+                                        script: sbatch_script,
                                         stdout: stdout,
                                         stderr: stderr
                                 ])
