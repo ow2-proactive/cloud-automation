@@ -7,15 +7,17 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
+import java.io.InputStream;
 
 public class ConfigurationHelper {
 
     public static Configuration getConfiguration() {
         try {
-            File configFile = new File(ConfigurationHelper.class.getResource("/config/configuration.xml").getFile());
+            String configPath = "/config/configuration.xml";
+            InputStream is = ConfigurationHelper.class.getResourceAsStream(configPath);
             JAXBContext jaxbContext = JAXBContext.newInstance(Configuration.class);
             Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-            return (Configuration) jaxbUnmarshaller.unmarshal(configFile);
+            return (Configuration) jaxbUnmarshaller.unmarshal(is);
         } catch (JAXBException e) {
             throw new RuntimeException("Cannot read configuration file", e);
         }
