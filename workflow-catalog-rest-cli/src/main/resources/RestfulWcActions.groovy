@@ -54,12 +54,12 @@ void listworkflows() {
     execute(new ListWorkflowsCommand())
 }
 
-addAutoComplete("submitworkflow workflow-nop.xml [variable1:\"value1\"] [:]");
+addAutoComplete("submitworkflow('workflow-nop.xml', [variable1:\"value1\"], [:])");
 void submitworkflow(name, variables, genericInformation) {
     execute(new SubmitWorkflowCommand(name, variables, genericInformation))
 }
 
-addAutoComplete("submitworkflow workflow-nop.xml [variable1:\"value1\"]");
+addAutoComplete("submitworkflow('workflow-nop.xml', [variable1:\"value1\"])");
 void submitworkflow(name, variables) {
     submitworkflow(name, variables, [:])
 }
@@ -141,8 +141,6 @@ private String getFileName(srcFilePath) {
 }
 
 void printWelcomeMsg() {
-    print('Loading existing workflows syntax...\r\n');
-    // TODO Load workflows
     print('Type help() for interactive help \r\n');
      if (getUser(currentContext) == null && getCredFile(currentContext) == null) {
         print('Warning: You are not currently logged in.\r\n')
