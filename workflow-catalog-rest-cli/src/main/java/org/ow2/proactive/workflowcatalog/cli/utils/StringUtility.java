@@ -2,6 +2,8 @@ package org.ow2.proactive.workflowcatalog.cli.utils;
 
 import java.io.*;
 import java.util.Map;
+
+import groovy.json.JsonOutput;
 import org.apache.commons.codec.binary.StringUtils;
 import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobResultData;
 import org.ow2.proactive_grid_cloud_portal.scheduler.dto.TaskResultData;
@@ -83,8 +85,9 @@ public class StringUtility {
             if (entry.getValue() == null) {
                 builder.append("null");
             } else {
+                Object obj = object(entry.getValue().getSerializedValue());
                 builder.append("'");
-                builder.append(object(entry.getValue().getSerializedValue()));
+                builder.append(jsonPretty(obj.toString()));
                 builder.append("'");
             }
             builder.append("\n");
@@ -107,6 +110,10 @@ public class StringUtility {
             return String.format("[De-serialization error : %s]",
                                  ioe.getMessage());
         }
+    }
+
+    public static String jsonPretty(String json) {
+        return JsonOutput.prettyPrint(json);
     }
 
 }
