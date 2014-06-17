@@ -56,6 +56,7 @@ public class CommandSet {
     public static final CommandSet.Entry URL = CommandSetEntryBuilder
             .newInstance().opt("u").longOpt("url")
             .description("URL of REST server").hasArgs(true).numOfArgs(1)
+            .jsExample("")
             .argNames("server-url").jsCommand("url(url)")
             .commandClass(SetUrlCommand.class).entry();
 
@@ -63,6 +64,7 @@ public class CommandSet {
             .newInstance().opt("si").longOpt("session-id")
             .description("the session id of this session").hasArgs(true)
             .numOfArgs(1).argNames("session-id")
+            .jsExample("")
             .jsCommand("setSessionId(sessionId)")
             .commandClass(SetSessionCommand.class).entry();
 
@@ -71,12 +73,14 @@ public class CommandSet {
             .description("the login name to connect to REST server")
             .hasArgs(true).numOfArgs(1).argNames("login-name")
             .jsCommand("login(login-name)").commandClass(LoginCommand.class)
+            .jsExample("login('admin')")
             .entry();
 
     public static final CommandSet.Entry PASSWORD = CommandSetEntryBuilder
             .newInstance().opt("p").longOpt("password")
             .description("the password to connect to REST server")
             .hasArgs(true).numOfArgs(1).argNames("password")
+            .jsExample("")
             .commandClass(SetPasswordCommand.class).entry();
 
     public static final CommandSet.Entry CREDENTIALS = CommandSetEntryBuilder
@@ -84,6 +88,7 @@ public class CommandSet {
             .description("Path to the credential file").hasArgs(true)
             .numOfArgs(1).argNames("cred-path")
             .jsCommand("loginwithcredentials(cred-path)")
+            .jsExample("loginwithcredentials('/tmp/rm.cred')")
             .commandClass(LoginWithCredentialsCommand.class).entry();
 
     public static final CommandSet.Entry CACERTS = CommandSetEntryBuilder
@@ -94,6 +99,7 @@ public class CommandSet {
                     "CA certificate store (JKS type) to verify peer against (SSL)")
             .hasArgs(true).numOfArgs(1).argNames("store-path")
             .jsCommand("cacerts(store-path)")
+            .jsExample("cacerts('/tmp/')")
             .commandClass(SetCaCertsCommand.class).entry();
 
     public static final CommandSet.Entry CACERTS_PASSWORD = CommandSetEntryBuilder
@@ -101,6 +107,7 @@ public class CommandSet {
             .description("Password for CA certificate store").hasArgs(true)
             .numOfArgs(1).argNames("store-password")
             .jsCommand("cacertspass(cacerts-pass)")
+            .jsExample("cacertspass('password')")
             .commandClass(SetCaCertsPassCommand.class).entry();
 
     public static final CommandSet.Entry INSECURE = CommandSetEntryBuilder
@@ -109,12 +116,15 @@ public class CommandSet {
             .longOpt("insecure")
             .description(
                     "Allow connections to SSL sites without certs verification")
+            .jsExample("")
             .commandClass(SetInsecureAccessCommand.class).entry();
 
     public static final CommandSet.Entry SILENT = CommandSetEntryBuilder
             .newInstance().opt("z").longOpt("silent")
             .description("Runs the command-line client in the silent mode.")
-            .jsCommand("silent()").commandClass(SetSilentCommand.class).entry();
+            .jsCommand("silent()")
+            .jsExample("silent()")
+            .commandClass(SetSilentCommand.class).entry();
 
     public static final CommandSet.Entry OUTPUT = CommandSetEntryBuilder
             .newInstance()
@@ -127,7 +137,9 @@ public class CommandSet {
 
     public static final CommandSet.Entry EXIT = CommandSetEntryBuilder
             .newInstance().opt("").longOpt("")
-            .description("Exit interactive shell").jsCommand("exit()")
+            .description("Exit interactive shell")
+            .jsCommand("exit()")
+            .jsExample("exit()")
             .commandClass(ExitCommand.class).entry();
 
     public static final CommandSet.Entry EVAL = CommandSetEntryBuilder
@@ -136,12 +148,14 @@ public class CommandSet {
             .hasArgs(true)
             .argNames("script-path [param-1=value-1 param-2=value-2 ...]")
             .jsCommand("script(script-pathname,param1=value1,...)")
+            .jsExample("script('/tmp/script', [:])")
             .commandClass(EvalScriptCommand.class).entry();
 
     public static final CommandSet.Entry WORKFLOWS_LIST = CommandSetEntryBuilder
             .newInstance().opt("w").longOpt("listworkflows")
             .description("List the workflows").hasArgs(false)
             .jsCommand("listworkflows()")
+            .jsExample("listworkflows()")
             .commandClass(ListWorkflowsCommand.class).entry();
 
     public static final CommandSet.Entry SUBMIT_WORKFLOW = CommandSetEntryBuilder
@@ -151,6 +165,8 @@ public class CommandSet {
             .numOfArgs(3)
             .argNames("workflowname variables genericInformation")
             .jsCommand("submitworkflow(workflowname, variables, genericInformation)")
+            .jsExample("submitworkflow('workflowname.xml', [var1:'val1', var2:'val2'], " +
+                               "[gInfo1:'gInfo1'])")
             .commandClass(SubmitWorkflowCommand.class).entry();
 
     public static final CommandSet.Entry GET_JOB_RESULT = CommandSetEntryBuilder
@@ -160,11 +176,23 @@ public class CommandSet {
             .numOfArgs(1)
             .argNames("jobid")
             .jsCommand("getjobresult(jobid)")
+            .jsExample("getjobresult(33)")
             .commandClass(GetJobResultCommand.class).entry();
+
+    public static final CommandSet.Entry GET_JOB_LOGS = CommandSetEntryBuilder
+            .newInstance().opt("rr").longOpt("getjoblogs")
+            .description("Get the logs of the job")
+            .hasArgs(true)
+            .numOfArgs(1)
+            .argNames("jobid")
+            .jsCommand("getjoblogs(jobid)")
+            .jsExample("getjoblogs(33)")
+            .commandClass(GetJobLogsCommand.class).entry();
 
     public static final CommandSet.Entry WC_IMODE = CommandSetEntryBuilder
             .newInstance().opt("i").longOpt("interactive")
             .description("Interactive mode of REST CLI")
+            .jsExample("")
             .commandClass(WcImodeCommand.class).entry();
 
     public static final CommandSet.Entry WC_HELP = CommandSetEntryBuilder
@@ -173,26 +201,32 @@ public class CommandSet {
             .longOpt("help")
             .description(
                     "Prints the usage of REST command-line client for Resource Manager")
+            .jsExample("")
             .commandClass(WcHelpCommand.class).entry();
 
     public static final CommandSet.Entry WC_JS_HELP = CommandSetEntryBuilder
             .newInstance().opt("").longOpt("").description("Interactive help")
-            .jsCommand("help()").commandClass(WcJsHelpCommand.class).entry();
+            .jsCommand("help()").commandClass(WcJsHelpCommand.class)
+            .jsExample("help()")
+            .entry();
 
     public static final CommandSet.Entry UPLOAD_FILE = CommandSetEntryBuilder
             .newInstance().opt("pf")
             .longOpt("uploadfile")
             .description("Push the specified file to the specified location of the server").hasArgs(
                     true)
-            .numOfArgs(4).argNames("local-file space-name file-path file-name")
-            .jsCommand("uploadfile(local-file,space-name,file-path,file-name)")
+            .numOfArgs(4)
+            .argNames("local-file space-name file-path file-name")
+            .jsCommand("uploadfile(local-file,GLOBALSPACE/USERSPACE,file-path,file-name)")
+            .jsExample("uploadfile('/tmp/a.txt','USERSPACE','.','a.txt')")
             .commandClass(UploadFileCommand.class).entry();
 
     public static final CommandSet.Entry DOWNLOAD_FILE = CommandSetEntryBuilder.newInstance().opt("gf")
             .longOpt("downloadfile")
             .description("Retrieves the specified file from the server and stores it locally.").hasArgs(true)
             .numOfArgs(3).argNames("space-name path-name local-file")
-            .jsCommand("downloadfile(space-name,path-name,local-file)")
+            .jsCommand("downloadfile(GLOBALSPACE/USERSPACE,path-name,local-file)")
+            .jsExample("downloadfile('GLOBALSPACE', '/a.txt', '/tmp/a.txt')")
             .commandClass(DownloadFileCommand.class).entry();
 
     /**
@@ -201,7 +235,7 @@ public class CommandSet {
     public static final CommandSet.Entry[] COMMON_COMMANDS = new CommandSet.Entry[] {
             URL, SESSION, PASSWORD, CREDENTIALS, INSECURE,
             CACERTS, CACERTS_PASSWORD, EVAL, SILENT, OUTPUT,
-            LOGIN, WORKFLOWS_LIST, SUBMIT_WORKFLOW, GET_JOB_RESULT,
+            LOGIN, WORKFLOWS_LIST, SUBMIT_WORKFLOW, GET_JOB_RESULT, GET_JOB_LOGS,
             WC_IMODE, WC_HELP, WC_JS_HELP, DOWNLOAD_FILE, UPLOAD_FILE};
 
     private CommandSet() {
@@ -228,6 +262,10 @@ public class CommandSet {
          * Interactive shell command description of this option.
          */
         private String jsCommand = null;
+        /**
+         * Interactive shell command example for this option.
+         */
+        private String jsExample = null;
         /**
          * Indicates whether this option has one or more arguments.
          */
@@ -320,6 +358,25 @@ public class CommandSet {
          */
         private void setJsCommand(String jsCommand) {
             this.jsCommand = jsCommand;
+        }
+
+        /**
+         * Returns an example of interactive shell command of this option.
+         *
+         * @return the interactive shell command example.
+         */
+        public String jsExample() {
+            return jsExample;
+        }
+
+        /**
+         * Sets the example of interactive shell command of this option.
+         *
+         * @param jsExample
+         *            the interactive shell command example.
+         */
+        private void setJsExample(String jsExample) {
+            this.jsExample = jsExample;
         }
 
         /**
@@ -510,6 +567,11 @@ public class CommandSet {
 
         public CommandSetEntryBuilder jsCommand(String jsCommand) {
             entry.setJsCommand(jsCommand);
+            return this;
+        }
+
+        public CommandSetEntryBuilder jsExample(String jsExample) {
+            entry.setJsExample(jsExample);
             return this;
         }
 

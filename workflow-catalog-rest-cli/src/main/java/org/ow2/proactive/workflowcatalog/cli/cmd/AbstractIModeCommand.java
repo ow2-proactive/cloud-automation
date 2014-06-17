@@ -88,7 +88,14 @@ public abstract class AbstractIModeCommand extends AbstractCommand implements
     private class CommandHelper {
 
         public String tune(ApplicationContext context, String command) {
-            String tuned = null;
+            command = fixSingleCommandWOParenthesis(context, command);
+            command = fixParamsCommandWithoutQuotations(context, command);
+            return command;
+        }
+
+        private String fixSingleCommandWOParenthesis(ApplicationContext context,
+                                                           String command) {
+            String tuned;
             if (!command.trim().isEmpty() &&
                     !command.contains(" ") &&
                     !command.contains("(")) {
@@ -100,5 +107,32 @@ public abstract class AbstractIModeCommand extends AbstractCommand implements
             return tuned;
         }
 
+        private String fixParamsCommandWithoutQuotations(ApplicationContext context,
+                                                           String command) {
+            String tuned;
+            if (!command.trim().isEmpty() && command.contains(" ")
+                    && !command.contains("'") && !command.contains("\"")) {
+                String[] parts = command.trim().split(" ");
+                StringBuilder builder = new StringBuilder();
+                for (String part: parts) {
+                    if (builder.length() == 0 ) {
+                        builder.append(part);
+                        builder.append("(");
+                    } else {
+                        builder.append("'");
+                        builder.append(part);
+                        builder.append("'");
+                        builder.append(",");
+                    }
+                }
+                builder.append(")");
+                tuned = builder.toString();
+                writeLine(context, "Warning: replacing command \"%s\" by command \"%s\"", command, tuned);
+            } else {
+                tuned = command;
+            }
+            return tuned;
+        }
     }
 }
+

@@ -57,6 +57,7 @@ public abstract class AbstractJsHelpCommand extends AbstractCommand implements
         formatter.setSpace(2);
         ArrayList<String> titles = new ArrayList<String>();
         titles.add("Command");
+        titles.add("Example");
         titles.add("Description");
         formatter.setTitle(titles);
         formatter.addEmptyLine();
@@ -72,6 +73,7 @@ public abstract class AbstractJsHelpCommand extends AbstractCommand implements
             if (entry.jsCommand() != null) {
                 line = new ArrayList<String>();
                 line.add(entry.jsCommand());
+                line.add(entry.jsExample());
                 line.add(entry.description());
                 formatter.addLine(line);
             }

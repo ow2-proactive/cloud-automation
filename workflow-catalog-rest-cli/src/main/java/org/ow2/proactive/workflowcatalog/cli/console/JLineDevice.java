@@ -37,14 +37,9 @@
 
 package org.ow2.proactive.workflowcatalog.cli.console;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.io.Writer;
+import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import jline.ArgumentCompletor;
@@ -59,12 +54,13 @@ import jline.SimpleCompletor;
 import org.ow2.proactive.workflowcatalog.cli.CommandSet;
 
 public class JLineDevice extends AbstractDevice {
-    private static final int HLENGTH = 20;
+    private static final int HLENGTH = 100000;
     private static final String HFILE = System.getProperty("user.home")
             + File.separator + ".proactive" + File.separator + "restcli.hist";
 
     private ConsoleReader reader;
     private PrintWriter writer;
+    private MultiCompletor completor;
 
     public JLineDevice(InputStream in, PrintStream out) throws IOException {
         File hfile = new File(HFILE);
@@ -78,7 +74,9 @@ public class JLineDevice extends AbstractDevice {
         writer = new PrintWriter(out, true);
         reader = new ConsoleReader(in, writer);
         reader.setHistory(new History(hfile));
-        
+        completor = new MultiCompletor();
+        reader.addCompletor(new ArgumentCompletor(completor));
+
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             public void run() {
                 writeHistory();
@@ -141,12 +139,21 @@ public class JLineDevice extends AbstractDevice {
         return cmds.toArray(new String[cmds.size()]);
     }
 
-    public void setCommands(CommandSet.Entry[] entries) throws IOException {
-        Completor[] completors = new Completor[] {
+    public void setAutocompleteCommands(CommandSet.Entry[] entries) throws IOException {
+        Completor[] completorsArray = new Completor[] {
                 new SimpleCompletor(getCommandsAsArray(entries)),
                 new ClassNameCompletor(), new FileNameCompletor() };
-        reader.addCompletor(new ArgumentCompletor(
-                new MultiCompletor(completors)));
+        completor.setCompletors(completorsArray);
+    }
+
+    public void addAutocompleteCommand(String command) {
+        Completor[] completorsArray = completor.getCompletors();
+        List<Completor> completorsList = new ArrayList<Completor>(completorsArray.length);
+        for (Completor c: completorsArray) {
+            completorsList.add(c);
+        }
+        completorsList.add(new SimpleCompletor(command));
+        completor.setCompletors(completorsList.toArray(new Completor[]{}));
     }
 
     @Override
