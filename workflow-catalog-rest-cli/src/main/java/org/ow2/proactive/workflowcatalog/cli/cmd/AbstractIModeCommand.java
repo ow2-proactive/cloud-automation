@@ -61,19 +61,19 @@ public abstract class AbstractIModeCommand extends AbstractCommand implements
         try {
             // load supported functions
             engine.eval(new InputStreamReader(script()));
+
         } catch (ScriptException error) {
             throw new CLIException(CLIException.REASON_OTHER, error);
         }
 
         while (!currentContext.getProperty(TERMINATE, Boolean.TYPE, false)) {
             try {
-
-
                 String command = readLine(currentContext, "> ");
-                if (command == null) {
+                if (command == null)
                     break; // EOF, exit interactive shell
-                }
-                engine.eval(command);
+                CommandHelper helper = new CommandHelper();
+                String commandTuned = helper.tune(currentContext, command);
+                engine.eval(commandTuned);
             } catch (ScriptException se) {
                 writeLine(currentContext, "%s\n%s",
                         "An error occurred while executing the script:",
@@ -85,4 +85,20 @@ public abstract class AbstractIModeCommand extends AbstractCommand implements
     protected abstract InputStream script();
 
 
+    private class CommandHelper {
+
+        public String tune(ApplicationContext context, String command) {
+            String tuned = null;
+            if (!command.trim().isEmpty() &&
+                    !command.contains(" ") &&
+                    !command.contains("(")) {
+                tuned = command + "()";
+                writeLine(context, "Warning: replacing command '%s' by '%s'", command, tuned);
+            } else {
+                tuned = command;
+            }
+            return tuned;
+        }
+
+    }
 }
