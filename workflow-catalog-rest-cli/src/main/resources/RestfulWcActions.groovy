@@ -1,3 +1,4 @@
+import org.ow2.proactive.workflowcatalog.api.utils.formatter.beans.WorkflowBean
 import org.ow2.proactive.workflowcatalog.cli.ApplicationContext
 import org.ow2.proactive.workflowcatalog.cli.ApplicationContextImpl
 import org.ow2.proactive.workflowcatalog.cli.CLIException
@@ -14,6 +15,7 @@ import org.ow2.proactive.workflowcatalog.cli.cmd.WcJsHelpCommand
 import org.ow2.proactive.workflowcatalog.cli.cmd.LoginWithCredentialsCommand
 import org.ow2.proactive.workflowcatalog.cli.cmd.SetUrlCommand
 import org.ow2.proactive.workflowcatalog.cli.console.JLineDevice
+import org.ow2.proactive.workflowcatalog.cli.rest.WorkflowCatalogClient
 
 currentContext = ApplicationContextImpl.currentContext()
 
@@ -36,6 +38,8 @@ addAutoComplete("login admin");
 void login(user) {
     currentContext.setProperty('org.ow2.proactive.workflowcatalog.cli.cmd.AbstractLoginCommand.renewSession', true)
     execute(new LoginCommand('' + user));
+
+    updateWorkflowAutoCompletes();
 }
 
 void loginwithcredentials(pathname) {
@@ -193,4 +197,50 @@ def getCredFile(ApplicationContext context) {
 def addAutoComplete(String command) {
     JLineDevice jline = ((JLineDevice)currentContext.getDevice());
     jline.addAutocompleteCommand(command);
+}
+
+def updateWorkflowAutoCompletes() throws CLIException {
+    WorkflowCatalogClient client = currentContext.getWorkflowCatalogClient();
+
+    Collection<WorkflowBean> workflows = client.getWorkflowsProxy().getWorkflowList();
+    for (WorkflowBean workflow: workflows) {
+        addAutocomplete(workflow);
+    }
+}
+
+def addAutocomplete(WorkflowBean workflow) {
+    JLineDevice jline = ((JLineDevice)currentContext.getDevice());
+    String submitCmd = generateSubmitCommand(workflow);
+    jline.addAutocompleteCommand(submitCmd);
+}
+
+private String generateSubmitCommand(WorkflowBean workflow) {
+    StringBuilder cmd = new StringBuilder();
+    cmd.append("submitworkflow('");
+    cmd.append(workflow.name);
+    cmd.append("',");
+    cmd.append(createGroovyMapCmd(workflow.variables));
+    cmd.append(",");
+    cmd.append(createGroovyMapCmd(workflow.genericInformation));
+    cmd.append(")");
+    return cmd.toString();
+}
+
+private String createGroovyMapCmd(Map<String, String> map) {
+    StringBuilder cmd = new StringBuilder();
+
+    cmd.append("[");
+    if (map.size() != 0)
+        for (Map.Entry var: map.entrySet()) {
+            cmd.append("'");
+            cmd.append(var.getKey());
+            cmd.append("':'");
+            cmd.append(var.getValue());
+            cmd.append("',");
+        }
+    else
+        cmd.append(":");
+
+    cmd.append("]");
+    return cmd.toString();
 }

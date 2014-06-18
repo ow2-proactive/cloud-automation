@@ -56,48 +56,8 @@ public class ListWorkflowsCommand extends AbstractCommand implements Command {
         WorkflowCatalogClient client = currentContext.getWorkflowCatalogClient();
 
         Collection<WorkflowBean> workflows = client.getWorkflowsProxy().getWorkflowList();
-        for (WorkflowBean workflow: workflows) {
+        for (WorkflowBean workflow: workflows)
             writeLine(currentContext, "%s", StringUtility.string(workflow));
-            addAutocomplete(currentContext, workflow);
-
-        }
-    }
-
-    private void addAutocomplete(ApplicationContext currentContext, WorkflowBean workflow) {
-        JLineDevice jline = ((JLineDevice)currentContext.getDevice());
-        String submitCmd = generateSubmitCommand(workflow);
-        jline.addAutocompleteCommand(submitCmd);
-    }
-
-    private String generateSubmitCommand(WorkflowBean workflow) {
-        StringBuilder cmd = new StringBuilder();
-        cmd.append("submitworkflow('");
-        cmd.append(workflow.name);
-        cmd.append("',");
-        cmd.append(createGroovyMapCmd(workflow.variables));
-        cmd.append(",");
-        cmd.append(createGroovyMapCmd(workflow.genericInformation));
-        cmd.append(")");
-        return cmd.toString();
-    }
-
-    private String createGroovyMapCmd(Map<String, String> map) {
-        StringBuilder cmd = new StringBuilder();
-
-        cmd.append("[");
-        if (map.size() != 0)
-            for (Map.Entry var: map.entrySet()) {
-                cmd.append("'");
-                cmd.append(var.getKey());
-                cmd.append("':'");
-                cmd.append(var.getValue());
-                cmd.append("',");
-            }
-        else
-            cmd.append(":");
-
-        cmd.append("]");
-        return cmd.toString();
     }
 
 }
