@@ -2,6 +2,7 @@
 <job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd" name="slurm-job-submit" priority="normal" cancelJobOnError="true">
 
     <variables>
+        <variable name="sbatch_workdir" value="/tmp/"/>
         <variable name="sbatch_arguments" value="--exclusive"/>
         <variable name="sbatch_script" value="USERSPACE:/test.sh"/>
         <variable name="sbatch_script_arguments" value=""/>
@@ -24,17 +25,24 @@
                         import org.ow2.proactive.datascale.slurm.OutputParser
 
                         def sbatch = "sbatch"
+                        def sbatch_workdir = "${sbatch_workdir}"
                         def sbatch_arguments = "${sbatch_arguments}"
                         def sbatch_script = "${sbatch_script}"
                         def sbatch_script_arguments = "${sbatch_script_arguments}"
 
-                        def root = new File(new URI(localspace.getRealURI()))
+                        def root = new File(new URI(localspace.getRealURI())).getAbsoluteFile()
+
+                        def workdir = new File(sbatch_workdir).getAbsoluteFile()
+                        if (!workdir.isDirectory()) {
+                            println "Not a directory: '$workdir'. Using home directory instead."
+                            workdir = new File(System.getProperty("user.home")).getAbsoluteFile()
+                        }
 
                         sbatch_script = sbatch_script.replace("USERSPACE:", root.getAbsolutePath())
                         sbatch_script_arguments = sbatch_script_arguments.replace("USERSPACE:", root.getAbsolutePath())
 
                         def cmd = sbatch + " " + " " + sbatch_arguments + " " + sbatch_script + " " + sbatch_script_arguments
-                        def p = cmd.execute()
+                        def p = cmd.execute([], workdir)
                         p.waitFor()
                         def stderr = p.err.text
                         def stdout = p.text
@@ -47,6 +55,7 @@
                                         job: job,
                                         errcode: errcode,
                                         cmd: cmd,
+                                        workdir: workdir.getAbsolutePath(),
                                         script: sbatch_script,
                                         stdout: stdout,
                                         stderr: stderr
