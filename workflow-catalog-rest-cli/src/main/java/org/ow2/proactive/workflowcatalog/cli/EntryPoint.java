@@ -73,8 +73,6 @@ public abstract class EntryPoint {
         try {
             commandFactory = getCommandFactory();
             console = AbstractDevice.getConsole(AbstractDevice.JLINE);
-            ((JLineDevice) console).setAutocompleteCommands(commandFactory
-                    .supportedCommandEntries());
             currentContext.setDevice(console);
 
             Options options = commandFactory.supportedOptions();

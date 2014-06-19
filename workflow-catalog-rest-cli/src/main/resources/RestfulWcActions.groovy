@@ -1,3 +1,8 @@
+import jline.ArgumentCompletor
+import jline.Completor
+import jline.FileNameCompletor
+import jline.NullCompletor
+import jline.SimpleCompletor
 import org.ow2.proactive.workflowcatalog.api.utils.formatter.beans.WorkflowBean
 import org.ow2.proactive.workflowcatalog.cli.ApplicationContext
 import org.ow2.proactive.workflowcatalog.cli.ApplicationContextImpl
@@ -21,20 +26,17 @@ currentContext = ApplicationContextImpl.currentContext()
 
 printWelcomeMsg()
 
-addAutoComplete("help");
+addAutoComplete(new ArgumentCompletor(new SimpleCompletor("help"), new NullCompletor()));
 void help() {
     execute(new WcJsHelpCommand())
 }
 
-addAutoComplete("USERSPACE");
-addAutoComplete("GLOBALSPACE");
-
-addAutoComplete("url http://localhost:8082/workflow-catalog-rest-server");
+addAutoComplete(new ArgumentCompletor(new SimpleCompletor("url"), new SimpleCompletor("http://localhost:8082/workflow-catalog-rest-server"), new NullCompletor()));
 void url(url) {
     execute(new SetUrlCommand('' + url))
 }
 
-addAutoComplete("login admin");
+addAutoComplete(new ArgumentCompletor(new SimpleCompletor("login"), new SimpleCompletor(["admin", "user", "demo"] as String[]), new NullCompletor()));
 void login(user) {
     currentContext.setProperty('org.ow2.proactive.workflowcatalog.cli.cmd.AbstractLoginCommand.renewSession', true)
     execute(new LoginCommand('' + user));
@@ -47,58 +49,54 @@ void loginwithcredentials(pathname) {
     execute(new LoginWithCredentialsCommand('' + pathname))
 }
 
-addAutoComplete("getjobresult");
-addAutoComplete("getjobresult 33");
+addAutoComplete(new ArgumentCompletor(new SimpleCompletor("getjobresult"), new SimpleCompletor(["0", "1"] as String[]), new NullCompletor()));
 void getjobresult(jobId) {
     execute(new GetJobResultCommand(jobId + ""))
 }
 
-addAutoComplete("listworkflows");
+addAutoComplete(new ArgumentCompletor(new SimpleCompletor("listworkflows"), new NullCompletor()));
 void listworkflows() {
     execute(new ListWorkflowsCommand())
 }
 
-addAutoComplete("submitworkflow('workflow-nop.xml', [variable1:\"value1\"], [:])");
 void submitworkflow(name, variables, genericInformation) {
     execute(new SubmitWorkflowCommand(name, variables, genericInformation))
 }
 
-addAutoComplete("submitworkflow('workflow-nop.xml', [variable1:\"value1\"])");
 void submitworkflow(name, variables) {
     submitworkflow(name, variables, [:])
 }
 
-addAutoComplete("submitworkflow workflow-nop.xml");
 void submitworkflow(name) {
     submitworkflow(name, [:], [:])
 }
 
-addAutoComplete("uploadfile /tmp/a.sh");
+addAutoComplete(new ArgumentCompletor(new SimpleCompletor("uploadfile"), new FileNameCompletor(), new NullCompletor()));
 void uploadfile(srcFilePath) {
     checkFileExists(srcFilePath)
     String dstFileName = getFileName(srcFilePath)
     execute(new UploadFileCommand(srcFilePath, 'USERSPACE', '/', dstFileName))
 }
 
-addAutoComplete("uploadfile /tmp/a.sh b.sh");
+addAutoComplete(new ArgumentCompletor(new SimpleCompletor("uploadfile"), new FileNameCompletor(), new SimpleCompletor("destination"), new NullCompletor()));
 void uploadfile(srcFilePath, dstFileName) {
     checkFileExists(srcFilePath)
     execute(new UploadFileCommand(srcFilePath, 'USERSPACE', '/', dstFileName))
 }
 
-addAutoComplete("uploadfile /tmp/a.sh / b.sh");
+addAutoComplete(new ArgumentCompletor(new SimpleCompletor("uploadfile"), new FileNameCompletor(), new SimpleCompletor("/"), new SimpleCompletor("destination"), new NullCompletor()));
 void uploadfile(srcFilePath, dstFilePath, dstFileName) {
     checkFileExists(srcFilePath)
     execute(new UploadFileCommand(srcFilePath, 'USERSPACE', dstFilePath, dstFileName))
 }
 
-addAutoComplete("uploadfile /tmp/a.sh USERSPACE / b.sh");
+addAutoComplete(new ArgumentCompletor(new SimpleCompletor("uploadfile"), new SimpleCompletor(["USERSPACE", "GLOBALSPACE"] as String[]), new SimpleCompletor("/"), new SimpleCompletor("destination"), new NullCompletor()));
 void uploadfile(srcFilePath, dstSpaceName, dstFilePath, dstFileName) {
     checkFileExists(srcFilePath)
     execute(new UploadFileCommand(srcFilePath, dstSpaceName, dstFilePath, dstFileName))
 }
 
-addAutoComplete("downloadfile /a.sh");
+addAutoComplete(new ArgumentCompletor(new SimpleCompletor("downloadfile"), new SimpleCompletor("/remotefile.txt"), new NullCompletor()));
 void downloadfile(srcPathName) {
     def dstFileName = getFileName(srcPathName)
     def tempDir = new File(System.getProperty("java.io.tmpdir"))
@@ -106,30 +104,28 @@ void downloadfile(srcPathName) {
     execute(new DownloadFileCommand('USERSPACE', srcPathName, dstFilePath))
 }
 
-addAutoComplete("downloadfile /a.sh /tmp/a.sh");
+addAutoComplete(new ArgumentCompletor(new SimpleCompletor("downloadfile"), new SimpleCompletor("/remotefile.txt"), new FileNameCompletor(), new NullCompletor()));
 void downloadfile(srcPathName, dstFileName) {
     execute(new DownloadFileCommand('USERSPACE', srcPathName, dstFileName))
 }
 
-addAutoComplete("downloadfile USERSPACE /a.sh /tmp/a.sh");
+addAutoComplete(new ArgumentCompletor(new SimpleCompletor("downloadfile"), new SimpleCompletor(["USERSPACE", "GLOBALSPACE"] as String[]), new SimpleCompletor("/remotefile.txt"), new FileNameCompletor(), new NullCompletor()));
 void downloadfile(srcSpaceName, srcPathName, dstFileName) {
     execute(new DownloadFileCommand(srcSpaceName, srcPathName, dstFileName))
 }
 
-addAutoComplete("getjoblogs");
-addAutoComplete("getjoblogs 33");
+addAutoComplete(new ArgumentCompletor(new SimpleCompletor("getjoblogs"), new SimpleCompletor(["0", "1"] as String[]), new NullCompletor()));
 void getjoblogs(jobId) {
     execute(new GetJobLogsCommand(jobId + ""))
 }
 
-addAutoComplete("x date");
-addAutoComplete("x hostname");
-addAutoComplete("x cat /etc/hosts");
+addAutoComplete(new ArgumentCompletor(new SimpleCompletor("x"), new SimpleCompletor(["date", "hostname", "ls /tmp"] as String[]), new NullCompletor()));
 void x(String... cmd) {
     println ">>> Executing command: $cmd"
     println cmd.execute().text
 }
 
+addAutoComplete(new ArgumentCompletor(new SimpleCompletor("exit")));
 void exit() {
 	currentContext.setProperty(AbstractIModeCommand.TERMINATE, true)
 }
@@ -194,36 +190,60 @@ def getCredFile(ApplicationContext context) {
 	return context.getProperty(LoginWithCredentialsCommand.CRED_FILE, String.class)
 }
 
-def addAutoComplete(String command) {
+def addAutoComplete(Completor completor) {
     JLineDevice jline = ((JLineDevice)currentContext.getDevice());
-    jline.addAutocompleteCommand(command);
+    jline.addAutocompleteCommand(completor);
 }
 
-def updateWorkflowAutoCompletes() throws CLIException {
+def updateWorkflowAutoCompletes() {
     WorkflowCatalogClient client = currentContext.getWorkflowCatalogClient();
 
     Collection<WorkflowBean> workflows = client.getWorkflowsProxy().getWorkflowList();
     for (WorkflowBean workflow: workflows) {
-        addAutocomplete(workflow);
+        addAutocompleteWorkflow(workflow);
     }
 }
 
-def addAutocomplete(WorkflowBean workflow) {
-    JLineDevice jline = ((JLineDevice)currentContext.getDevice());
-    String submitCmd = generateSubmitCommand(workflow);
-    jline.addAutocompleteCommand(submitCmd);
+def addAutocompleteWorkflow(WorkflowBean workflow) {
+    addAutoComplete(generateSubmitCommand(workflow));
+    addAutoComplete(generateSubmitCommandBasic(workflow));
+    addAutoComplete(generateSubmitCommandExtended(workflow));
 }
 
-private String generateSubmitCommand(WorkflowBean workflow) {
-    StringBuilder cmd = new StringBuilder();
-    cmd.append("submitworkflow('");
-    cmd.append(workflow.name);
-    cmd.append("',");
-    cmd.append(createGroovyMapCmd(workflow.variables));
-    cmd.append(",");
-    cmd.append(createGroovyMapCmd(workflow.genericInformation));
-    cmd.append(")");
-    return cmd.toString();
+private Completor generateSubmitCommand(WorkflowBean workflow) {
+    return new ArgumentCompletor(
+            new SimpleCompletor("submitworkflow"),
+            new SimpleCompletor("("),
+            new SimpleCompletor("'"+workflow.name+"'"),
+            new SimpleCompletor(")"),
+            new NullCompletor()
+    )
+}
+
+private Completor generateSubmitCommandBasic(WorkflowBean workflow) {
+    return new ArgumentCompletor(
+            new SimpleCompletor("submitworkflow"),
+            new SimpleCompletor("("),
+            new SimpleCompletor("'"+workflow.name+"'"),
+            new SimpleCompletor(","),
+            new SimpleCompletor(createGroovyMapCmd(workflow.variables)),
+            new SimpleCompletor(")"),
+            new NullCompletor()
+    )
+}
+
+private Completor generateSubmitCommandExtended(WorkflowBean workflow) {
+    return new ArgumentCompletor(
+            new SimpleCompletor("submitworkflow"),
+            new SimpleCompletor("("),
+            new SimpleCompletor("'"+workflow.name+"'"),
+            new SimpleCompletor(","),
+            new SimpleCompletor(createGroovyMapCmd(workflow.variables)),
+            new SimpleCompletor(","),
+            new SimpleCompletor(createGroovyMapCmd(workflow.genericInformation)),
+            new SimpleCompletor(")"),
+            new NullCompletor()
+    )
 }
 
 private String createGroovyMapCmd(Map<String, String> map) {

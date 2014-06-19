@@ -39,28 +39,17 @@ package org.ow2.proactive.workflowcatalog.cli.console;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-
-import jline.ArgumentCompletor;
-import jline.ClassNameCompletor;
-import jline.Completor;
-import jline.ConsoleReader;
-import jline.FileNameCompletor;
-import jline.History;
-import jline.MultiCompletor;
-import jline.SimpleCompletor;
-
-import org.ow2.proactive.workflowcatalog.cli.CommandSet;
+import jline.*;
 
 public class JLineDevice extends AbstractDevice {
     private static final int HLENGTH = 100000;
     private static final String HFILE = System.getProperty("user.home")
-            + File.separator + ".proactive" + File.separator + "restcli.hist";
+            + File.separator + ".proactive" + File.separator + "wccli.hist";
 
     private ConsoleReader reader;
     private PrintWriter writer;
-    private MultiCompletor completor;
+    private List<Completor> completors;
 
     public JLineDevice(InputStream in, PrintStream out) throws IOException {
         File hfile = new File(HFILE);
@@ -73,9 +62,8 @@ public class JLineDevice extends AbstractDevice {
         }
         writer = new PrintWriter(out, true);
         reader = new ConsoleReader(in, writer);
+        completors = new ArrayList<Completor>();
         reader.setHistory(new History(hfile));
-        completor = new MultiCompletor();
-        reader.addCompletor(new ArgumentCompletor(completor));
 
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             public void run() {
@@ -122,38 +110,12 @@ public class JLineDevice extends AbstractDevice {
         }
     }
 
-    private String[] getCommandsAsArray(CommandSet.Entry[] entries) {
-        List<String> cmds = new ArrayList<String>();
-        for (CommandSet.Entry entry : entries) {
-            if (entry.jsCommand() != null) {
-                String jsCommand = entry.jsCommand();
-                int index = jsCommand.indexOf('(');
-                if ((jsCommand.indexOf(')') - index) == 1) {
-                    cmds.add(jsCommand.substring(0, index + 2));
-                } else {
-                    cmds.add(jsCommand.substring(0, index + 1));
-                }
-            }
+    public void addAutocompleteCommand(Completor completor) {
+        for (Object c: reader.getCompletors()) {
+            reader.removeCompletor((Completor)c);
         }
-
-        return cmds.toArray(new String[cmds.size()]);
-    }
-
-    public void setAutocompleteCommands(CommandSet.Entry[] entries) throws IOException {
-        Completor[] completorsArray = new Completor[] {
-                new SimpleCompletor(getCommandsAsArray(entries)),
-                new ClassNameCompletor(), new FileNameCompletor() };
-        completor.setCompletors(completorsArray);
-    }
-
-    public void addAutocompleteCommand(String command) {
-        Completor[] completorsArray = completor.getCompletors();
-        List<Completor> completorsList = new ArrayList<Completor>(completorsArray.length);
-        for (Completor c: completorsArray) {
-            completorsList.add(c);
-        }
-        completorsList.add(new SimpleCompletor(command));
-        completor.setCompletors(completorsList.toArray(new Completor[]{}));
+        completors.add(completor);
+        reader.addCompletor(new MultiCompletor(completors));
     }
 
     @Override
