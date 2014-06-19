@@ -54,7 +54,7 @@
                 <script >
                     <code language="groovy">
                         <![CDATA[
-import net.minidev.json.*
+import groovy.json.JsonOutput
 import org.apache.commons.vfs2.*
 import org.apache.commons.vfs2.provider.sftp.*
 
@@ -89,22 +89,22 @@ println "Generating report..."
 
 FileObject[] files = a_base.findFiles(new CustomFileSelector(wildcard, recursive))
 
-def json = new JSONObject()
+def json = [:]
 if (detailed) {
-    def sourceFiles = new JSONObject()
+    def sourceFiles = [:]
     for (FileObject f : files)
         sourceFiles.put(f.name.path, getFileProperties(f))
     json.put("source_files", sourceFiles)
 } else {
-    def sourceFiles = new JSONArray()
+    def sourceFiles = []
     for (FileObject f : files)
         sourceFiles.add(f.name.path)
     json.put("source_files", sourceFiles)
 }
 
-result = json.toJSONString()
+result = JsonOutput.toJson(json)
 
-println "Report: $result"
+println "Report: " + JsonOutput.prettyPrint(result)
 
 a_root.close()
 
@@ -189,7 +189,7 @@ def FileSystemOptions initializePrivateKeyMechanism(def openSSHPrivateKeyPath) {
 }
 
 def getFileProperties(FileObject f) {
-    def fileJson = new JSONObject()
+    def fileJson = [:]
     fileJson.put("path", f.name.path)
     fileJson.put("type", f.getType().toString())
     if (f.getType() == FileType.FILE) {

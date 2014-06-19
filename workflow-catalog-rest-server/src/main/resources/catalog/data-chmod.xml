@@ -26,7 +26,7 @@
                 <script >
                     <code language="groovy">
                         <![CDATA[
-import net.minidev.json.*
+import groovy.json.JsonOutput
 import org.apache.commons.vfs2.*
 import org.apache.commons.vfs2.provider.sftp.*
 
@@ -44,8 +44,8 @@ println "Generating report..."
 
 FileObject[] files = a_base.findFiles(new CustomFileSelector(wildcard, recursive))
 
-def json = new JSONObject()
-def sourceFiles = new JSONObject()
+def json = [:]
+def sourceFiles = [:]
 for (FileObject f : files) {
     def changes = applyChanges(f.name.path, flags)
     sourceFiles.put(f.name.path, changes)
@@ -54,16 +54,16 @@ for (FileObject f : files) {
 json.put("source_files_count", sourceFiles.size())
 json.put("source_files", sourceFiles)
 
-result = json.toJSONString()
+result = JsonOutput.toJson(json)
 
-println "Report: $result"
+println "Report: " + JsonOutput.prettyPrint(result)
 
 a_base.close()
 
 ////////////////////////////////////////////////////////
 
 def applyChanges(String filename, String flags) {
-    def fileJson = new JSONObject()
+    def fileJson = [:]
 
     def cmd = ["chmod", flags, filename]
     def proc = cmd.execute()

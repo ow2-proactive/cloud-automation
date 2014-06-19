@@ -63,7 +63,7 @@
                     <code language="groovy">
                         <![CDATA[
 
-import net.minidev.json.*
+import groovy.json.JsonOutput
 import org.apache.commons.vfs2.*
 import org.apache.commons.vfs2.provider.sftp.*
 
@@ -114,7 +114,7 @@ println "Generating report..."
 def a_files = generateReport(a_base, wildcard, recursive, detailed)
 def b_files = generateReport(b_base, wildcard, recursive, detailed)
 
-def json = new JSONObject()
+def json = [:]
 
 if (atob) {
     json.put("source_files_count", a_files.size())
@@ -126,9 +126,9 @@ if (atob) {
     json.put("destination_matching_files", a_files)
 }
 
-result = json.toJSONString()
+result = JsonOutput.toJson(json)
 
-println "Report: $result"
+println "Report: " + JsonOutput.prettyPrint(result)
 
 a_root.close()
 
@@ -217,12 +217,12 @@ class CustomFileSelector implements FileSelector {
 def generateReport(FileObject base, String wildcard, Boolean recursive, Boolean detailed) {
     FileObject[] files = base.findFiles(new CustomFileSelector(wildcard, recursive))
     if (detailed) {
-        def sourceFiles = new JSONObject()
+        def sourceFiles = [:]
         for (FileObject f : files)
             sourceFiles.put(f.name.path, getFileProperties(f))
         return sourceFiles
     } else {
-        def sourceFiles = new JSONArray()
+        def sourceFiles = []
         for (FileObject f : files)
             sourceFiles.add(f.name.path)
         return sourceFiles
@@ -230,7 +230,7 @@ def generateReport(FileObject base, String wildcard, Boolean recursive, Boolean 
 }
 
 def getFileProperties(FileObject f) {
-    def fileJson = new JSONObject()
+    def fileJson = [:]
     fileJson.put("path", f.name.path)
     fileJson.put("type", f.getType().toString())
     if (f.getType() == FileType.FILE) {

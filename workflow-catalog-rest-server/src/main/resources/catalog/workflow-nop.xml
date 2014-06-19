@@ -1,18 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd" name="workflow-nop" priority="normal" cancelJobOnError="true">
     <variables>
+
+        <!-- variable1 : example of one variable -->
         <variable name="variable1" value=""/>
+
+        <!-- variable2 : example of another variable -->
         <variable name="variable2" value=""/>
+
     </variables>
     <genericInformation>
+
+        <!-- genericInformation1 : example of one generic information -->
         <info name="genericInformation1" value=""/>
+
+        <!-- genericInformation2 : example of another generic information -->
         <info name="genericInformation2" value=""/>
+
     </genericInformation>
 
 	<taskFlow>
         <task name="nop-task">
             <inputFiles>
                 <files includes="*" accessMode="transferFromUserSpace"/>
+                <files includes="*" accessMode="transferFromGlobalSpace"/>
             </inputFiles>
             <scriptExecutable>
                 <script >
@@ -37,7 +48,8 @@
 
                         result = JsonOutput.toJson(json)
 
-                        println "Result: $result"
+                        println "Result: " + JsonOutput.prettyPrint(result)
+
                         ]]>
                     </code>
                 </script>

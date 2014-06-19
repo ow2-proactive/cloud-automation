@@ -2,10 +2,22 @@
 <job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd" name="slurm-job-submit" priority="normal" cancelJobOnError="true">
 
     <variables>
-        <variable name="sbatch_workdir" value="/tmp/"/>
-        <variable name="sbatch_arguments" value="--exclusive"/>
-        <variable name="sbatch_script" value="USERSPACE:/test.sh"/>
-        <variable name="sbatch_script_arguments" value=""/>
+
+        <!-- workdir : working directory where SLURM job will be executed -->
+        <!-- workdir can be: <directory> or empty to execute in HOME -->
+        <variable name="workdir" value="/tmp/"/>
+
+        <!-- arguments : arguments to submit SLURM job -->
+        <!-- arguments can be: all valid arguments for sbatch command ... -->
+        <variable name="arguments" value="--exclusive"/>
+
+        <!-- script : DATASPACE path of SLURM job (sbatch) to execute -->
+        <!-- script can be: USERSPACE:/test.sh after pushing file test.sh to USERSPACE ... -->
+        <variable name="script" value="USERSPACE:/test.sh"/>
+
+        <!-- script.arguments : arguments to the SLURM script -->
+        <variable name="script.arguments" value=""/>
+
     </variables>
 
 	<taskFlow>
@@ -13,7 +25,7 @@
         <task name="submit-job">
             <inputFiles>
                 <!-- Only script -->
-                <!--<files includes="${sbatch_script}" accessMode="transferFromUserSpace"/>-->
+                <!--<files includes="${script}" accessMode="transferFromUserSpace"/>-->
                 <!-- All files -->
                 <files includes="*" accessMode="transferFromUserSpace"/>
             </inputFiles>
@@ -25,10 +37,10 @@
                         import org.ow2.proactive.datascale.slurm.OutputParser
 
                         def sbatch = "sbatch"
-                        def sbatch_workdir = "${sbatch_workdir}"
-                        def sbatch_arguments = "${sbatch_arguments}"
-                        def sbatch_script = "${sbatch_script}"
-                        def sbatch_script_arguments = "${sbatch_script_arguments}"
+                        def sbatch_workdir = "${workdir}"
+                        def sbatch_arguments = "${arguments}"
+                        def sbatch_script = "${script}"
+                        def sbatch_script_arguments = "${script.arguments}"
 
                         def root = new File(new URI(localspace.getRealURI())).getAbsoluteFile()
 

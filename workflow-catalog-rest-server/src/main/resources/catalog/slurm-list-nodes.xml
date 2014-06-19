@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd" name="slurm-list-nodes" priority="normal" cancelJobOnError="true">
 
+    <!-- arguments : arguments to list node command -->
+    <!-- arguments can be: <node-name> or empty to list all... -->
     <variables>
         <variable name="arguments" value=""/>
     </variables>
@@ -26,7 +28,6 @@
                         def parser = new OutputParser();
                         def nodes = parser.parseScontrolShowNode(stdout)
 
-                        JsonOutput a;
                         result = JsonOutput.toJson(
                                 [
                                         nodes: nodes,
