@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd" name="command" priority="normal" cancelJobOnError="true">
+<job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd" name="misc-command" priority="normal" cancelJobOnError="true">
 
     <!-- command : command to be executed in any node -->
     <!-- command can be: "hostname", "ls /tmp/", etc. ... -->
@@ -27,7 +27,9 @@
 
                         command = command.replace("USERSPACE:", root.getAbsolutePath())
 
-                        def p = command.execute()
+                        def workdir = new File(System.getProperty("user.home")).getAbsoluteFile()
+
+                        def p = command.execute([], workdir)
                         p.waitFor()
                         def stderr = p.err.text
                         def stdout = p.text

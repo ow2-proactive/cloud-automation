@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd" name="slurm-job-submit" priority="normal" cancelJobOnError="true">
+<job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd" name="slurm-submit-job" priority="normal" cancelJobOnError="true">
 
     <variables>
 
         <!-- workdir : working directory where SLURM job will be executed -->
         <!-- workdir can be: <directory> or empty to execute in HOME -->
-        <variable name="workdir" value="/tmp/"/>
+        <variable name="workdir" value=""/>
 
         <!-- arguments : arguments to submit SLURM job -->
         <!-- arguments can be: all valid arguments for sbatch command ... -->
@@ -45,7 +45,7 @@
                         def root = new File(new URI(localspace.getRealURI())).getAbsoluteFile()
 
                         def workdir = new File(sbatch_workdir).getAbsoluteFile()
-                        if (!workdir.isDirectory()) {
+                        if (sbatch_workdir.isEmpty() || !workdir.isDirectory()) {
                             println "Not a directory: '$workdir'. Using home directory instead."
                             workdir = new File(System.getProperty("user.home")).getAbsoluteFile()
                         }
