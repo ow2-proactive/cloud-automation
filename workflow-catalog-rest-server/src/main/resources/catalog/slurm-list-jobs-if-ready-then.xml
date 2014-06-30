@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd" name="slurm-list-jobs" priority="normal" cancelJobOnError="true">
+
+    <variables>
+
+        <!-- jobid : jobid of the SLURM job to wait for -->
+        <!-- jobid can be: any positive integer -->
+        <variable name="jobid" value=""/>
+
+        <!-- sleep : sleep time (in seconds) that the workflow should wait until re checking the state of the SLURM job -->
+        <!-- sleep can be: any positive integer -->
+        <variable name="sleep" value="3600"/>
+
+        <!-- cancelon : space separated list of SLURM job states given which this workflow should fail -->
+        <variable name="cancelon" value="CANCELLED FAILED NODE_FAIL TIMEOUT"/>
+
+    </variables>
+
+	<taskFlow>
+        <task name="list-jobs">
+            <scriptExecutable>
+                <script >
+                    <code language="groovy">
+                        <![CDATA[
+                        import org.ow2.proactive.datascale.slurm.OutputParser
+                        import groovy.json.JsonOutput
+
+                        def jobid = "${jobid}"
+
+                        def cmd = "scontrol show jobs -o $jobid"
+                        def p = cmd.execute()
+                        p.waitFor()
+                        def stderr = p.err.text
+                        def stdout = p.text
+                        def errcode = p.exitValue()
+
+                        def parser = new OutputParser();
+                        def jobs = parser.parseScontrolShowJob(stdout)
+
+                        result = JsonOutput.toJson(
+                                [
+                                        jobs: jobs,
+                                        errcode: errcode,
+                                        cmd: cmd,
+                                        stdout: stdout,
+                                        stderr: stderr
+                                ])
+
+                        println "Result: " + JsonOutput.prettyPrint(result)
+
+                        ]]>
+                    </code>
+                </script>
+            </scriptExecutable>
+            <controlFlow block="start"></controlFlow>
+        </task>
+
+
+        <task name="looper">
+            <depends>
+                <task ref="list-jobs"/>
+            </depends>
+            <scriptExecutable>
+                <script >
+                    <code language="groovy">
+                    <![CDATA[
+
+                        import groovy.json.JsonSlurper
+
+                        def jobid = "${jobid}"
+                        def cancelon = "${cancelon}"
+                        def jobinfo = results[0].toString()
+                        def sleep = "${sleep}"
+                        def slurper = new JsonSlurper()
+                        def json = slurper.parseText(jobinfo)
+
+                        def jobjson = json.getAt("jobs").getAt(jobid)
+                        if (jobjson == null)
+                            throw new RuntimeException("SLURM job " + jobid + " was not listed by SLURM.")
+
+                        def state = jobjson.getAt("JobState")
+
+                        println "SLURM job " + jobid + " 's current state: " + state
+
+                        def cancelona = cancelon.trim().split(" ");
+                        for (def co: cancelona) {
+                            if (state.equals(co))
+                                throw new RuntimeException("SLURM job " + jobid + " has state: " + state)
+                        }
+
+                        def loop = true
+
+                        if (state.equals("COMPLETED")) {
+                            loop = false
+                        } else {
+                            loop = true
+                            Thread.sleep(1000 * Integer.parseInt(sleep))
+                        }
+
+                        variables.put("doloop", loop)
+
+                        ]]>
+                </code>
+                </script>
+            </scriptExecutable>
+            <controlFlow block="end" >
+                <loop target="list-jobs">
+                    <script >
+                        <code language="groovy">
+                        <![CDATA[
+                            def doloop = variables.get("doloop")
+                            loop = doloop
+                            ]]>
+                    </code>
+                    </script>
+                </loop>
+            </controlFlow>
+        </task>
+
+
+    </taskFlow>
+</job>
+
