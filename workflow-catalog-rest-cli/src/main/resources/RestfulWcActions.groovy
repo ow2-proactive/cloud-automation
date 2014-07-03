@@ -119,7 +119,7 @@ void getjoblogs(jobId) {
     execute(new GetJobLogsCommand(jobId + ""))
 }
 
-addAutoComplete(new ArgumentCompletor(new SimpleCompletor("x"), new SimpleCompletor(["date", "hostname", "ls /tmp"] as String[]), new NullCompletor()));
+addAutoComplete(new ArgumentCompletor(new SimpleCompletor("x"), new SimpleCompletor(["date", "hostname", "ls /tmp"] as String[]), new FileNameCompletor()));
 void x(String... cmd) {
     println ">>> Executing command: $cmd"
     println cmd.execute().text
