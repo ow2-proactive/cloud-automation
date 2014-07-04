@@ -1,15 +1,7 @@
 buildscript {
     repositories {
         mavenCentral()
-        maven { url 'http://repo.activeeon.com/content/repositories/snapshots/' }
-        maven { url 'http://repo.activeeon.com/content/repositories/releases/' }
-        maven { url 'http://repo.activeeon.com/content/repositories/thirdparty/' }
-    }
-
-    dependencies {
-        //classpath 'org.objectweb.proactive:programming-build-utils:5.5.0-SNAPSHOT'
-        // needed at runtime by AntStubGenerator...
-        //classpath 'org.objectweb.proactive:programming-core:5.5.0-SNAPSHOT'
+        maven { url 'http://repo.activeeon.com/content/groups/proactive/' }
     }
 }
 
