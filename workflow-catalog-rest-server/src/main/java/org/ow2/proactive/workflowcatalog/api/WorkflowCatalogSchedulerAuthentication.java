@@ -48,12 +48,11 @@ public class WorkflowCatalogSchedulerAuthentication extends SchedulerAuthenticat
     static SchedulerProxyFactory schedulerProxyFactory = new SchedulerProxyFactory();
 
     @Override
-    protected ISchedulerProxy loginToSchedulerRestApi(String username,
-      String password) throws LoginException, SchedulerRestException {
+    protected ISchedulerProxy loginToSchedulerRestApi(SchedulerLoginData login) throws LoginException, SchedulerRestException {
         SchedulerLoginData loginData = ConfigurationHelper.getSchedulerLoginData(
           ConfigurationHelper.getConfiguration());
-        loginData.schedulerUsername = username;
-        loginData.schedulerPassword = password;
+        loginData.schedulerUsername = login.schedulerUsername;
+        loginData.schedulerPassword = login.schedulerPassword;
 
         return schedulerProxyFactory.create(loginData);
     }

@@ -19,9 +19,11 @@ public class LoginWithCredentialsCommand extends AbstractLoginCommand implements
         Command {
     public static final String CRED_FILE = "org.ow2.proactive_grid_cloud_portal.cli.cmd.LoginWithCredentials.credFile";
 
+    private String username;
     private String pathname;
 
-    public LoginWithCredentialsCommand(String pathname) {
+    public LoginWithCredentialsCommand(String username, String pathname) {
+        this.username = username;
         this.pathname = pathname;
     }
 
@@ -38,6 +40,9 @@ public class LoginWithCredentialsCommand extends AbstractLoginCommand implements
         entity.addPart("credential",
                 new ByteArrayBody(FileUtility.byteArray(credentials),
                         APPLICATION_OCTET_STREAM.getMimeType()));
+        entity.addPart("username",
+               new ByteArrayBody(username.getBytes(),
+                                         APPLICATION_OCTET_STREAM.getMimeType()));
         request.setEntity(entity);
         HttpResponseWrapper response = execute(request, currentContext);
         if (statusCode(OK) == statusCode(response)) {

@@ -12,6 +12,13 @@ import javax.ws.rs.core.Response;
 import org.ow2.proactive.workflowcatalog.security.HttpHeaderTokenSessionManager;
 import org.ow2.proactive.workflowcatalog.security.SchedulerRestSession;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.ISchedulerProxy;
+import org.apache.commons.io.IOUtils;
+import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
+import org.ow2.proactive.workflowcatalog.security.HttpHeaderTokenSessionManager;
+import org.ow2.proactive.workflowcatalog.security.SchedulerRestSession;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerLoginData;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerProxy;
+import org.ow2.proactive_grid_cloud_portal.common.dto.LoginForm;
 import org.ow2.proactive_grid_cloud_portal.scheduler.exception.SchedulerRestException;
 import org.apache.log4j.Logger;
 import org.apache.shiro.SecurityUtils;
@@ -21,6 +28,8 @@ import org.apache.shiro.session.Session;
 import org.apache.shiro.session.mgt.DefaultSessionContext;
 import org.apache.shiro.session.mgt.SessionContext;
 import org.apache.shiro.subject.Subject;
+import java.io.IOException;
+import java.io.StringWriter;
 
 public abstract class SchedulerAuthentication implements RestAuthentication {
 
@@ -31,22 +40,29 @@ public abstract class SchedulerAuthentication implements RestAuthentication {
     @Path("/login")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public String login(@FormParam("username") String username, @FormParam("password") String password) {
+        SchedulerLoginData data = new SchedulerLoginData(null, username, password, null, null);
+        return commonLogin(data);
+    }
+
+    @Override
+    public String loginWithCredential(@MultipartForm LoginForm multipart) {
         try {
-            ISchedulerProxy scheduler = loginToSchedulerRestApi(username, password);
+            String username = multipart.getUsername();
+            String credentials = getCredentialsAsString(multipart);
+
+            SchedulerLoginData data = new SchedulerLoginData(null, username, null, credentials, null);
+
+            return commonLogin(data);
+        } catch (IOException e) {
+            throw logAndThrowHttpException(e, Response.Status.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private String commonLogin(SchedulerLoginData login) {
+        try {
+            ISchedulerProxy scheduler = loginToSchedulerRestApi(login);
             String sessionId = scheduler.getSessionId();
-
-            try {
-                return internalLogin(username, password, scheduler, sessionId);
-            } catch (AuthenticationException e) {
-                // Shiro failed login because of invalid credentials
-                scheduler.disconnectFromScheduler();
-                throw logAndThrowHttpException(e, Response.Status.UNAUTHORIZED);
-            } catch (Exception e) {
-                scheduler.disconnectFromScheduler();
-                logger.warn("Could not login", e);
-                throw logAndThrowHttpException(e, Response.Status.INTERNAL_SERVER_ERROR);
-            }
-
+            return internalLogin(login, scheduler, sessionId);
         } catch (LoginException e) {
             logger.warn("Could not login", e);
             throw logAndThrowHttpException(e, Response.Status.UNAUTHORIZED);
@@ -63,16 +79,14 @@ public abstract class SchedulerAuthentication implements RestAuthentication {
         return new WebApplicationException(httpError);
     }
 
-    protected abstract ISchedulerProxy loginToSchedulerRestApi(String username,
-      String password) throws LoginException, SchedulerRestException;
+    protected abstract ISchedulerProxy loginToSchedulerRestApi(SchedulerLoginData login) throws LoginException, SchedulerRestException;
 
-    private String internalLogin(String username, String password, ISchedulerProxy scheduler,
+    private String internalLogin(SchedulerLoginData login, ISchedulerProxy scheduler,
       String sessionId) {
         Subject currentUser = createSubject(sessionId, scheduler);
-        UsernamePasswordToken token = new UsernamePasswordToken(username, password);
+        UsernamePasswordToken token = new UsernamePasswordToken(login.schedulerUsername, login.schedulerPassword);
 
         currentUser.login(token);
-
         return sessionId;
     }
 
@@ -98,4 +112,11 @@ public abstract class SchedulerAuthentication implements RestAuthentication {
 
         return new Subject.Builder().session(session).buildSubject();
     }
+
+    private String getCredentialsAsString(LoginForm multipart) throws IOException {
+        StringWriter credWriter = new StringWriter();
+        IOUtils.copy(multipart.getCredential(), credWriter, "UTF8");
+        return credWriter.toString();
+    }
+
 }

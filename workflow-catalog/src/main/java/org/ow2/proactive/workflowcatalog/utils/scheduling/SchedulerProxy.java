@@ -1,5 +1,6 @@
 package org.ow2.proactive.workflowcatalog.utils.scheduling;
 
+import org.apache.commons.io.input.ReaderInputStream;
 import org.apache.http.client.HttpClient;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -8,6 +9,7 @@ import org.apache.http.params.HttpParams;
 import org.apache.log4j.Logger;
 import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient4Engine;
 import org.ow2.proactive.workflowcatalog.utils.HttpUtility;
+import org.ow2.proactive_grid_cloud_portal.common.dto.LoginForm;
 import org.ow2.proactive_grid_cloud_portal.scheduler.client.SchedulerRestClient;
 import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobIdData;
 import org.ow2.proactive_grid_cloud_portal.scheduler.exception.NotConnectedRestException;
@@ -16,6 +18,8 @@ import org.ow2.proactive_grid_cloud_portal.scheduler.exception.SchedulerRestExce
 import javax.security.auth.login.LoginException;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.StringReader;
+import java.security.KeyException;
 import java.util.Map;
 
 public class SchedulerProxy implements ISchedulerProxy {
@@ -84,8 +88,29 @@ public class SchedulerProxy implements ISchedulerProxy {
     private String connectToScheduler(
       SchedulerLoginData schedulerLoginData) throws LoginException, SchedulerRestException {
         logger.debug("Scheduler login process...");
-        String sessionId = restClient.getScheduler().login(schedulerLoginData.schedulerUsername,
-          schedulerLoginData.schedulerPassword);
+
+        String user = schedulerLoginData.schedulerUsername;
+        String pass = schedulerLoginData.schedulerPassword;
+        String cred = schedulerLoginData.schedulerCredentials;
+
+        String sessionId;
+        if (cred != null && !cred.isEmpty()) {
+            logger.debug("Using credentials mechanism for: " + user);
+            LoginForm credForm = new LoginForm();
+            credForm.setCredential(new ReaderInputStream(new StringReader(cred)));
+            try {
+                sessionId = restClient.getScheduler().loginWithCredential(credForm);
+            } catch (KeyException e) {
+                throw new LoginException("Invalid key: " + e.getMessage());
+            }
+        } else if (pass != null && !pass.isEmpty()) {
+            logger.debug("Using username/password mechanism for: " + user);
+            sessionId = restClient.getScheduler().login(user, pass);
+        } else {
+            throw new LoginException(
+                    "Neither password nor credentials were provided for: " + user);
+        }
+
         logger.debug("Scheduler session ID: " + sessionId);
         return sessionId;
     }
