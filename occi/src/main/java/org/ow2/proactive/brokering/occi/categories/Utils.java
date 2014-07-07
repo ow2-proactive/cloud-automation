@@ -1,20 +1,17 @@
 package org.ow2.proactive.brokering.occi.categories;
 
-import org.apache.log4j.Logger;
-import org.ow2.proactive.brokering.Configuration;
-import org.ow2.proactive.brokering.occi.Attribute;
-
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.ws.rs.core.Response;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.StringReader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.ws.rs.core.Response;
+
+import org.ow2.proactive.brokering.occi.Attribute;
+import org.apache.log4j.Logger;
 
 public class Utils {
     private static Logger logger = Logger.getLogger(Utils.class.getName());
@@ -131,22 +128,6 @@ public class Utils {
         } catch (ClassCastException e) { }
 
         return "unknown_type";
-    }
-
-
-    public static Configuration getConfigurationTest() throws JAXBException {
-        return getConfiguration("/config/configuration-test.xml");
-    }
-
-    public static Configuration getConfiguration() throws JAXBException {
-        return getConfiguration("/config/configuration.xml");
-    }
-
-    public static Configuration getConfiguration(String file) throws JAXBException {
-        File configFile = new File(Utils.class.getResource(file).getFile());
-        JAXBContext jaxbContext = JAXBContext.newInstance(Configuration.class);
-        Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-        return (Configuration) jaxbUnmarshaller.unmarshal(configFile);
     }
 
     public static String escapeAttribute(String attribute) {

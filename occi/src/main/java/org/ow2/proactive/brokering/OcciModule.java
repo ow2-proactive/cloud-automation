@@ -44,6 +44,7 @@ import javax.security.auth.login.LoginException;
 import org.ow2.proactive.brokering.occi.OcciServer;
 import org.ow2.proactive.brokering.occi.api.Occi;
 import org.ow2.proactive.brokering.occi.categories.Utils;
+import org.ow2.proactive.brokering.occi.client.ActionTriggerHandler;
 import org.ow2.proactive.brokering.occi.database.DatabaseFactory;
 import org.ow2.proactive.brokering.updater.Updater;
 import org.ow2.proactive.workflowcatalog.Catalog;
@@ -103,6 +104,14 @@ public class OcciModule implements Module {
         return new Catalog(catalogPath, configCatalogRefresh, new CatalogToResource(databaseFactory));
     }
 
+    @Provides
+    ActionTriggerHandler createActionTriggerHandler(
+      @Named("actions.path") String actionsPath,
+      @Named("actions.refresh") long actionsRefresh,
+      @Named("conditions.path") String conditionsPath,
+      @Named("conditions.refresh") long conditionsRefresh) {
+        return new ActionTriggerHandler(actionsPath, actionsRefresh, conditionsPath, conditionsRefresh);
+    }
 
     @Provides
     Rules createRules(@Named("rules.path") String configRulesPath,

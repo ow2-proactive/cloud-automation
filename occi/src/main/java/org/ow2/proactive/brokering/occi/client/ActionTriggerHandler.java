@@ -1,23 +1,24 @@
 package org.ow2.proactive.brokering.occi.client;
 
-import org.apache.log4j.Logger;
-import org.ow2.proactive.brokering.Configuration;
-import org.ow2.proactive.brokering.occi.categories.Utils;
-import org.ow2.proactive.brokering.occi.categories.trigger.ActionTrigger;
-import org.ow2.proactive.brokering.triggering.*;
-import org.ow2.proactive.workflowcatalog.Reference;
-import org.ow2.proactive.workflowcatalog.References;
-
-import javax.xml.bind.JAXBException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
 
+import org.ow2.proactive.brokering.occi.categories.Utils;
+import org.ow2.proactive.brokering.occi.categories.trigger.ActionTrigger;
+import org.ow2.proactive.brokering.triggering.ActionExecutor;
+import org.ow2.proactive.brokering.triggering.Actions;
+import org.ow2.proactive.brokering.triggering.ConditionChecker;
+import org.ow2.proactive.brokering.triggering.Conditions;
+import org.ow2.proactive.brokering.triggering.ScriptException;
+import org.ow2.proactive.workflowcatalog.Reference;
+import org.ow2.proactive.workflowcatalog.References;
+import org.apache.log4j.Logger;
+
 import static org.ow2.proactive.brokering.occi.Resource.OP_CREATE;
 import static org.ow2.proactive.brokering.occi.Resource.OP_UPDATE;
 import static org.ow2.proactive.brokering.occi.categories.trigger.ActionTrigger.OCCI_CORE_ID;
-import static org.ow2.proactive.brokering.occi.categories.trigger.ActionTrigger
-        .OCCI_MONITORING_PERIODMS;
+import static org.ow2.proactive.brokering.occi.categories.trigger.ActionTrigger.OCCI_MONITORING_PERIODMS;
 
 public class ActionTriggerHandler {
 
@@ -28,45 +29,22 @@ public class ActionTriggerHandler {
     public static final String ACTION_DELETE = "delete";
     public static final String ACTION_STOP = "stop";
 
-    private static Map<String, Timer> timers;
-    private static Actions actions;
-    private static Conditions conditions;
+    private Map<String, Timer> timers;
+    private Actions actions;
+    private Conditions conditions;
 
-    private static ActionTriggerHandler instance;
-
-    private ActionTriggerHandler(Configuration config) {
+    public ActionTriggerHandler(String actionsPath, long actionsRefresh, String conditionsPath,
+      long conditionsRefresh) {
         timers = new HashMap<String, Timer>();
         actions = new Actions(
-                Utils.getScriptsPath(config.actions.path, "config/actions"),
-                config.actions.refresh);
+                Utils.getScriptsPath(actionsPath, "/config/actions"),
+                actionsRefresh);
         conditions = new Conditions(
-                Utils.getScriptsPath(config.conditions.path, "config/conditions"),
-                config.conditions.refresh);
+                Utils.getScriptsPath(conditionsPath, "/config/conditions"),
+                conditionsRefresh);
     }
 
-    private ActionTriggerHandler() throws JAXBException {
-        this(Utils.getConfiguration());
-    }
-
-    public static ActionTriggerHandler getInstance() {
-        if (instance == null) {
-            try {
-                instance = new ActionTriggerHandler();
-            } catch (JAXBException e) {
-                throw new RuntimeException("Cannot create action trigger", e);
-            }
-        }
-        return instance;
-    }
-
-    public static ActionTriggerHandler getInstance(Configuration config) {
-        if (instance == null) {
-            instance = new ActionTriggerHandler(config);
-        }
-        return instance;
-    }
-
-    public static Map<String, Timer> getTimers() {
+    public Map<String, Timer> getTimers() {
         return timers;
     }
 

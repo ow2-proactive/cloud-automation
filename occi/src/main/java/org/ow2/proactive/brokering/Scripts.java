@@ -1,12 +1,16 @@
 package org.ow2.proactive.brokering;
 
-import groovy.lang.GroovyClassLoader;
-import org.apache.log4j.Logger;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.*;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import groovy.lang.GroovyClassLoader;
+import org.apache.log4j.Logger;
 
 public class Scripts {
 
@@ -19,7 +23,9 @@ public class Scripts {
         scriptsPath = path;
 
         Timer timer = new Timer();
-        timer.schedule(new UpdateTask(scriptsPath), 0, refreshMs);
+        UpdateTask updateTask = new UpdateTask(scriptsPath);
+        updateTask.run();
+        timer.schedule(updateTask, refreshMs, refreshMs);
     }
 
     public List<File> getScripts() {

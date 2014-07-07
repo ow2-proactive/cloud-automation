@@ -13,6 +13,7 @@ import org.ow2.proactive.brokering.occi.OcciServer;
 import org.ow2.proactive.brokering.occi.Resource;
 import org.ow2.proactive.brokering.occi.ResourceBuilder;
 import org.ow2.proactive.brokering.occi.categories.Utils;
+import org.ow2.proactive.brokering.occi.client.ActionTriggerHandler;
 import org.ow2.proactive.brokering.occi.database.DatabaseFactory;
 import org.ow2.proactive.brokering.occi.database.InMemoryDB;
 import org.ow2.proactive.brokering.updater.Updater;
@@ -429,18 +430,17 @@ public class UpdaterTest {
     }
 
     private static OcciServer createMockOfOcciServer(final SchedulerProxy scheduler, InMemoryDB db) throws JAXBException {
-        Configuration config = Utils.getConfigurationTest();
         DatabaseFactory mockedDatabaseFactory = mock(DatabaseFactory.class);
         when(mockedDatabaseFactory.build()).thenReturn(db);
-        File catalogPath = Utils.getScriptsPath(config.catalog.path, "/config/catalog");
-        Catalog catalog = new Catalog(catalogPath, config.catalog.refresh);
+        File catalogPath = Utils.getScriptsPath("config/catalog/", "/config/catalog");
+        Catalog catalog = new Catalog(catalogPath, 10);
         Rules rules = mock(Rules.class);
         Broker broker = new Broker(catalog, rules, new SchedulerFactory() {
             @Override
             public ISchedulerProxy getScheduler() {
                 return scheduler;
             }
-        });
+        }, new ActionTriggerHandler("config/actions",10,"config/conditions/",10));
         return new OcciServer(broker, null, mockedDatabaseFactory, BROKER_URL);
     }
 

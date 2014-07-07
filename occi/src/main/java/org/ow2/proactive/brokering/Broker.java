@@ -27,12 +27,15 @@ public class Broker {
     private Catalog catalog;
     private Rules rules;
     private SchedulerFactory userSchedulerProxy;
+    private ActionTriggerHandler actionTriggerHandler;
 
     @Inject
-    public Broker(Catalog catalog, Rules rules, SchedulerFactory userSchedulerProxy) {
+    public Broker(Catalog catalog, Rules rules, SchedulerFactory userSchedulerProxy,
+      ActionTriggerHandler actionTriggerHandler) {
         this.catalog = catalog;
         this.rules = rules;
         this.userSchedulerProxy = userSchedulerProxy;
+        this.actionTriggerHandler = actionTriggerHandler;
     }
 
     public References request(String category, String operation, Map<String, String> attributes) throws Exception {
@@ -90,7 +93,7 @@ public class Broker {
 
         if (Categories.ACTION_TRIGGER.equals(Categories.fromString(category))) {
             int appliedRules = this.applyRules(attributes, rules);
-            References references = ActionTriggerHandler.getInstance().request(operation, action, attributes);
+            References references = actionTriggerHandler.request(operation, action, attributes);
             logger.info("Action trigger configured: (" + appliedRules + " rules applied)");
             return references;
         }

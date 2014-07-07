@@ -6,13 +6,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import org.ow2.proactive.brokering.Configuration;
 import org.ow2.proactive.brokering.occi.client.ActionTriggerHandler;
 import org.ow2.proactive.brokering.triggering.ScriptUtils;
 import org.ow2.proactive.workflowcatalog.References;
 import junit.framework.Assert;
 import org.apache.commons.io.FileUtils;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class ActionTriggerTest {
@@ -24,17 +22,8 @@ public class ActionTriggerTest {
     private static Integer initActions = 0;
     private static Integer stopActions = 0;
 
-    @BeforeClass
-    public static void before() throws Exception {
-        Configuration config = new Configuration();
-        config.actions = new Configuration.Actions();
-        config.actions.path = ActionTriggerTest.class.getResource("/actions/").getFile();
-        config.actions.refresh = 10;
-        config.conditions = new Configuration.Conditions();
-        config.conditions.path = ActionTriggerTest.class.getResource("/conditions/").getFile();
-        config.conditions.refresh = 10;
-        ActionTriggerHandler.getInstance(config);
-    }
+    private static String actionsPath  = ActionTriggerTest.class.getResource("/actions/").getFile();
+    private static String conditionsPath  = ActionTriggerTest.class.getResource("/conditions/").getFile();
 
     @Test
     public void actionTriggerStartScheduleOnce_EncodedScripts_Test() throws Exception {
@@ -60,7 +49,7 @@ public class ActionTriggerTest {
 
     private void actionTriggerStartScheduleOnce(Map<String, String> atts) throws Exception {
 
-        ActionTriggerHandler actionTrigger = ActionTriggerHandler.getInstance();
+        ActionTriggerHandler actionTrigger = new ActionTriggerHandler(actionsPath, 10, conditionsPath, 10);
 
         initializeCallbackCounters();
 
@@ -109,13 +98,13 @@ public class ActionTriggerTest {
         // If condition is true, true action script will be executed. This test
         // executes a true action script that increases a trueActions counter.
         // The test is based in counting if these variables are incremented or not.
-        ActionTriggerHandler actionTrigger = ActionTriggerHandler.getInstance();
+        ActionTriggerHandler actionTrigger = new ActionTriggerHandler(actionsPath, 10, conditionsPath, 10);
 
         initializeCallbackCounters();
 
         Assert.assertTrue(trueActions == 0);
         Assert.assertTrue(falseActions == 0);
-        Assert.assertTrue(ActionTriggerHandler.getTimers().size() == 0);
+        Assert.assertTrue(actionTrigger.getTimers().size() == 0);
 
         actionTrigger.request(
           "create",
@@ -126,7 +115,7 @@ public class ActionTriggerTest {
         Assert.assertTrue(trueActions > 20);
         Assert.assertTrue(falseActions > 20);
         if (withStartStopScript) Assert.assertTrue(stopActions == 0);
-        Assert.assertTrue(ActionTriggerHandler.getTimers().size() == 1);
+        Assert.assertTrue(actionTrigger.getTimers().size() == 1);
 
         actionTrigger.request(
           "update", "delete",
@@ -143,7 +132,7 @@ public class ActionTriggerTest {
         Assert.assertTrue(trueActions == 0);
         Assert.assertTrue(falseActions == 0);
 
-        Assert.assertTrue(ActionTriggerHandler.getTimers().size() == 0);
+        Assert.assertTrue(actionTrigger.getTimers().size() == 0);
 
     }
 
@@ -154,7 +143,7 @@ public class ActionTriggerTest {
 
         String uuid = UUID.randomUUID().toString();
 
-        ActionTriggerHandler actionTrigger = ActionTriggerHandler.getInstance();
+        ActionTriggerHandler actionTrigger = new ActionTriggerHandler(actionsPath, 10, conditionsPath, 10);
 
         Map<String, String> actionTriggerAttributes =
           getCreationActionTriggerAttributes(uuid);
