@@ -2,8 +2,8 @@
     <h2 class="page-header">Services
         <small class="pull-right">
             <a href="" class="refresh glyphicon glyphicon-refresh"
-               ng-class="{ 'refresh-on': controller.autoRefresh }"
-               ng-click="controller.refresh(!controller.autoRefresh)"
+               ng-class="{ 'refresh-on': controller.autoRefresh() }"
+               ng-click="controller.refresh(!controller.autoRefresh())"
                title="Automatic Refresh">
             </a>
             &nbsp;

@@ -7,6 +7,11 @@
     background-color: #FFFFFF;
 }
 
+.navbar-nav.navbar-right:last-child {
+    margin-top: 7px;
+    margin-right: 10px;
+}
+
 .navbar-default .navbar-nav > li > a {
     color: #5c96bc;
 }

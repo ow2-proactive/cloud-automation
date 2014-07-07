@@ -1,10 +1,9 @@
 (function () {
     var services = angular.module('services', []);
 
-    services.controller('ServicesCtrl', function ($http, $q, notificationService, $route, $scope, $modal, $timeout, $cookieStore) {
+    services.controller('ServicesCtrl', function ($http, $q, notificationService, $route, $scope, $modal, $timeout, $cookieStore, User) {
         var controller = this;
         this.services = [];
-        this.autoRefresh = false;
         this.selectedResource = -1;
 
         this.deleteService = function (service) {
@@ -25,10 +24,10 @@
             });
         };
 
+        this.autoRefresh = User.isAutoRefreshEnabled
         this.refresh = function (autoRefresh) {
-            this.autoRefresh = autoRefresh
-            $cookieStore.put('autoRefresh', autoRefresh)
-            if (controller.autoRefresh) {
+            User.enableAutoRefresh(autoRefresh)
+            if (User.isAutoRefreshEnabled()) {
                 this.doRefresh(this.reschedule)
             }
         }
@@ -47,7 +46,7 @@
 
 
         this.reschedule = function () {
-            if (controller.autoRefresh) {
+            if (User.isAutoRefreshEnabled()) {
                 $timeout(function () {
                     controller.doRefresh(controller.reschedule)
                 }, 2000);
@@ -85,7 +84,7 @@
         }
 
         this.doRefresh();
-        this.refresh($cookieStore.get('autoRefresh') || false);
+        this.refresh(User.isAutoRefreshEnabled() || false);
     });
 
     services.controller('ServiceDetailsCtrl', function ($http, $q, $routeParams) {

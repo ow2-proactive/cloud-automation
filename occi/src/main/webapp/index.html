@@ -25,6 +25,7 @@
     <script src="bower_components/respond/dest/respond.min.js"></script>
     <![endif]-->
 
+    <script src="bower_components/angular/angular.js"></script>
 </head>
 <body>
 
@@ -42,13 +43,32 @@
     </div>
     <div class="collapse navbar-collapse" ng-controller="NavBarController as navbar">
         <ul class="nav navbar-nav">
-            <li ng-class="{ active: navbar.isActive('/catalog')}"><a id="save-button" href="#/catalog" class="pointer">
+            <li ng-class="{ active: navbar.isActive('/catalog')}"><a id="save-button" href="#/catalog"
+                                                                     class="pointer">
                 <i class="glyphicon glyphicon-folder-open"></i> Catalog</a></li>
-            <li ng-class="{ active: navbar.isActive('/services')}"><a id="submit-button" href="#/services" class="pointer"><i
+            <li ng-class="{ active: navbar.isActive('/services')}"><a id="submit-button" href="#/services"
+                                                                      class="pointer"><i
                     class="glyphicon glyphicon-tasks "></i> Services</a></li>
         </ul>
         <ul class="nav navbar-nav nav navbar-right">
-            <li id="login-view"></li>
+            <li class="ng-cloak" ng-cloak ng-show="navbar.isConnected()">
+                Connected as <b>{{ navbar.getConnectedUser() }}</b>
+                <button type="button" class="btn btn-small menu-button" ng-click="navbar.logout()">Logout</button>
+            </li>
+            <li class="ng-cloak" ng-cloak ng-show="!navbar.isConnected()">
+                <form class="form-inline" role="form" ng-submit="navbar.login(credentials)">
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="ca-login" placeholder="Username"
+                               ng-model="credentials.username">
+                    </div>
+                    <div class="form-group">
+                        <input type="password" class="form-control" id="ca-password" placeholder="Password"
+                               ng-model="credentials.password">
+                    </div>
+                    <button type="submit" class="btn btn-small menu-button">Login</button>
+                </form>
+
+            </li>
         </ul>
     </div>
 </div>
@@ -61,7 +81,6 @@
 
 <script src="bower_components/jquery/dist/jquery.js"></script>
 <script src="bower_components/pines-notify/jquery.pnotify.js"></script>
-<script src="bower_components/angular/angular.js"></script>
 <script src="bower_components/angular-route/angular-route.js"></script>
 <script src="bower_components/angular-cookies/angular-cookies.js"></script>
 <script src="bower_components/angular-pines-notify/src/pnotify.js"></script>
@@ -69,6 +88,7 @@
 <script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
 
 <script src="js/app.js"></script>
+<script src="js/user.js"></script>
 <script src="js/config.js"></script>
 <script src="js/catalog.js"></script>
 <script src="js/services.js"></script>
