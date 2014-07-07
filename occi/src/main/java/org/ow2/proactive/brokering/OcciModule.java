@@ -47,6 +47,8 @@ import org.ow2.proactive.brokering.occi.categories.Utils;
 import org.ow2.proactive.brokering.occi.database.DatabaseFactory;
 import org.ow2.proactive.brokering.updater.Updater;
 import org.ow2.proactive.workflowcatalog.Catalog;
+import org.ow2.proactive.workflowcatalog.RestAuthentication;
+import org.ow2.proactive.workflowcatalog.security.SchedulerRestSession;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.ISchedulerProxy;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerLoginData;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerProxy;
@@ -66,12 +68,14 @@ public class OcciModule implements Module {
         binder.bind(ISchedulerProxy.class).to(MiniScheduler.class).in(Singleton.class);
         binder.bind(DatabaseFactory.class).in(Singleton.class);
 
+//        binder.bind(RestAuthentication.class).to(OcciSchedulerAuthentication.class);
+        binder.bind(RestAuthentication.class).to(MiniScheduler.Authentication.class);
         binder.bind(Occi.class).to(OcciServer.class);
         binder.bind(Broker.class).in(Singleton.class);
         binder.bind(Updater.class).in(Singleton.class);
     }
 
-//    @Provides
+    //    @Provides
     ISchedulerProxy createScheduler(
       @Named("scheduler.url") String schedulerUrl,
       @Named("scheduler.username") String schedulerUsername,
@@ -79,6 +83,16 @@ public class OcciModule implements Module {
       @Named("scheduler.insecuremode") boolean insecureMode) throws LoginException, SchedulerRestException {
         return new SchedulerProxy(
           new SchedulerLoginData(schedulerUrl, schedulerUsername, schedulerPassword, insecureMode));
+    }
+
+    @Provides
+    SchedulerFactory schedulerClientOfConnectedUser() {
+        return new SchedulerFactory() {
+            @Override
+            public ISchedulerProxy getScheduler() {
+                return SchedulerRestSession.getScheduler();
+            }
+        };
     }
 
     @Provides

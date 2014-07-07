@@ -1,15 +1,17 @@
-package org.ow2.proactive.workflowcatalog.api;
+package org.ow2.proactive.workflowcatalog;
 
 import javax.security.auth.login.LoginException;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.ow2.proactive.workflowcatalog.api.utils.ConfigurationHelper;
 import org.ow2.proactive.workflowcatalog.security.HttpHeaderTokenSessionManager;
 import org.ow2.proactive.workflowcatalog.security.SchedulerRestSession;
-import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerLoginData;
-import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerProxy;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.ISchedulerProxy;
 import org.ow2.proactive_grid_cloud_portal.scheduler.exception.SchedulerRestException;
 import org.apache.log4j.Logger;
 import org.apache.shiro.SecurityUtils;
@@ -20,18 +22,17 @@ import org.apache.shiro.session.mgt.DefaultSessionContext;
 import org.apache.shiro.session.mgt.SessionContext;
 import org.apache.shiro.subject.Subject;
 
+public abstract class SchedulerAuthentication implements RestAuthentication {
 
-public class RestApiImpl implements RestApi {
-
-    private static Logger logger = Logger.getLogger(RestApiImpl.class);
-
-    /** For testing */
-    static SchedulerProxyFactory schedulerProxyFactory = new SchedulerProxyFactory();
+    private static Logger logger = Logger.getLogger(SchedulerAuthentication.class);
 
     @Override
+    @POST
+    @Path("/login")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public String login(@FormParam("username") String username, @FormParam("password") String password) {
         try {
-            SchedulerProxy scheduler = loginToSchedulerRestApi(username, password);
+            ISchedulerProxy scheduler = loginToSchedulerRestApi(username, password);
             String sessionId = scheduler.getSessionId();
 
             try {
@@ -62,17 +63,10 @@ public class RestApiImpl implements RestApi {
         return new WebApplicationException(httpError);
     }
 
-    private SchedulerProxy loginToSchedulerRestApi(String username,
-      String password) throws LoginException, SchedulerRestException {
-        SchedulerLoginData loginData = ConfigurationHelper.getSchedulerLoginData(
-          ConfigurationHelper.getConfiguration());
-        loginData.schedulerUsername = username;
-        loginData.schedulerPassword = password;
+    protected abstract ISchedulerProxy loginToSchedulerRestApi(String username,
+      String password) throws LoginException, SchedulerRestException;
 
-        return schedulerProxyFactory.create(loginData);
-    }
-
-    private String internalLogin(String username, String password, SchedulerProxy scheduler,
+    private String internalLogin(String username, String password, ISchedulerProxy scheduler,
       String sessionId) {
         Subject currentUser = createSubject(sessionId, scheduler);
         UsernamePasswordToken token = new UsernamePasswordToken(username, password);
@@ -83,6 +77,8 @@ public class RestApiImpl implements RestApi {
     }
 
     @Override
+    @POST
+    @Path("/logout")
     public void logout() {
         try {
             SchedulerRestSession.getScheduler().disconnectFromScheduler();
@@ -93,7 +89,7 @@ public class RestApiImpl implements RestApi {
         SecurityUtils.getSubject().logout();
     }
 
-    private static Subject createSubject(String token, SchedulerProxy scheduler) {
+    private static Subject createSubject(String token, ISchedulerProxy scheduler) {
         SessionContext sessionContext = new DefaultSessionContext();
         sessionContext.setSessionId(token);
         sessionContext.put(HttpHeaderTokenSessionManager.TOKEN_KEY, token);

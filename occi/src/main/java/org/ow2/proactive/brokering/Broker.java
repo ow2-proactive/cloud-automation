@@ -13,7 +13,6 @@ import org.ow2.proactive.workflowcatalog.Catalog;
 import org.ow2.proactive.workflowcatalog.Reference;
 import org.ow2.proactive.workflowcatalog.References;
 import org.ow2.proactive.workflowcatalog.Workflow;
-import org.ow2.proactive.workflowcatalog.utils.scheduling.ISchedulerProxy;
 import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobIdData;
 import com.google.inject.Inject;
 import groovy.lang.GroovyClassLoader;
@@ -25,15 +24,15 @@ public class Broker {
 
     private static final Logger logger = Logger.getLogger(Broker.class.getName());
 
-    private ISchedulerProxy scheduler;
     private Catalog catalog;
     private Rules rules;
+    private SchedulerFactory userSchedulerProxy;
 
     @Inject
-    public Broker(ISchedulerProxy scheduler, Catalog catalog, Rules rules) {
-        this.scheduler = scheduler;
+    public Broker(Catalog catalog, Rules rules, SchedulerFactory userSchedulerProxy) {
         this.catalog = catalog;
         this.rules = rules;
+        this.userSchedulerProxy = userSchedulerProxy;
     }
 
     public References request(String category, String operation, Map<String, String> attributes) throws Exception {
@@ -71,7 +70,7 @@ public class Broker {
                 logger.info("Generated job file : " + jobFile.getAbsolutePath());
                 logger.debug(FileUtils.readFileToString(jobFile));
 
-                JobIdData response = scheduler.submitJob(jobFile);
+                JobIdData response = userSchedulerProxy.getScheduler().submitJob(jobFile);
                 Reference ref = Reference.buildJobReference(workflow.getName(), response);
                 references.add(ref);
                 logger.info(

@@ -32,18 +32,23 @@
  *
  *  * $$PROACTIVE_INITIAL_DEV$$
  */
-package org.ow2.proactive.workflowcatalog.security;
+package org.ow2.proactive.workflowcatalog;
 
-import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerProxy;
-import org.apache.shiro.SecurityUtils;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.core.MediaType;
 
 
-public class SchedulerRestSession {
+@Path("/")
+public interface RestAuthentication {
+    @POST
+    @Path("/login")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    String login(@FormParam("username") String username, @FormParam("password") String password);
 
-    public static final String SCHEDULER_SESSION_KEY = "scheduler";
-
-    public static SchedulerProxy getScheduler() {
-        return (SchedulerProxy) SecurityUtils.getSubject().getSession().getAttribute(SCHEDULER_SESSION_KEY);
-    }
-
+    @POST
+    @Path("/logout")
+    void logout();
 }

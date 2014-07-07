@@ -2,14 +2,13 @@ package org.ow2.proactive.workflowcatalog.api;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Map;
+
 import javax.xml.transform.TransformerException;
 
 import org.ow2.proactive.workflowcatalog.*;
 import org.ow2.proactive.workflowcatalog.security.SchedulerRestSession;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.*;
 import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobIdData;
-import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobStateData;
 
 import static org.ow2.proactive.workflowcatalog.api.utils.ConfigurationHelper.getCatalogPath;
 import static org.ow2.proactive.workflowcatalog.api.utils.ConfigurationHelper.getConfiguration;
@@ -55,7 +54,7 @@ public class Core {
         return references;
     }
 
-    private SchedulerProxy getScheduler() {
+    private ISchedulerProxy getScheduler() {
         return SchedulerRestSession.getScheduler();
     }    
 

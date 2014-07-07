@@ -32,25 +32,36 @@
  *
  *  * $$PROACTIVE_INITIAL_DEV$$
  */
-package org.ow2.proactive.workflowcatalog;
+package org.ow2.proactive.brokering;
 
-import java.util.HashSet;
-import java.util.Set;
+import javax.security.auth.login.LoginException;
 
-import javax.ws.rs.core.Application;
+import org.ow2.proactive.workflowcatalog.SchedulerAuthentication;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.ISchedulerProxy;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerLoginData;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerProxy;
+import org.ow2.proactive_grid_cloud_portal.scheduler.exception.SchedulerRestException;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
 
-import org.ow2.proactive.workflowcatalog.api.WorkflowCatalogSchedulerAuthentication;
-import org.ow2.proactive.workflowcatalog.api.WorkflowsImpl;
 
+public class OcciSchedulerAuthentication extends SchedulerAuthentication {
 
-public class WorkflowCatalogApplication extends Application {
+    private String schedulerUrl;
+    private boolean insecureMode;
+
+    @Inject
+    public OcciSchedulerAuthentication(@Named("scheduler.url") String schedulerUrl,
+      @Named("scheduler.insecuremode") boolean insecureMode) {
+        this.schedulerUrl = schedulerUrl;
+        this.insecureMode = insecureMode;
+    }
 
     @Override
-    public Set<Class<?>> getClasses() {
-        HashSet<Class<?>> classes = new HashSet<Class<?>>();
-        classes.add(WorkflowsImpl.class);
-        classes.add(WorkflowCatalogSchedulerAuthentication.class);
-        return classes;
+    protected ISchedulerProxy loginToSchedulerRestApi(String username,
+      String password) throws LoginException, SchedulerRestException {
+        return new SchedulerProxy(
+          new SchedulerLoginData(schedulerUrl, username, password, insecureMode));
     }
 
 }

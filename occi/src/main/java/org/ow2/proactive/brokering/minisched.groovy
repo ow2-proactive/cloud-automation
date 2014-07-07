@@ -1,15 +1,16 @@
 package org.ow2.proactive.brokering
-
 import groovy.util.logging.Log4j
+import org.ow2.proactive.workflowcatalog.SchedulerAuthentication
 import org.ow2.proactive.workflowcatalog.utils.scheduling.*
 import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobIdData
+import org.ow2.proactive_grid_cloud_portal.scheduler.exception.SchedulerRestException
 
+import javax.security.auth.login.LoginException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 
 def jobFile = new File('/home/ybonnaffe/src/brokering/occi/src/main/resources/config/catalog-test/compute-create.xml')
-def job = new XmlSlurper().parse(jobFile)
 
 def scheduler = MiniScheduler.instance
 jobId = scheduler.submitJob(jobFile)
@@ -26,7 +27,7 @@ class MiniScheduler implements ISchedulerProxy {
 
     @Override
     TasksResults getAllTaskResults(String jobId) throws JobNotFinishedException, JobStatusRetrievalException {
-        if(!jobResults[jobId]){
+        if (!jobResults[jobId]) {
             throw new JobNotFinishedException("Not finished")
         }
         return new TasksResults(jobResults[jobId])
@@ -73,5 +74,12 @@ class MiniScheduler implements ISchedulerProxy {
     @Override
     String getSessionId() {
         return 42
+    }
+
+    public static class Authentication extends SchedulerAuthentication {
+        @Override
+        protected ISchedulerProxy loginToSchedulerRestApi(String username, String password) throws LoginException, SchedulerRestException {
+            return instance
+        }
     }
 }

@@ -19,6 +19,7 @@ import org.ow2.proactive.brokering.updater.Updater;
 import org.ow2.proactive.brokering.updater.requests.UpdaterRequest;
 import org.ow2.proactive.workflowcatalog.Catalog;
 import org.ow2.proactive.workflowcatalog.Reference;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.ISchedulerProxy;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.JobNotFinishedException;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.JobStatusRetrievalException;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerProxy;
@@ -427,14 +428,19 @@ public class UpdaterTest {
         return task;
     }
 
-    private static OcciServer createMockOfOcciServer(SchedulerProxy scheduler, InMemoryDB db) throws JAXBException {
+    private static OcciServer createMockOfOcciServer(final SchedulerProxy scheduler, InMemoryDB db) throws JAXBException {
         Configuration config = Utils.getConfigurationTest();
         DatabaseFactory mockedDatabaseFactory = mock(DatabaseFactory.class);
         when(mockedDatabaseFactory.build()).thenReturn(db);
         File catalogPath = Utils.getScriptsPath(config.catalog.path, "/config/catalog");
         Catalog catalog = new Catalog(catalogPath, config.catalog.refresh);
         Rules rules = mock(Rules.class);
-        Broker broker = new Broker(scheduler, catalog, rules);
+        Broker broker = new Broker(catalog, rules, new SchedulerFactory() {
+            @Override
+            public ISchedulerProxy getScheduler() {
+                return scheduler;
+            }
+        });
         return new OcciServer(broker, null, mockedDatabaseFactory, BROKER_URL);
     }
 

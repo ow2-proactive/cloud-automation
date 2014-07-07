@@ -32,25 +32,30 @@
  *
  *  * $$PROACTIVE_INITIAL_DEV$$
  */
-package org.ow2.proactive.workflowcatalog;
+package org.ow2.proactive.workflowcatalog.api;
 
-import java.util.HashSet;
-import java.util.Set;
+import javax.security.auth.login.LoginException;
 
-import javax.ws.rs.core.Application;
+import org.ow2.proactive.workflowcatalog.SchedulerAuthentication;
+import org.ow2.proactive.workflowcatalog.api.utils.ConfigurationHelper;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.ISchedulerProxy;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerLoginData;
+import org.ow2.proactive_grid_cloud_portal.scheduler.exception.SchedulerRestException;
 
-import org.ow2.proactive.workflowcatalog.api.WorkflowCatalogSchedulerAuthentication;
-import org.ow2.proactive.workflowcatalog.api.WorkflowsImpl;
+public class WorkflowCatalogSchedulerAuthentication extends SchedulerAuthentication {
 
-
-public class WorkflowCatalogApplication extends Application {
+    /** For testing */
+    static SchedulerProxyFactory schedulerProxyFactory = new SchedulerProxyFactory();
 
     @Override
-    public Set<Class<?>> getClasses() {
-        HashSet<Class<?>> classes = new HashSet<Class<?>>();
-        classes.add(WorkflowsImpl.class);
-        classes.add(WorkflowCatalogSchedulerAuthentication.class);
-        return classes;
+    protected ISchedulerProxy loginToSchedulerRestApi(String username,
+      String password) throws LoginException, SchedulerRestException {
+        SchedulerLoginData loginData = ConfigurationHelper.getSchedulerLoginData(
+          ConfigurationHelper.getConfiguration());
+        loginData.schedulerUsername = username;
+        loginData.schedulerPassword = password;
+
+        return schedulerProxyFactory.create(loginData);
     }
 
 }

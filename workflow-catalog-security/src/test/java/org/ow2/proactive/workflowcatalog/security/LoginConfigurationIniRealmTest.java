@@ -1,9 +1,10 @@
 package org.ow2.proactive.workflowcatalog.security;
 
+import java.io.IOException;
+
 import junit.framework.Assert;
 import org.apache.shiro.config.Ini;
 import org.junit.Test;
-import java.io.IOException;
 
 public class LoginConfigurationIniRealmTest {
 

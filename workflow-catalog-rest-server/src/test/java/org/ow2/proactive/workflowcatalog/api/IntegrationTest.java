@@ -54,7 +54,7 @@ import org.mockito.Matchers;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.webapp.WebAppContext;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -92,7 +92,7 @@ public class IntegrationTest {
         when(schedulerProxyFactory.create(
           Matchers.<org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerLoginData>any())).thenReturn(
           mockOfScheduler);
-        RestApiImpl.schedulerProxyFactory = schedulerProxyFactory;
+        WorkflowCatalogSchedulerAuthentication.schedulerProxyFactory = schedulerProxyFactory;
     }
 
     @Test

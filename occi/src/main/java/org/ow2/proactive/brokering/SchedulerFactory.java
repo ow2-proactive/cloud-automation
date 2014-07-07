@@ -17,7 +17,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Affero General Public License for more details.
- *t
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
@@ -32,24 +32,12 @@
  *
  *  * $$PROACTIVE_INITIAL_DEV$$
  */
-package org.ow2.proactive.workflowcatalog.api;
+package org.ow2.proactive.brokering;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.core.MediaType;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.ISchedulerProxy;
 
-@Path("/")
-public interface RestApi {
 
-    @POST
-    @Path("/login")
-    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    String login(@FormParam("username") String username, @FormParam("password") String password);
+public interface SchedulerFactory {
 
-    @POST
-    @Path("/logout")
-    void logout();
-
+    public ISchedulerProxy getScheduler();
 }

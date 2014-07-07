@@ -32,25 +32,18 @@
  *
  *  * $$PROACTIVE_INITIAL_DEV$$
  */
-package org.ow2.proactive.workflowcatalog;
+package org.ow2.proactive.workflowcatalog.security;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.ws.rs.core.Application;
-
-import org.ow2.proactive.workflowcatalog.api.WorkflowCatalogSchedulerAuthentication;
-import org.ow2.proactive.workflowcatalog.api.WorkflowsImpl;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.ISchedulerProxy;
+import org.apache.shiro.SecurityUtils;
 
 
-public class WorkflowCatalogApplication extends Application {
+public class SchedulerRestSession {
 
-    @Override
-    public Set<Class<?>> getClasses() {
-        HashSet<Class<?>> classes = new HashSet<Class<?>>();
-        classes.add(WorkflowsImpl.class);
-        classes.add(WorkflowCatalogSchedulerAuthentication.class);
-        return classes;
+    public static final String SCHEDULER_SESSION_KEY = "scheduler";
+
+    public static ISchedulerProxy getScheduler() {
+        return (ISchedulerProxy) SecurityUtils.getSubject().getSession().getAttribute(SCHEDULER_SESSION_KEY);
     }
 
 }
