@@ -9,3 +9,4 @@ monitoring/build/
 workflow-catalog/build/
 workflow-catalog-rest/build/
 build/
+occi/node_modules/

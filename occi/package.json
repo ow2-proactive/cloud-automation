@@ -1,0 +1,13 @@
+{
+    "name": "occi",
+    "description": "ProActive Cloud Automation",
+    "version": "0.0.0",
+    "dependencies": {},
+    "devDependencies": {
+        "dalekjs": "~0.0.8",
+        "dalek-browser-chrome": "~0.0.10"
+    },
+    "engines": {
+        "node": ">=0.8.0"
+    }
+}

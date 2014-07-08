@@ -51,11 +51,11 @@
                     class="glyphicon glyphicon-tasks "></i> Services</a></li>
         </ul>
         <ul class="nav navbar-nav nav navbar-right">
-            <li class="ng-cloak" ng-cloak ng-show="navbar.isConnected()">
-                Connected as <b>{{ navbar.getConnectedUser() }}</b>
-                <button type="button" class="btn btn-small menu-button" ng-click="navbar.logout()">Logout</button>
+            <li id="connected" class="ng-cloak" ng-cloak ng-show="navbar.isConnected()">
+                <span>Connected as <b>{{ navbar.getConnectedUser() }}</b><span></span>
+                <button id="ca-logout-btn" type="button" class="btn btn-small menu-button" ng-click="navbar.logout()">Logout</button>
             </li>
-            <li class="ng-cloak" ng-cloak ng-show="!navbar.isConnected()">
+            <li id="login" class="ng-cloak" ng-cloak ng-show="!navbar.isConnected()">
                 <form class="form-inline" role="form" ng-submit="navbar.login(credentials)">
                     <div class="form-group">
                         <input type="text" class="form-control" id="ca-login" placeholder="Username"
@@ -65,7 +65,7 @@
                         <input type="password" class="form-control" id="ca-password" placeholder="Password"
                                ng-model="credentials.password">
                     </div>
-                    <button type="submit" class="btn btn-small menu-button">Login</button>
+                    <button id="ca-login-btn" type="submit" class="btn btn-small menu-button">Login</button>
                 </form>
 
             </li>

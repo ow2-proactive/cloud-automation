@@ -43,7 +43,7 @@
     </h2>
 
 
-    <div class="row placeholders">
+    <div id="catalog" class="row placeholders">
         <div class="col-xs-6 col-sm-4 col-lg-2 placeholder ng-cloak"
              ng-repeat="template in catalog.templates | filter:query | filter:{attributes: { operation : 'create'} }| orderBy:'attributes.application'"
              ng-show="catalog.templates"
