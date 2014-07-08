@@ -3,13 +3,15 @@ package org.ow2.proactive.brokering;
 import java.io.File;
 
 import org.mortbay.jetty.Server;
+import org.mortbay.jetty.nio.SelectChannelConnector;
+import org.mortbay.jetty.security.SslSocketConnector;
 import org.mortbay.jetty.webapp.WebAppContext;
 
 
 public class Main {
 
     public static void main(String[] args) throws Exception {
-        Server server = new Server(8081);
+        Server server = createHttpsServer(8081, 8443);
         WebAppContext webApp = new WebAppContext();
         webApp.setParentLoaderPriority(true);
         webApp.setContextPath("/ca");
@@ -19,6 +21,23 @@ public class Main {
         server.start();
         System.out.println("---------- Started -------------");
         server.join();
+    }
+
+    private static Server createHttpsServer(int httpPort, int httpsPort) {
+        Server server = new Server();
+
+        SslSocketConnector https = new SslSocketConnector();
+        https.setKeystore(Main.class.getResource("/keystore").toString());
+        https.setKeyPassword("activeeon");
+        https.setPort(httpsPort);
+        server.addConnector(https);
+
+        SelectChannelConnector redirectHttpToHttps = new SelectChannelConnector();
+        redirectHttpToHttps.setPort(httpPort);
+        redirectHttpToHttps.setConfidentialPort(httpsPort);
+        server.addConnector(redirectHttpToHttps);
+
+        return server;
     }
 
 }
