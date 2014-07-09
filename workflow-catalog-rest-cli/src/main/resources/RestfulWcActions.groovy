@@ -44,10 +44,12 @@ void login(user) {
     updateWorkflowAutoCompletes();
 }
 
-addAutoComplete(new ArgumentCompletor(new SimpleCompletor("loginwithcredentials"), new SimpleCompletor(["admin", "user", "demo"] as String[]), new FileNameCompletor(), new NullCompletor()));
-void loginwithcredentials(username, pathname) {
+addAutoComplete(new ArgumentCompletor(new SimpleCompletor("login"), new SimpleCompletor(["admin", "user", "demo"] as String[]), new FileNameCompletor(), new NullCompletor()));
+void login(username, pathname) {
     currentContext.setProperty('org.ow2.proactive.workflowcatalog.cli.cmd.AbstractLoginCommand.renewSession', true)
     execute(new LoginWithCredentialsCommand(username + "", pathname + ""))
+
+    updateWorkflowAutoCompletes();
 }
 
 addAutoComplete(new ArgumentCompletor(new SimpleCompletor("getjobresult"), new SimpleCompletor(["0", "1"] as String[]), new NullCompletor()));
@@ -196,6 +198,7 @@ def addAutoComplete(Completor completor) {
     jline.addAutocompleteCommand(completor);
 }
 
+addAutoComplete(new ArgumentCompletor(new SimpleCompletor("updateWorkflowAutoCompletes")));
 def updateWorkflowAutoCompletes() {
     WorkflowCatalogClient client = currentContext.getWorkflowCatalogClient();
 
