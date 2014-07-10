@@ -59,11 +59,11 @@
                 <form class="form-inline" role="form" ng-submit="navbar.login(credentials)">
                     <div class="form-group">
                         <input type="text" class="form-control" id="ca-login" placeholder="Username"
-                               ng-model="credentials.username">
+                               ng-model="credentials.username" required>
                     </div>
                     <div class="form-group">
                         <input type="password" class="form-control" id="ca-password" placeholder="Password"
-                               ng-model="credentials.password">
+                               ng-model="credentials.password" required>
                     </div>
                     <button id="ca-login-btn" type="submit" class="btn btn-small menu-button">Login</button>
                 </form>

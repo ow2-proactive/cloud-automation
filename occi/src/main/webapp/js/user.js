@@ -17,6 +17,7 @@
 
         this.logout = function () {
             service.user = null;
+            service.sessionid = null;
             $cookies.sessionid = null;
             $cookies.username = null;
         }
