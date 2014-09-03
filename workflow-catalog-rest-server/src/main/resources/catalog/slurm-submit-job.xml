@@ -37,10 +37,10 @@
                         import org.ow2.proactive.datascale.slurm.OutputParser
 
                         def sbatch = "sbatch"
-                        def sbatch_workdir = "${workdir}"
-                        def sbatch_arguments = "${arguments}"
-                        def sbatch_script = "${script}"
-                        def sbatch_script_arguments = "${script.arguments}"
+                        def sbatch_workdir = variables.get("workdir")
+                        def sbatch_arguments = variables.get("arguments")
+                        def sbatch_script = variables.get("script")
+                        def sbatch_script_arguments = variables.get("script.arguments")
 
                         def root = new File(new URI(localspace.getRealURI())).getAbsoluteFile()
 

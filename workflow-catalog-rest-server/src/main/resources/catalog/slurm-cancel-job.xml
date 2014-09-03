@@ -15,7 +15,7 @@
                         <![CDATA[
                         import groovy.json.JsonOutput
 
-                        def arguments = "${arguments}"
+                        def arguments = variables.get("arguments")
 
                         def cmd = "scancel $arguments" 
                         def p = cmd.execute()

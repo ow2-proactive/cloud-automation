@@ -21,7 +21,7 @@
                         import groovy.json.JsonOutput
                         import org.ow2.proactive.datascale.slurm.OutputParser
 
-                        def command = "${command}"
+                        def command = variables.get("command")
 
                         def root = new File(new URI(localspace.getRealURI()))
 

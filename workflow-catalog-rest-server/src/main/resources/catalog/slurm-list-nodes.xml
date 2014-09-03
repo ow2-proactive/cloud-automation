@@ -16,7 +16,7 @@
                         import org.ow2.proactive.datascale.slurm.OutputParser
                         import groovy.json.JsonOutput
 
-                        def arguments = "${arguments}"
+                        def arguments = variables.get("arguments")
 
                         def cmd = "scontrol show nodes -o $arguments"
                         def p = cmd.execute()

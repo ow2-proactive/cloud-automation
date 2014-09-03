@@ -30,11 +30,11 @@ import groovy.json.JsonOutput
 import org.apache.commons.vfs2.*
 import org.apache.commons.vfs2.provider.sftp.*
 
-def a_path =  "${a.path}"
-def flags = "${flags}"
+def a_path =  variables.get("a.path")
+def flags = variables.get("flags")
 
-def wildcard =  "${wildcard}"
-def recursive =  "${recursive}".toBoolean()
+def wildcard =  variables.get("wildcard")
+def recursive =  variables.get("recursive").toBoolean()
 
 println "Resolving A path..."
 

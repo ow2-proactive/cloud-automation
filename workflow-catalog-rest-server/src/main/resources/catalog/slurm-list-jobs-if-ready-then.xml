@@ -25,7 +25,7 @@
                         import org.ow2.proactive.datascale.slurm.OutputParser
                         import groovy.json.JsonOutput
 
-                        def jobid = "${jobid}"
+                        def jobid = variables.get("jobid")
 
                         def cmd = "scontrol show jobs -o $jobid"
                         def p = cmd.execute()
@@ -67,10 +67,10 @@
 
                         import groovy.json.JsonSlurper
 
-                        def jobid = "${jobid}"
-                        def cancelon = "${cancelon}"
+                        def jobid = variables.get("jobid")
+                        def cancelon = variables.get("cancelon")
                         def jobinfo = results[0].toString()
-                        def sleep = "${sleep}"
+                        def sleep = variables.get("sleep")
                         def slurper = new JsonSlurper()
                         def json = slurper.parseText(jobinfo)
 

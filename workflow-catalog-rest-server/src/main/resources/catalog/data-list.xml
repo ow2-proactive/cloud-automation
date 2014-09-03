@@ -58,18 +58,18 @@ import groovy.json.JsonOutput
 import org.apache.commons.vfs2.*
 import org.apache.commons.vfs2.provider.sftp.*
 
-def a_protocol = "${a.protocol}"
-def a_server = "${a.server}"
-def a_port =  "${a.port}"
-def a_username =  "${a.username}"
-def a_password =  "${a.password}"
-def a_credname =  "${a.credname}"
-def a_credpath =  "${a.credpath}"
-def a_path =  "${a.path}"
+def a_protocol = variables.get("a.protocol")
+def a_server = variables.get("a.server")
+def a_port =  variables.get("a.port")
+def a_username =  variables.get("a.username")
+def a_password =  variables.get("a.password")
+def a_credname =  variables.get("a.credname")
+def a_credpath =  variables.get("a.credpath")
+def a_path =  variables.get("a.path")
 
-def wildcard =  "${wildcard}"
-def recursive =  "${recursive}".toBoolean()
-def detailed =  "${detailed}".toBoolean()
+def wildcard =  variables.get("wildcard")
+def recursive =  variables.get("recursive").toBoolean()
+def detailed =  variables.get("detailed").toBoolean()
 
 println "Initializing parameters..."
 
