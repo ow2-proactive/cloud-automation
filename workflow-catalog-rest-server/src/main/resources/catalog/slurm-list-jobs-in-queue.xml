@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd" name="slurm-list-jobs" priority="normal" cancelJobOnError="true">
+<job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd" name="slurm-list-jobs-in-queue" priority="normal" cancelJobOnError="true">
 
     <!-- arguments : arguments to list jobs command -->
     <!-- arguments can be: <job-id> or empty to list all ... -->
@@ -18,7 +18,7 @@
 
                         def arguments = "${arguments}"
 
-                        def cmd = "scontrol show jobs -o $arguments"
+                        def cmd = ["squeue", "-h", "-o", "ACCOUNT=%a ID=%A JOBID=%A GRES=%b EXEC_HOST=%B MIN_CPUS=%c CPUS=%C MIN_TMP_DISK=%d NODES=%D DEPENDENCY=%E FEATURES=%f GROUP=%g GROUP_ID=%G SHARED=%h SOCKETS_PER_NODE=%H JOBID=%i CORES_PER_SOCKET=%I NAME=%j THREADS_PER_CORE=%J COMMENT=%k TIMELIMIT=%l TIME_LEFT=%L MIN_MEMORY=%m TIME=%M REQ_NODES=%n NODELIST=%N CONTIGUOUS=%O PRIORITY=%p PARTITION=%P QOS=%q PRIORITY=%Q REASON=%r NODELIST(REASON)=%R START_TIME=%S ST=%t STATE=%T USER=%u USER_ID=%U RESERVATION=%v WCKEY=%w LICENSES=%W EXC_NODES=%x S:C:T=%z"] 
                         def p = cmd.execute()
                         p.waitFor()
                         def stderr = p.err.text
@@ -26,7 +26,7 @@
                         def errcode = p.exitValue()
 
                         def parser = new OutputParser();
-                        def jobs = parser.parseScontrolShowJob(stdout)
+                        def jobs = parser.parseEntityInfo(stdout)
 
                         result = JsonOutput.toJson(
                                 [

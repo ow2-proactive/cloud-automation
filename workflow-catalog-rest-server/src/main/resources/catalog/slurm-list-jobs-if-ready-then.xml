@@ -17,7 +17,7 @@
     </variables>
 
 	<taskFlow>
-        <task name="list-jobs">
+        <task name="list-jobs" runAsMe="true" > <!-- runAsMe="true" -->
             <scriptExecutable>
                 <script >
                     <code language="groovy">
@@ -56,7 +56,7 @@
         </task>
 
 
-        <task name="looper">
+        <task name="looper" runAsMe="true" >
             <depends>
                 <task ref="list-jobs"/>
             </depends>

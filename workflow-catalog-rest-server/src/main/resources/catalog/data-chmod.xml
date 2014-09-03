@@ -21,7 +21,7 @@
     </variables>
 
 	<taskFlow>
-        <task name="list-files-task">
+        <task name="list-files-task" >  <!-- runAsMe="true" -->
             <scriptExecutable>
                 <script >
                     <code language="groovy">

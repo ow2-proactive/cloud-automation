@@ -1,36 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd" name="slurm-list-jobs" priority="normal" cancelJobOnError="true">
+<job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd" name="slurm-cancel-job" priority="normal" cancelJobOnError="true">
 
-    <!-- arguments : arguments to list jobs command -->
-    <!-- arguments can be: <job-id> or empty to list all ... -->
+    <!-- arguments : arguments to cancel job command -->
+    <!-- arguments must be: <job-id> ... -->
     <variables>
         <variable name="arguments" value=""/>
     </variables>
 
 	<taskFlow>
-        <task name="list-jobs" > <!-- runAsMe="true" -->
+        <task name="cancel-job" > <!-- runAsMe="true" -->
             <scriptExecutable>
                 <script >
                     <code language="groovy">
                         <![CDATA[
-                        import org.ow2.proactive.datascale.slurm.OutputParser
                         import groovy.json.JsonOutput
 
                         def arguments = "${arguments}"
 
-                        def cmd = "scontrol show jobs -o $arguments"
+                        def cmd = "scancel $arguments" 
                         def p = cmd.execute()
                         p.waitFor()
                         def stderr = p.err.text
                         def stdout = p.text
                         def errcode = p.exitValue()
 
-                        def parser = new OutputParser();
-                        def jobs = parser.parseScontrolShowJob(stdout)
-
                         result = JsonOutput.toJson(
                                 [
-                                        jobs: jobs,
                                         errcode: errcode,
                                         cmd: cmd,
                                         stdout: stdout,

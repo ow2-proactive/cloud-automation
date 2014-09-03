@@ -22,7 +22,7 @@
 
 	<taskFlow>
 
-        <task name="submit-job">
+        <task name="submit-job" > <!-- runAsMe="true" -->
             <inputFiles>
                 <!-- Only script -->
                 <!--<files includes="${script}" accessMode="transferFromUserSpace"/>-->
