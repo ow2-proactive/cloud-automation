@@ -96,9 +96,10 @@ public abstract class AbstractIModeCommand extends AbstractCommand implements
         private String fixSingleCommandWOParenthesis(ApplicationContext context,
                                                            String command) {
             String tuned;
-            if (!command.trim().isEmpty() &&
-                    !command.trim().contains(" ") &&
-                    !command.trim().contains("(")) {
+            command = command.trim();
+            if (!command.isEmpty() &&
+                    !command.contains(" ") &&
+                    !command.contains("(")) {
                 tuned = command + "()";
                 writeLine(context, "Warning: replacing command '%s' by '%s'", command, tuned);
             } else {
@@ -110,9 +111,10 @@ public abstract class AbstractIModeCommand extends AbstractCommand implements
         private String fixParamsCommandWithoutQuotations(ApplicationContext context,
                                                            String command) {
             String tuned;
-            if (!command.trim().isEmpty() && command.trim().contains(" ")
+            command = command.trim();
+            if (!command.isEmpty() && command.contains(" ")
                     && !command.contains("'") && !command.contains("\"")) {
-                String[] parts = command.trim().split(" ");
+                String[] parts = command.split(" ");
                 StringBuilder builder = new StringBuilder();
                 for (String part: parts) {
                     if (builder.length() == 0 ) {
