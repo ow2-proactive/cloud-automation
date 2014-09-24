@@ -49,7 +49,7 @@
     </variables>
 
 	<taskFlow>
-        <task name="list-files-task" > <!-- runAsMe="true" -->
+        <task name="list-files-task" runAsMe="true" >
             <scriptExecutable>
                 <script >
                     <code language="groovy">

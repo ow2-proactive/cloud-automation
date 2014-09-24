@@ -17,7 +17,7 @@
     </variables>
 
 	<taskFlow>
-        <task name="list-jobs" runAsMe="true" > <!-- runAsMe="true" -->
+        <task name="list-jobs" runAsMe="true" >
             <scriptExecutable>
                 <script >
                     <code language="groovy">

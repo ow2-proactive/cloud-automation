@@ -20,19 +20,15 @@
     </genericInformation>
 
 	<taskFlow>
-        <task name="nop-task">
-            <inputFiles>
-                <files includes="*" accessMode="transferFromUserSpace"/>
-                <files includes="*" accessMode="transferFromGlobalSpace"/>
-            </inputFiles>
+        <task name="nop-task" runAsMe="true" >
             <scriptExecutable>
                 <script >
                     <code language="groovy">
                         <![CDATA[
                         import groovy.json.JsonOutput
 
-                        def variable1 = "${variable1}"
-                        def variable2 = "${variable2}"
+                        def variable1 = variables.get("variable1")
+                        def variable2 = variables.get("variable2")
 
                         println "Variables provided: "
                         println "variable1='$variable1'"
@@ -54,9 +50,6 @@
                     </code>
                 </script>
             </scriptExecutable>
-            <outputFiles>
-                <files includes="*" accessMode="transferToUserSpace"/>
-            </outputFiles>
         </task>
     </taskFlow>
 </job>

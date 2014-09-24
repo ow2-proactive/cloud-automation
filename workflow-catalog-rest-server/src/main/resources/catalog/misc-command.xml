@@ -10,7 +10,7 @@
 
 	<taskFlow>
 
-        <task name="execute-command" > <!-- runAsMe="true" -->
+        <task name="execute-command" runAsMe="true" >
             <inputFiles>
                 <files includes="*" accessMode="transferFromUserSpace"/>
             </inputFiles>

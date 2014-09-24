@@ -57,7 +57,7 @@
     </variables>
 
 	<taskFlow>
-        <task name="copy-files-task" > <!-- runAsMe="true" -->
+        <task name="copy-files-task" runAsMe="true" >
             <scriptExecutable>
                 <script >
                     <code language="groovy">
