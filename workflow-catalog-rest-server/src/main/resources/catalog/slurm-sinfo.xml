@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd" name="slurm-sinfo" priority="normal" cancelJobOnError="true">
+
+    <!-- arguments : arguments to list jobs command -->
+    <!-- arguments can be: <job-id> or empty to list all ... -->
+    <variables>
+        <variable name="arguments" value=""/>
+    </variables>
+
+	<taskFlow>
+        <task name="list-partitions" runAsMe="true" >
+            <scriptExecutable>
+                <script >
+                    <code language="groovy">
+                        <![CDATA[
+                        import org.ow2.proactive.datascale.slurm.OutputParser
+                        import groovy.json.JsonOutput
+
+                        def arguments = variables.get("arguments")
+
+                        def cmd = ["sinfo", "-h", "-o", "AVAIL=%a NODES(A/I)=%A NODES(A/I)=%A MAX_CPUS_PER_NODECPUS=%B MIN_CPUS=%c CPUS(A/I/O/T)=%C TMP_DISK=%d NODES=%D REASON=%E FEATURES=%f GROUPS=%g GRES=%G SHARE=%h TIMESTAMP=%H TIMELIMIT=%l DEFAULTTIME=%L MEMORY=%m PREEMPT_MODE=%M HOSTNAMES=%n NODELIST=%N CPU_LOAD=%O PRIORITY=%p PARTITION=%P ROOT=%r PARTITION=%R ID=%R ALLOCNODES=%S STATE=%t STATE_id=%T USER=%u USER_ID=%U WEIGHT=%w S:C:T=%z"]
+
+                        def p = cmd.execute()
+                        p.waitFor()
+                        def stderr = p.err.text
+                        def stdout = p.text
+                        def errcode = p.exitValue()
+
+                        def parser = new OutputParser();
+                        def jobs = parser.parseEntityInfo(stdout)
+
+                        result = JsonOutput.toJson(
+                                [
+                                        jobs: jobs,
+                                        errcode: errcode,
+                                        cmd: cmd,
+                                        stdout: stdout,
+                                        stderr: stderr
+                                ])
+
+                        println "Result: " + JsonOutput.prettyPrint(result)
+
+                        ]]>
+                    </code>
+                </script>
+            </scriptExecutable>
+        </task>
+
+    </taskFlow>
+</job>
+
