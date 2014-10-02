@@ -46,7 +46,7 @@
 
                         def workdir = new File(sbatch_workdir).getAbsoluteFile()
                         if (sbatch_workdir.isEmpty() || !workdir.isDirectory()) {
-                            println "Not a directory: '$workdir'. Using home directory instead."
+                            println "Not a directory: '$sbatch_workdir'. Using home directory instead."
                             workdir = new File(System.getProperty("user.home")).getAbsoluteFile()
                         }
 

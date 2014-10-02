@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job xmlns="urn:proactive:jobdescriptor:dev" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd" name="hadoop-submit-job" priority="normal" cancelJobOnError="true">
+
+    <variables>
+
+        <!-- hadoop : path for java installation directory -->
+        <!-- hadoop can be: /opt/jdk/ or other path -->
+        <variable name="java.dir" value="/fs1/flash/activeeon/shared/soft/jdk/"/>
+
+        <!-- hadoop : path for hadoop installation directory -->
+        <!-- hadoop can be: /opt/hadoop/ or other path -->
+        <variable name="hadoop.dir" value="/fs1/flash/activeeon/shared/soft/hd/"/>
+
+        <!-- workdir : working directory where HADOOP job will be executed -->
+        <!-- workdir can be: <directory> or empty to execute in HOME -->
+        <variable name="workdir" value=""/>
+
+        <!-- jar.path : DATASPACE path of HADOOP job/jar to execute -->
+        <!-- jar.path can be: USERSPACE:/test.jar after pushing file test.jar to USERSPACE ... -->
+        <variable name="jar.path" value="USERSPACE:/hadoop-mapreduce-examples-2.4.1.jar"/>
+
+        <!-- jar.arguments : arguments for the HADOOP application -->
+        <variable name="jar.arguments" value="wordcount /fs1/flash/activeeon/shared/wc-input/ /fs1/flash/activeeon/shared/wc-output"/>
+
+    </variables>
+
+	<taskFlow>
+
+        <task name="submit-job" runAsMe="true" >
+            <inputFiles>
+                <!-- Only script -->
+                <!--<files includes="${script}" accessMode="transferFromUserSpace"/>-->
+                <!-- All files -->
+                <files includes="*" accessMode="transferFromUserSpace"/>
+            </inputFiles>
+            <scriptExecutable>
+                <script >
+                    <code language="groovy">
+
+                        <![CDATA[
+
+                        import groovy.json.JsonOutput
+                        import org.ow2.proactive.datascale.hadoop.OutputParser
+
+                        def java_dir = variables.get("java.dir")
+                        def hadoop_dir = variables.get("hadoop.dir")
+                        def hadoop_workdir = variables.get("workdir")
+                        def jar_path = variables.get("jar.path")
+                        def jar_arguments = variables.get("jar.arguments")
+
+                        def root = new File(new URI(localspace.getRealURI())).getAbsoluteFile()
+
+                        def workdir = new File(hadoop_workdir).getAbsoluteFile()
+                        if (hadoop_workdir.isEmpty() || !workdir.isDirectory()) {
+                            println "Not a directory: '$hadoop_workdir'. Using home directory instead."
+                            workdir = new File(System.getProperty("user.home")).getAbsoluteFile()
+                        }
+
+                        jar_path = jar_path.replace("USERSPACE:", root.getAbsolutePath())
+                        jar_arguments = jar_arguments.replace("USERSPACE:", root.getAbsolutePath())
+
+                        def exports = "export JAVA_HOME=$java_dir; export HADOOP_INSTALL=$hadoop_dir; export PATH=\$PATH:\$HADOOP_INSTALL/bin;\$JAVA_HOME/bin; "
+                        def cmd = "$exports $hadoop_dir/bin/hadoop jar $jar_path $jar_arguments"
+                        def p = ["bash", "-c", cmd].execute([], workdir)
+
+
+                        class StreamGobbler extends Thread {
+                                private InputStream is;
+                                private StringBuilder sb;
+
+                                // reads everything from is until empty.
+                                StreamGobbler(InputStream is) {
+                                        this.is = is;
+                                        sb = new StringBuilder();
+                                }
+
+                                public void run() {
+                                        try {
+                                                InputStreamReader isr = new InputStreamReader(is);
+                                                BufferedReader br = new BufferedReader(isr);
+                                                String line = null;
+                                                while ( (line = br.readLine()) != null) {
+                                                        sb.append(line);
+                                                        sb.append("\n");
+                                                        System.out.println(line);
+                                                }
+                                        } catch (IOException ioe) {
+                                                ioe.printStackTrace();
+                                        }
+                                }
+
+                                public String toString() {
+                                    return sb.toString();
+                                }
+                        }
+
+                        StreamGobbler errorGobbler = new StreamGobbler(p.getErrorStream());
+                        StreamGobbler outputGobbler = new StreamGobbler(p.getInputStream());
+
+                        errorGobbler.start();
+                        outputGobbler.start();
+                        p.waitFor()
+                        def stderr = errorGobbler.toString()
+                        def stdout = outputGobbler.toString()
+                        def errcode = p.exitValue()
+
+
+                        def parser = new OutputParser();
+                        def submissionInfo = parser.parseSubmissionInfo(stdout + stderr)
+
+                        result = JsonOutput.toJson(
+                                [
+                                        info: submissionInfo,
+                                        errcode: errcode,
+                                        cmd: cmd,
+                                        workdir: workdir.getAbsolutePath(),
+                                        script: jar_path,
+                                        stdout: stdout,
+                                        stderr: stderr
+                                ])
+
+                        println "Result: " + JsonOutput.prettyPrint(result)
+
+
+                        ]]>
+                    </code>
+                </script>
+            </scriptExecutable>
+        </task>
+
+    </taskFlow>
+</job>
+
