@@ -58,10 +58,13 @@ public class OcciSchedulerAuthentication extends SchedulerAuthentication {
     }
 
     @Override
-    protected ISchedulerProxy loginToSchedulerRestApi(String username,
-      String password) throws LoginException, SchedulerRestException {
+    protected ISchedulerProxy loginToSchedulerRestApi(SchedulerLoginData login) throws LoginException, SchedulerRestException {
         return new SchedulerProxy(
-          new SchedulerLoginData(schedulerUrl, username, password, insecureMode));
+          new SchedulerLoginData(
+                  schedulerUrl,
+                  login.schedulerUsername,
+                  login.schedulerPassword,
+                  insecureMode));
     }
 
 }

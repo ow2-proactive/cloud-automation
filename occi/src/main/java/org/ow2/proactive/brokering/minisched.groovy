@@ -78,7 +78,7 @@ class MiniScheduler implements ISchedulerProxy {
 
     public static class Authentication extends SchedulerAuthentication {
         @Override
-        protected ISchedulerProxy loginToSchedulerRestApi(String username, String password) throws LoginException, SchedulerRestException {
+        protected ISchedulerProxy loginToSchedulerRestApi(SchedulerLoginData login) throws LoginException, SchedulerRestException {
             return instance
         }
     }

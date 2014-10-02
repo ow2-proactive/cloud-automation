@@ -9,20 +9,17 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.shiro.authc.IncorrectCredentialsException;
 import org.ow2.proactive.workflowcatalog.security.HttpHeaderTokenSessionManager;
 import org.ow2.proactive.workflowcatalog.security.SchedulerRestSession;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.ISchedulerProxy;
 import org.apache.commons.io.IOUtils;
 import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
-import org.ow2.proactive.workflowcatalog.security.HttpHeaderTokenSessionManager;
-import org.ow2.proactive.workflowcatalog.security.SchedulerRestSession;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerLoginData;
-import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerProxy;
 import org.ow2.proactive_grid_cloud_portal.common.dto.LoginForm;
 import org.ow2.proactive_grid_cloud_portal.scheduler.exception.SchedulerRestException;
 import org.apache.log4j.Logger;
 import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.session.mgt.DefaultSessionContext;
@@ -82,11 +79,15 @@ public abstract class SchedulerAuthentication implements RestAuthentication {
     protected abstract ISchedulerProxy loginToSchedulerRestApi(SchedulerLoginData login) throws LoginException, SchedulerRestException;
 
     private String internalLogin(SchedulerLoginData login, ISchedulerProxy scheduler,
-      String sessionId) {
+      String sessionId) throws LoginException {
         Subject currentUser = createSubject(sessionId, scheduler);
         UsernamePasswordToken token = new UsernamePasswordToken(login.schedulerUsername, login.schedulerPassword);
 
-        currentUser.login(token);
+        try {
+            currentUser.login(token);
+        } catch (IncorrectCredentialsException e) {
+            throw new LoginException("Wrong password: " + e.getMessage());
+        }
         return sessionId;
     }
 
