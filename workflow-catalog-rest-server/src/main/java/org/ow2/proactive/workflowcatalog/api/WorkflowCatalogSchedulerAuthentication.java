@@ -49,10 +49,13 @@ public class WorkflowCatalogSchedulerAuthentication extends SchedulerAuthenticat
 
     @Override
     protected ISchedulerProxy loginToSchedulerRestApi(SchedulerLoginData login) throws LoginException, SchedulerRestException {
+
         SchedulerLoginData loginData = ConfigurationHelper.getSchedulerLoginData(
           ConfigurationHelper.getConfiguration());
+
         loginData.schedulerUsername = login.schedulerUsername;
         loginData.schedulerPassword = login.schedulerPassword;
+        loginData.schedulerCredentials = login.schedulerCredentials;
 
         return schedulerProxyFactory.create(loginData);
     }

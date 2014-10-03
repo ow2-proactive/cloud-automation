@@ -80,8 +80,16 @@ public abstract class SchedulerAuthentication implements RestAuthentication {
 
     private String internalLogin(SchedulerLoginData login, ISchedulerProxy scheduler,
       String sessionId) throws LoginException {
+
         Subject currentUser = createSubject(sessionId, scheduler);
-        UsernamePasswordToken token = new UsernamePasswordToken(login.schedulerUsername, login.schedulerPassword);
+
+        // create token using username and,
+        // either credentials or password
+        String user = login.schedulerUsername;
+        String pass = (login.schedulerCredentials!=null?
+                login.schedulerCredentials:
+                login.schedulerPassword);
+        UsernamePasswordToken token =  new UsernamePasswordToken(user, pass);
 
         try {
             currentUser.login(token);
