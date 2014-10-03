@@ -6,10 +6,12 @@
     <display-name>ProActive Workflow Catalog</display-name>
 
     <!-- Auto scan REST service -->
+    <!--
     <context-param>
         <param-name>resteasy.scan</param-name>
         <param-value>true</param-value>
     </context-param>
+    -->
 
     <!-- this need same with resteasy servlet url-pattern -->
     <context-param>
@@ -46,6 +48,10 @@
         <servlet-class>
             org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher
         </servlet-class>
+        <init-param>
+            <param-name>javax.ws.rs.Application</param-name>
+            <param-value>org.ow2.proactive.workflowcatalog.WorkflowCatalogApplication</param-value>
+        </init-param>
     </servlet>
 
     <servlet-mapping>

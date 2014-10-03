@@ -43,7 +43,7 @@ import org.ow2.proactive.workflowcatalog.api.WorkflowCatalogSchedulerAuthenticat
 import org.ow2.proactive.workflowcatalog.api.WorkflowsImpl;
 
 
-public class WorkflowCatalogApplication extends Application {
+public class WorkflowCatalogApplicationForTest extends Application {
 
     @Override
     public Set<Class<?>> getClasses() {

@@ -42,7 +42,7 @@ import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.ow2.proactive.workflowcatalog.WorkflowCatalogApplication;
+import org.ow2.proactive.workflowcatalog.WorkflowCatalogApplicationForTest;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerLoginData;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerProxy;
 import org.ow2.proactive_grid_cloud_portal.scheduler.exception.SchedulerRestException;
@@ -73,7 +73,7 @@ public class IntegrationTest {
         WebAppContext context = new WebAppContext("src/main/webapp", "/");
 
         // manually add resources because autoscan won't work in the embedded mode
-        context.getInitParams().put("javax.ws.rs.Application", WorkflowCatalogApplication.class.getName());
+        context.getInitParams().put("javax.ws.rs.Application", WorkflowCatalogApplicationForTest.class.getName());
         context.setParentLoaderPriority(true);
 
         server.addHandler(context);
