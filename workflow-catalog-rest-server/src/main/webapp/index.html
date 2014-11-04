@@ -1,13 +1,71 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="ProActive">
+    <link rel="shortcut icon" href="assets/image/favicon.ico">
+
+    <title>ProActive Workflow Catalog</title>
+
+    <link href="assets/css/bootstrap.css" rel="stylesheet">
+    <link href="assets/css/custom.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+    <script src="assets/js/html5shiv.js"></script>
+    <script src="assets/js/respond.min.js"></script>
+    <![endif]-->
+</head>
+
 <body>
-<h2 style="color: rgb(0, 0, 0); font-family: 'Times New Roman'; line-height: normal;">It works!</h2>
-<p style="line-height: normal; color: rgb(0, 0, 0); font-family: 'Times New Roman';">Welcome to&nbsp;<strong>workflow-catalog-rest-server</strong>&nbsp;root location.&nbsp;This url is valid for the WC CLI.&nbsp;</p>
-<p style="color: rgb(0, 0, 0); font-family: 'Times New Roman'; line-height: normal;">This server exposes Workflow Catalog related functionalities at:</p>
-<p style="color: rgb(0, 0, 0); font-family: 'Times New Roman'; line-height: normal;">current-url<strong>/wc/</strong></p>
-<p style="color: rgb(0, 0, 0); font-family: 'Times New Roman'; line-height: normal;">and Scheduling related functionalities are however exposed at:</p>
-<p style="color: rgb(0, 0, 0); font-family: 'Times New Roman'; line-height: normal;">current-url<strong>/scheduling/</strong></p>
-<p style="color: rgb(0, 0, 0); font-family: 'Times New Roman'; line-height: normal;"><span style="color: rgb(0, 0, 0); font-family: 'Times New Roman'; line-height: normal;">current-url</span><strong style="color: rgb(0, 0, 0); font-family: 'Times New Roman'; line-height: normal;">/scheduling/rm</strong></p>
-<p style="color: rgb(0, 0, 0); font-family: 'Times New Roman'; line-height: normal;"><span style="color: rgb(0, 0, 0); font-family: 'Times New Roman'; line-height: normal;">current-url</span><strong style="color: rgb(0, 0, 0); font-family: 'Times New Roman'; line-height: normal;">/scheduling/scheduler</strong></p>
-<p>&nbsp;</p>
+<div class="container">
+    <div class="container">
+        <div class="text-center">
+            <h1><img src="assets/image/proactive-arrow-150.png"/>&nbsp;<b>ProActive Workflow Catalog</b>
+            </h1>
+        </div>
+
+        <hr>
+        <p class="lead">Welcome to <b>Workflow Catalog</b> portal</p>
+        <hr>
+
+        <p class="lead">Use the WC command line client via the REST API
+            (default credentials: <b>admin/admin</b>)
+        </p>
+        <pre>$> ./bin/workflow-catalog-rest-cli -u <span id="restUrlCli"></span> -l admin -p admin </pre>
+        <br>
+
+        <hr>
+
+        <p class="lead"><b>ProActive Workflows & Scheduling</b> </p>
+        <p class="lead"> Welcome page is <a href="../">here</a></p>
+        <p class="lead"> RM portal is <a href="../rm">here</a></p>
+        <p class="lead"> Scheduler portal is <a href="../scheduler">here</a></p>
+        <p class="lead"> Workflows Studio is <a href="../studio/app">here</a></p>
+
+        <hr>
+
+        <p class="lead"><b>REST API (for developers)</b></p>
+        <p class="lead"> ProActive Workflow Catalog REST API is <a href="wc/">here</a></p>
+        <p class="lead"> ProActive Workflows & Scheduling REST API is <a href="scheduling/">here</a></p>
+        <p class="lead"> ProActive Workflows & Scheduling Scheduler REST API is <a href="scheduling/scheduler">here</a></p>
+        <p class="lead"> ProActive Workflows & Scheduling RM REST API is <a href="scheduling/rm">here</a></p>
+
+        <hr>
+    </div>
+    <div class="modal-footer">
+        <small>&copy; 1997-2014 ActiveEon</small>
+    </div>
+</div>
+<script>
+    var url = document.location.href;
+    url = url.substring(0, (url.indexOf("#") == -1) ? url.length : url.indexOf("#"));
+    url = url.substring(0, (url.indexOf("?") == -1) ? url.length : url.indexOf("?"));
+    url = url.substring(0, url.lastIndexOf("/"));
+    var restApiEndpoint = url;
+    document.getElementById('restUrlCli').innerHTML = restApiEndpoint;
+</script>
 </body>
 </html>
