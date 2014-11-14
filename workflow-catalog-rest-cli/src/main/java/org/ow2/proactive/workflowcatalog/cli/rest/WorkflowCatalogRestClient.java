@@ -12,6 +12,7 @@ import javax.ws.rs.client.ClientRequestFilter;
 
 import org.ow2.proactive.workflowcatalog.api.Workflows;
 import org.ow2.proactive.workflowcatalog.api.exceptions.ExceptionFormatterUtils;
+import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
@@ -27,8 +28,8 @@ public class WorkflowCatalogRestClient extends ClientBase implements WorkflowCat
     }
 
     @Override
-    public void init(String url, String sessionId) throws Exception {
-        workflows = createWorkflowsApi(url, sessionId);
+    public void init(String url, String sessionId, ClientHttpEngine httpClient) throws Exception {
+        workflows = createWorkflowsApi(url, sessionId, httpClient);
     }
 
     public Workflows getWorkflowsProxy() {
@@ -60,14 +61,14 @@ public class WorkflowCatalogRestClient extends ClientBase implements WorkflowCat
         }
     }
 
-    private Workflows createWorkflowsApi(String url, final String sessionId) {
+    private Workflows createWorkflowsApi(String url, final String sessionId, ClientHttpEngine httpClient) {
 
         ResteasyClient client = new ResteasyClientBuilder().register(new ClientRequestFilter() {
             @Override
             public void filter(ClientRequestContext requestContext) throws IOException {
                 requestContext.getHeaders().add("sessionid", sessionId);
             }
-        }).build();
+        }).httpEngine(httpClient).build();
         ResteasyWebTarget target = client.target(url);
         Workflows proxy = target.proxy(Workflows.class);
 

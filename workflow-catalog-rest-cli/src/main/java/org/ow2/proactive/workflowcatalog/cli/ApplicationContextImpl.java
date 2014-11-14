@@ -3,19 +3,21 @@ package org.ow2.proactive.workflowcatalog.cli;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
+
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
+
 import org.ow2.proactive.workflowcatalog.cli.console.AbstractDevice;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.ow2.proactive.workflowcatalog.cli.rest.WorkflowCatalogClient;
 import org.ow2.proactive.workflowcatalog.cli.rest.WorkflowCatalogRestClient;
-import org.ow2.proactive_grid_cloud_portal.scheduler.client.SchedulerRestClient;
 import org.ow2.proactive.workflowcatalog.utils.HttpUtility;
+import org.ow2.proactive_grid_cloud_portal.scheduler.client.SchedulerRestClient;
 import org.apache.http.client.HttpClient;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.PoolingClientConnectionManager;
 import org.apache.http.params.HttpParams;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient4Engine;
 
 import static org.ow2.proactive.workflowcatalog.cli.CLIException.REASON_OTHER;
@@ -66,7 +68,7 @@ public class ApplicationContextImpl implements ApplicationContext {
     public WorkflowCatalogClient getWorkflowCatalogClient() {
         WorkflowCatalogClient client = WorkflowCatalogRestClient.createInstance();
         try {
-            client.init(getWcUrl(), sessionId);
+            client.init(getWcUrl(), sessionId, createHttpClient());
         } catch (Exception e) {
             throw new CLIException(CLIException.REASON_OTHER, "Initialization error", e);
         }
@@ -75,6 +77,11 @@ public class ApplicationContextImpl implements ApplicationContext {
 
     @Override
     public SchedulerRestClient getSchedulerClient() {
+        ApacheHttpClient4Engine httpEngine = createHttpClient();
+        return new SchedulerRestClient(getSchedulingUrl(), httpEngine);
+    }
+
+    private ApacheHttpClient4Engine createHttpClient() {
         HttpClient httpClient = new DefaultHttpClient();
         ClientConnectionManager mgr = httpClient.getConnectionManager();
         HttpParams params = httpClient.getParams();
@@ -84,8 +91,7 @@ public class ApplicationContextImpl implements ApplicationContext {
         if (canInsecureAccess())
             httpClient = HttpUtility.turnClientIntoInsecure(httpClient);
 
-        SchedulerRestClient client = new SchedulerRestClient(getSchedulingUrl(), new ApacheHttpClient4Engine(httpClient));
-        return client;
+        return new ApacheHttpClient4Engine(httpClient);
     }
 
     @Override

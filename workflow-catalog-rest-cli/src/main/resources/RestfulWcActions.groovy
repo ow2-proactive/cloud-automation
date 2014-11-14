@@ -19,6 +19,7 @@ import org.ow2.proactive.workflowcatalog.cli.cmd.AbstractIModeCommand
 import org.ow2.proactive.workflowcatalog.cli.cmd.WcJsHelpCommand
 import org.ow2.proactive.workflowcatalog.cli.cmd.LoginWithCredentialsCommand
 import org.ow2.proactive.workflowcatalog.cli.cmd.SetUrlCommand
+import org.ow2.proactive.workflowcatalog.cli.cmd.SetInsecureAccessCommand
 import org.ow2.proactive.workflowcatalog.cli.console.JLineDevice
 import org.ow2.proactive.workflowcatalog.cli.rest.WorkflowCatalogClient
 
@@ -34,6 +35,11 @@ void help() {
 addAutoComplete(new ArgumentCompletor(new SimpleCompletor("url"), new SimpleCompletor("http://localhost:8082/workflow-catalog-rest-server"), new NullCompletor()));
 void url(url) {
     execute(new SetUrlCommand('' + url))
+}
+
+addAutoComplete(new ArgumentCompletor(new SimpleCompletor("insecure"), new NullCompletor()));
+void insecure() {
+    execute(new SetInsecureAccessCommand())
 }
 
 addAutoComplete(new ArgumentCompletor(new SimpleCompletor("login"), new SimpleCompletor(["admin", "user", "demo"] as String[]), new NullCompletor()));
