@@ -1,0 +1,29 @@
+<div class="modal-header">
+    <h3>
+        <img ng-src="{{ newInstance | toLogo }}">
+        {{newInstance.attributes["occi.core.id"]}}
+    </h3>
+</div>
+
+<div class="modal-body">
+    <form class="form-horizontal" role="form">
+        <div class="form-group"
+             ng-repeat="(key,value) in newInstance.attributes | attributeIsVisible | orderBy:'key'">
+
+            <label for="{{key}}" class="col-lg-5 control-label">
+                {{config.attributes[key].label || key}}
+                <span style="color:#c7254e" ng-show="config.attributes[key].required">*</span>
+            </label>
+
+            <div class="col-lg-7">
+                <input id="{{key}}" type="text" class="form-control"
+                       value="{{value}}" ng-model="newInstance.attributes[key]">
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="modal-footer">
+    <button class="btn" ng-click="$dismiss('cancel')">Cancel</button>
+    <button class="btn btn-primary" ng-click="$close(newInstance)">Create</button>
+</div>

@@ -66,17 +66,17 @@ public class OcciModule implements Module {
     public void configure(final Binder binder) {
         Names.bindProperties(binder, readConfigurationProperties());
 
-        binder.bind(ISchedulerProxy.class).to(MiniScheduler.class).in(Singleton.class);
+//        binder.bind(ISchedulerProxy.class).to(MiniScheduler.class).in(Singleton.class);
         binder.bind(DatabaseFactory.class).in(Singleton.class);
 
-//        binder.bind(RestAuthentication.class).to(OcciSchedulerAuthentication.class);
-        binder.bind(RestAuthentication.class).to(MiniScheduler.Authentication.class);
+        binder.bind(RestAuthentication.class).to(OcciSchedulerAuthentication.class);
+//        binder.bind(RestAuthentication.class).to(MiniScheduler.Authentication.class);
         binder.bind(Occi.class).to(OcciServer.class);
         binder.bind(Broker.class).in(Singleton.class);
         binder.bind(Updater.class).in(Singleton.class);
     }
 
-    //    @Provides
+    @Provides
     ISchedulerProxy createScheduler(
       @Named("scheduler.url") String schedulerUrl,
       @Named("scheduler.username") String schedulerUsername,
