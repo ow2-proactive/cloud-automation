@@ -1,7 +1,7 @@
 (function () {
-    var catalog = angular.module('catalog', ['appConfig']);
+    var catalog = angular.module('catalog', ['appConfig', 'occi']);
 
-    catalog.controller('CatalogCtrl', function ($http, $scope, $modal, config, notificationService) {
+    catalog.controller('CatalogCtrl', function ($http, $scope, $modal, config, notificationService, Occi) {
         var catalog = this;
         this.templates = {}
 
@@ -19,7 +19,7 @@
 
             modalInstance.result.then(function (newInstance) {
                 var config = {headers: {}};
-                config.headers['X-OCCI-Attribute'] = attributesToOcciFormat(newInstance);
+                config.headers['X-OCCI-Attribute'] = Occi.attributesToOcciFormat(newInstance);
 
                 $http.post('/ca/api/occi/' + newInstance.attributes.category, {}, config).
                     success(function (data) {
@@ -57,16 +57,5 @@
             return filtered;
         }
     });
-
-    function attributesToOcciFormat(newInstance) {
-        var attributesAsString = "";
-        for (var key in newInstance.attributes) {
-            if (key == "provider" || key == "application" || key.indexOf("occi") > -1) {
-                attributesAsString += key + "=" + newInstance.attributes[key] + ",";
-            }
-        }
-        attributesAsString = attributesAsString.substring(0, attributesAsString.length - 1);
-        return attributesAsString;
-    }
 
 }());

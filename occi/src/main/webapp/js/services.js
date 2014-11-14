@@ -1,7 +1,7 @@
 (function () {
-    var services = angular.module('services', []);
+    var services = angular.module('services', ['appConfig', 'occi']);
 
-    services.controller('ServicesCtrl', function ($http, $q, notificationService, $route, $scope, $modal, $timeout, $cookieStore, User) {
+    services.controller('ServicesCtrl', function ($http, $q, config, notificationService, $route, $scope, $modal, $timeout, $cookieStore, User, Occi) {
         var controller = this;
         this.services = [];
         this.selectedResource = -1;
@@ -74,13 +74,37 @@
             });
         }
 
-        this.action = function (service, action) {
-            var controller = this;
-            var config = { params: {action: action.title}}
-            $http.post('/ca/api/occi/' + service.category + '/' + service.uuid, {}, config).success(function (date) {
-                notificationService.success("Action " + action.title + " for " + service.uuid + " performed")
-                controller.doRefresh();
-            });
+        this.configureAction = function (service, action) {
+            $scope.service = service
+            $scope.action = action
+            $scope.config = config
+
+            if (Object.keys(action.attributes).length != 0) {
+
+                // TODO do not open if no attributes, do it directly
+                var modalInstance = $modal.open({
+                    templateUrl: 'partials/action.html',
+                    scope: $scope
+                });
+
+                modalInstance.result.then(function (action) {
+                    var postConfig = {headers: {}, params: {action: action.title}};
+                    postConfig.headers['X-OCCI-Attribute'] = Occi.attributesToOcciFormat(action);
+
+                    $http.post('/ca/api/occi/' + service.category + '/' + service.uuid, {}, postConfig).success(function (date) {
+                        notificationService.success("Action " + action.title + " for " + service.uuid + " performed")
+                        controller.doRefresh();
+                    });
+                }, function () {
+                    // nothing to do if modal closed
+                });
+            } else {
+                var postConfig = {params: {action: action.title}};
+                $http.post('/ca/api/occi/' + service.category + '/' + service.uuid, {}, postConfig).success(function (date) {
+                    notificationService.success("Action " + action.title + " for " + service.uuid + " performed")
+                    controller.doRefresh();
+                });
+            }
         }
 
         this.doRefresh();

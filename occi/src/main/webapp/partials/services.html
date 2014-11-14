@@ -48,7 +48,7 @@
             </td>
             <td>
                 <a class="btn" title="{{ action.title | capitalize }}" href=""
-                   ng-click="controller.action(service, action)" ng-repeat="action in service.actions"
+                   ng-click="controller.configureAction(service, action)" ng-repeat="action in service.actions"
                    ng-hide="(action.title | actionToIcon) == ''">
                     <i class="fa {{ action.title | actionToIcon}}"></i>
                 </a>

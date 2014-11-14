@@ -1,5 +1,5 @@
 (function () {
-    var appConfig = angular.module('appConfig', ['appConfig']);
+    var appConfig = angular.module('appConfig', []);
     // Customize attribute display
 
     appConfig.factory('config', function () {
@@ -46,6 +46,11 @@
                 'flavor': {
                     visible: true,
                     label: "Flavor (SMALL,LARGE)",
+                    required: true
+                },
+                'occi.stop.method': {
+                    visible: true,
+                    label: "Stop Method",
                     required: true
                 }
             }
