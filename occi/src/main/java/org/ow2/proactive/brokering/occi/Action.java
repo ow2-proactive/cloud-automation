@@ -34,12 +34,18 @@
  */
 package org.ow2.proactive.brokering.occi;
 
+import java.util.Map;
+
+
 public class Action {
 
     private String title;
 
-    public Action(String title) {
+    private Map<String, String> attributes;
+
+    public Action(String title, Map<String, String> attributes) {
         this.title = title;
+        this.attributes = attributes;
     }
 
     public String getTitle() {
@@ -48,5 +54,13 @@ public class Action {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public Map<String, String> getAttributes() {
+        return attributes;
+    }
+
+    public void setAttributes(Map<String, String> attributes) {
+        this.attributes = attributes;
     }
 }

@@ -3,6 +3,10 @@
      xsi:schemaLocation="urn:proactive:jobdescriptor:dev ../../src/scheduler/src/org/ow2/proactive/scheduler/common/xml/schemas/jobdescriptor/dev/schedulerjob.xsd"
      name="compute-stop"  priority="normal" cancelJobOnError="true">
 
+    <variables>
+        <variable name="occi.stop.method" value=""/>
+    </variables>
+
     <genericInformation>
         <info name="category" value="compute"/>
         <info name="operation" value="update"/>
@@ -20,6 +24,7 @@
                         <![CDATA[
 						import groovy.json.JsonOutput
 
+                        println "Stopping with method " + variables.get("occi.stop.method")
 						Thread.sleep(5000)
 						result = JsonOutput.toJson(["occi.compute.state": "inactive", "action.state": "done"])
 

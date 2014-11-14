@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.ow2.proactive.brokering.occi.Action;
 import org.ow2.proactive.brokering.occi.categories.Categories;
 import org.ow2.proactive.brokering.occi.client.ActionTriggerHandler;
 import org.ow2.proactive.workflowcatalog.Catalog;
@@ -131,14 +132,15 @@ public class Broker {
         return new TreeMap<String, String>(map).toString();
     }
 
-    public List<String> listPossibleActions(String category, Map<String, String> attributes) {
-        List<String> possibleActions = new ArrayList<String>();
+    public List<Action> listPossibleActions(String category, Map<String, String> attributes) {
+        List<Action> possibleActions = new ArrayList<Action>();
         Map<String, String> copy = new HashMap<String, String>(attributes);
         // FIXME find out resource state with a better way
-        copy.put("action.from-states", copy.get("occi."+categoryToAttributeName(category)+".state"));
+        copy.put("action.from-states", copy.get("occi." + categoryToAttributeName(category) + ".state"));
         for (Workflow workflow : catalog.getWorkflows()) {
             if (OcciWorkflowUtils.isCompliant(workflow, category, null, null, copy)) {
-                possibleActions.add(workflow.getGenericInformation("action"));
+                possibleActions.add(new Action(workflow.getGenericInformation("action"), workflow
+                        .getVariables()));
             }
         }
         return possibleActions;

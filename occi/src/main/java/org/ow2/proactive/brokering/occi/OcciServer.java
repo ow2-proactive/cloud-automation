@@ -176,13 +176,7 @@ public class OcciServer implements Occi {
     }
 
     private Resource fillActions(Resource resource) {
-        List<String> actionTitles = broker.listPossibleActions(resource.getCategory(),
-          resource.getAttributes());
-        List<Action> actions = new ArrayList<Action>();
-        for (String actionTitle : actionTitles) {
-            actions.add(new Action(actionTitle));
-        }
-        resource.setActions(actions);
+        resource.setActions(broker.listPossibleActions(resource.getCategory(), resource.getAttributes()));
         return resource;
     }
 
@@ -209,9 +203,7 @@ public class OcciServer implements Occi {
 
             storeInDB(resource);
 
-            if (action != null) {
-                resource.getAttributes().put("action.state", "pending");
-            }
+            addActionAttributes(action, resource, newAttributes);
 
             References references = new References();
             Response.ResponseBuilder response;
@@ -233,6 +225,15 @@ public class OcciServer implements Occi {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         } finally {
             logger.info("------------------------------------------------------------------------");
+        }
+    }
+
+    private void addActionAttributes(String action, Resource resource, Map<String, String> newAttributes) {
+        if (action != null) {
+            resource.getAttributes().put("action.state", "pending");
+            for (String key : newAttributes.keySet()) {
+                resource.getAttributes().put(key, newAttributes.get(key));
+            }
         }
     }
 
