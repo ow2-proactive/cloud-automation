@@ -121,8 +121,10 @@ project(':occi') {
     apply plugin: 'war'
     apply plugin: 'groovy'
     apply plugin: 'jetty'
+    apply plugin: 'application'
 
     httpPort = 8081
+    mainClassName = "org.ow2.proactive.brokering.Main"
 
     configurations {
         // conflict with orientdb
