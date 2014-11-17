@@ -76,10 +76,10 @@ public class OcciServer implements Occi {
             }
 
             Response.ResponseBuilder responseBuilder = Response.status(Response.Status.CREATED);
-            responseBuilder.header("X-OCCI-Location", resource.getFullPath(serverPrefixUrl));
-            responseBuilder.entity(resource);
-            logger.debug("Response : [X-OCCI-Location: " + resource.getFullPath(
-              serverPrefixUrl) + "] CODE:" + Response.Status.CREATED);
+            String resourceUri = resource.getFullPath(serverPrefixUrl);
+            responseBuilder.header("X-OCCI-Location", resourceUri);
+            responseBuilder.entity(new ResourceLocation(resourceUri));
+            logger.debug("Response : [X-OCCI-Location: " + resourceUri + "] CODE:" + Response.Status.CREATED);
             return responseBuilder.build();
 
         } catch (Throwable e) {
@@ -214,10 +214,10 @@ public class OcciServer implements Occi {
             }
             response = Response.status(Response.Status.OK);
             response.entity(references.getSummary());
-            response.header("X-OCCI-Location", resource.getFullPath(serverPrefixUrl));
-            response.entity(resource);
-            logger.debug("Response : [X-OCCI-Location: " + resource.getFullPath(
-              serverPrefixUrl) + "] CODE:" + Response.Status.OK);
+            String resourceUri = resource.getFullPath(serverPrefixUrl);
+            response.header("X-OCCI-Location", resourceUri);
+            response.entity(new ResourceLocation(resourceUri));
+            logger.debug("Response : [X-OCCI-Location: " + resourceUri + "] CODE:" + Response.Status.OK);
             return response.build();
 
         } catch (Throwable e) {

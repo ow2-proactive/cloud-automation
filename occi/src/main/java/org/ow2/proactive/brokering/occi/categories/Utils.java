@@ -11,6 +11,7 @@ import javax.json.JsonObject;
 import javax.ws.rs.core.Response;
 
 import org.ow2.proactive.brokering.occi.Attribute;
+import org.ow2.proactive.brokering.occi.ResourceLocation;
 import org.apache.log4j.Logger;
 
 public class Utils {
@@ -135,12 +136,7 @@ public class Utils {
     }
 
     public static String toUrl(Response response) {
-        String str = response.getEntity().toString();
-
-        if (!str.contains("X-OCCI-Location: "))
-            throw new RuntimeException("Bad url: " + str);
-
-        return str.replace("X-OCCI-Location: ", "");
+        return ((ResourceLocation) response.getEntity()).getLocation();
     }
 
     public static int countOccurrences(String str, String target) {
