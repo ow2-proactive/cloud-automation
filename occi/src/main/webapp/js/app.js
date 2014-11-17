@@ -6,7 +6,7 @@
         'ngRoute',
         'ngCookies',
         'ui.bootstrap',
-        'ui.notify'
+        'jlareau.pnotify'
     ]);
 
 
@@ -14,7 +14,7 @@
         notificationServiceProvider.setDefaults({
             history: false,
             delay: 3000,
-            styling: 'bootstrap',
+            styling: 'bootstrap3',
             closer: true,
             closer_hover: false
         });
