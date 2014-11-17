@@ -2,10 +2,10 @@ package org.ow2.proactive.brokering;
 
 import java.io.File;
 
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.nio.SelectChannelConnector;
-import org.mortbay.jetty.security.SslSocketConnector;
-import org.mortbay.jetty.webapp.WebAppContext;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.nio.SelectChannelConnector;
+import org.eclipse.jetty.server.ssl.SslSocketConnector;
+import org.eclipse.jetty.webapp.WebAppContext;
 
 
 public class Main {
@@ -17,7 +17,7 @@ public class Main {
         webApp.setContextPath("/ca");
         webApp.setDescriptor(new File("src/main/webapp/WEB-INF/web.xml").getAbsolutePath());
         webApp.setResourceBase("src/main/webapp");
-        server.addHandler(webApp);
+        server.setHandler(webApp);
         server.start();
         System.out.println("---------- Started -------------");
         server.join();

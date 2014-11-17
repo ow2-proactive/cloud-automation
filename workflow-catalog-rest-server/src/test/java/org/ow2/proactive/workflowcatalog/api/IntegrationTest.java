@@ -46,13 +46,13 @@ import org.ow2.proactive.workflowcatalog.WorkflowCatalogApplicationForTest;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerLoginData;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.SchedulerProxy;
 import org.ow2.proactive_grid_cloud_portal.scheduler.exception.SchedulerRestException;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.webapp.WebAppContext;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Matchers;
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.webapp.WebAppContext;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
@@ -76,7 +76,7 @@ public class IntegrationTest {
         context.getInitParams().put("javax.ws.rs.Application", WorkflowCatalogApplicationForTest.class.getName());
         context.setParentLoaderPriority(true);
 
-        server.addHandler(context);
+        server.setHandler(context);
         server.start();
     }
 

@@ -4,10 +4,12 @@ import org.ow2.proactive.brokering.occi.OcciServer;
 import org.ow2.proactive.brokering.occi.database.Database;
 import org.ow2.proactive.brokering.occi.database.DatabaseFactory;
 import org.ow2.proactive.brokering.occi.database.InMemoryDB;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.ISchedulerProxy;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
+import com.google.inject.Singleton;
 import com.google.inject.util.Modules;
 import org.junit.Test;
 
@@ -31,6 +33,7 @@ public class OcciModuleTest {
                     return new InMemoryDB();
                 }
             });
+            binder.bind(ISchedulerProxy.class).to(MiniScheduler.class).in(Singleton.class);
         }
     }
 }

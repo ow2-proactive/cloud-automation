@@ -1,12 +1,5 @@
 package org.ow2.proactive.brokering.occi;
 
-import junit.framework.Assert;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.ow2.proactive.brokering.occi.database.Database;
-import org.ow2.proactive.brokering.occi.database.DatabaseFactory;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -14,6 +7,14 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
+import org.ow2.proactive.brokering.occi.database.Database;
+import org.ow2.proactive.brokering.occi.database.DatabaseFactory;
+import junit.framework.Assert;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
 
 import static junit.framework.Assert.assertEquals;
 
@@ -109,6 +110,7 @@ public class DatabaseTest {
     }
 
     @Test
+    @Ignore
     public void createDatabaseSimpleMultithreadedExtreme_Test() throws Exception {
         final int NRO_STORES = 1000;
         final int THREAD_POOL_SIZE = 10;
