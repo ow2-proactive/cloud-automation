@@ -12,6 +12,7 @@ import org.ow2.proactive.workflowcatalog.cli.cmd.DownloadFileCommand
 import org.ow2.proactive.workflowcatalog.cli.cmd.GetJobResultCommand
 import org.ow2.proactive.workflowcatalog.cli.cmd.GetJobLogsCommand
 import org.ow2.proactive.workflowcatalog.cli.cmd.ListWorkflowsCommand
+import org.ow2.proactive.workflowcatalog.cli.cmd.LogoutCommand
 import org.ow2.proactive.workflowcatalog.cli.cmd.UploadFileCommand
 import org.ow2.proactive.workflowcatalog.cli.cmd.SubmitWorkflowCommand
 import org.ow2.proactive.workflowcatalog.cli.cmd.LoginCommand
@@ -48,6 +49,11 @@ void login(user) {
     execute(new LoginCommand('' + user));
 
     updateWorkflowAutoCompletes();
+}
+
+addAutoComplete(new ArgumentCompletor(new SimpleCompletor("logout"), new NullCompletor()));
+void logout() {
+    execute(new LogoutCommand());
 }
 
 addAutoComplete(new ArgumentCompletor(new SimpleCompletor("login"), new SimpleCompletor(["admin", "user", "demo"] as String[]), new FileNameCompletor(), new NullCompletor()));

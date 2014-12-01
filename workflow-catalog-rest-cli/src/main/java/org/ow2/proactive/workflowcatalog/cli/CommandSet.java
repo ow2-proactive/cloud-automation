@@ -76,6 +76,14 @@ public class CommandSet {
             .jsExample("login('admin')")
             .entry();
 
+    public static final CommandSet.Entry LOGOUT = CommandSetEntryBuilder
+            .newInstance().opt("lo").longOpt("logout")
+            .description("logout from the REST server")
+            .hasArgs(false)
+            .jsCommand("logout()").commandClass(LogoutCommand.class)
+            .jsExample("logout()")
+            .entry();
+
     public static final CommandSet.Entry PASSWORD = CommandSetEntryBuilder
             .newInstance().opt("p").longOpt("password")
             .description("the password to connect to REST server")
@@ -235,7 +243,7 @@ public class CommandSet {
     public static final CommandSet.Entry[] COMMON_COMMANDS = new CommandSet.Entry[] {
             URL, SESSION, PASSWORD, CREDENTIALS, INSECURE,
             CACERTS, CACERTS_PASSWORD, EVAL, SILENT, OUTPUT,
-            LOGIN, WORKFLOWS_LIST, SUBMIT_WORKFLOW, GET_JOB_RESULT, GET_JOB_LOGS,
+            LOGIN, LOGOUT, WORKFLOWS_LIST, SUBMIT_WORKFLOW, GET_JOB_RESULT, GET_JOB_LOGS,
             WC_IMODE, WC_HELP, WC_JS_HELP, DOWNLOAD_FILE, UPLOAD_FILE};
 
     private CommandSet() {
