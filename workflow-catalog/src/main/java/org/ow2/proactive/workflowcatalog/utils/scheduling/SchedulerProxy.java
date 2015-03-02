@@ -19,8 +19,10 @@ import org.ow2.proactive_grid_cloud_portal.studio.Workflow;
 import javax.security.auth.login.LoginException;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.StringReader;
 import java.security.KeyException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -81,14 +83,21 @@ public class SchedulerProxy implements ISchedulerProxy {
     public List<Workflow> listWorkflows() throws WorkflowsRetrievalException {
         try {
             try {
-                 return restStudioClient.getStudio().getWorkflows(sessionId);
-            } catch (Exception e) {
+                return getWorkflowsAndTemplates();
+            } catch (NotConnectedRestException e) {
                 sessionId = connectToScheduler(loginData);
-                return restStudioClient.getStudio().getWorkflows(sessionId);
+                return getWorkflowsAndTemplates();
             }
         } catch (Exception e) {
             throw new WorkflowsRetrievalException(e);
         }
+    }
+
+    private List<Workflow> getWorkflowsAndTemplates() throws WorkflowsRetrievalException, IOException, NotConnectedRestException {
+        List<Workflow> list = new ArrayList<Workflow>() ;
+        list.addAll(restStudioClient.getStudio().getWorkflows(sessionId));
+        list.addAll(restStudioClient.getStudio().getTemplates(sessionId));
+        return list;
     }
 
     public JobIdData submitJob(File jobFile) throws JobSubmissionException {
