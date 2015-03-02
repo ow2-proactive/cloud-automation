@@ -21,32 +21,53 @@ public class CatalogTest {
     }
 
     @Test
-    public void listWorkflows_Test() throws Exception {
-
-        Assert.assertTrue(catalog.getWorkflows().size() == 0);
-
+    public void list_workflows_test() throws Exception {
+        Assert.assertEquals(0, catalog.getWorkflows().size());
         insertNewWorkflow(catalogPath, "workflow1.xml");
+        waitForUpdate();
+        Assert.assertEquals(1, catalog.getWorkflows().size());
         insertNewWorkflow(catalogPath, "workflow2.xml");
         waitForUpdate();
-
-        Assert.assertTrue(catalog.getWorkflows().size() == 2);
-
-        insertNewWorkflow(catalogPath, "workflow3.xml");
-        waitForUpdate();
-
-        Assert.assertTrue(catalog.getWorkflows().size() == 3);
-
+        Assert.assertEquals(2, catalog.getWorkflows().size());
         removeOneWorkflow(catalogPath, "workflow1.xml");
-        removeOneWorkflow(catalogPath, "workflow2.xml");
-        removeOneWorkflow(catalogPath, "workflow3.xml");
         waitForUpdate();
-
-        Assert.assertTrue(catalog.getWorkflows().size() == 0);
-
+        Assert.assertEquals(1, catalog.getWorkflows().size());
+        removeOneWorkflow(catalogPath, "workflow2.xml");
+        waitForUpdate();
+        Assert.assertEquals(0, catalog.getWorkflows().size());
     }
+
+    @Test
+    public void list_workflows_subdirectories_test() throws Exception {
+        String SEP = File.separator;
+        Assert.assertEquals(0, catalog.getWorkflows().size());
+        insertNewWorkflow(catalogPath, "d1" + SEP + "workflow4.xml");
+        insertNewWorkflow(catalogPath, "d1" + SEP + "d2" + SEP + "workflow5.xml");
+        waitForUpdate();
+        Assert.assertEquals(2, catalog.getWorkflows().size());
+        removeOneWorkflow(catalogPath, "d1" + SEP + "workflow4.xml");
+        removeOneWorkflow(catalogPath, "d1" + SEP + "d2" + SEP + "workflow5.xml");
+        waitForUpdate();
+        Assert.assertEquals(0, catalog.getWorkflows().size());
+    }
+
+    @Test
+    public void list_workflows_with_bad_files_test() throws Exception {
+        Assert.assertEquals(0, catalog.getWorkflows().size());
+        insertNewWorkflow(catalogPath, "workflow6.xml");
+        insertNewWorkflow(catalogPath, "workflow7");
+        waitForUpdate();
+        Assert.assertEquals(1, catalog.getWorkflows().size());
+        removeOneWorkflow(catalogPath, "workflow6.xml");
+        removeOneWorkflow(catalogPath, "workflow7");
+        waitForUpdate();
+        Assert.assertEquals(0, catalog.getWorkflows().size());
+    }
+
 
     private static void insertNewWorkflow(File catalogPath, String name) throws Exception {
         File f = new File(catalogPath, name);
+        f.getParentFile().mkdirs();
         Files.touch(f);
     }
 

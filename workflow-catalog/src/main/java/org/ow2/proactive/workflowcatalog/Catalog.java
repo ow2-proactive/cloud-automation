@@ -8,12 +8,15 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
-
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.log4j.Logger;
 
 
 public class Catalog {
     private static final Logger logger = Logger.getLogger(Catalog.class.getName());
+    private static final WildcardFileFilter XML_FILTER = new WildcardFileFilter("*.xml");
     private final Map<File, Workflow> workflows;
     private final UpdateTask updateTask;
     private CatalogListener catalogListener;
@@ -86,7 +89,7 @@ public class Catalog {
                 }
 
                 // Add new rules and update existing ones if needed
-                for (File f : path.listFiles()) {
+                for (File f : FileUtils.listFiles(path, XML_FILTER, TrueFileFilter.INSTANCE)) {
                     Workflow workflow = workflows.get(f);
                     if (workflow != null && workflow.hasChanged()) { // Known & modified
                         workflow.update();
