@@ -16,14 +16,14 @@ public class WorkflowsImpl implements Workflows {
 
     @Override
     public Collection<WorkflowBean> getWorkflowList() {
-        Core core = Core.getInstance();
+        Core core = Core.INSTANCE;
         return FormatterHelper.formatToBean(core.getWorkflows());
     }
 
     @Override
     public ReferencesBean submitJob(WorkflowParametersBean parameters) throws JobSubmissionException {
         logger.debug(String.format("<<< %s", parameters.toString()));
-        Core core = Core.getInstance();
+        Core core = Core.INSTANCE;
         return new ReferencesBean(core.executeWorkflow(parameters.generateWorkflowParameters()));
     }
 

@@ -5,10 +5,11 @@ import junit.framework.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.ow2.proactive.workflowcatalog.Catalog;
+import org.ow2.proactive.workflowcatalog.FileCatalog;
 
 import java.io.File;
 
-public class CatalogTest {
+public class FileCatalogTest {
 
     private static final long REFRESH_PERIOD_MS = 20;
     private static Catalog catalog;
@@ -16,7 +17,7 @@ public class CatalogTest {
 
     @BeforeClass
     public static void beforeAll() throws Exception {
-        catalog = new Catalog(catalogPath, REFRESH_PERIOD_MS);
+        catalog = new FileCatalog(catalogPath, REFRESH_PERIOD_MS);
         waitForUpdate();
     }
 

@@ -17,6 +17,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -26,15 +27,26 @@ public class Workflow {
 
     private static final Logger logger = Logger.getLogger(Workflow.class.getName());
     private long lastModification;
-    private File job;
+    private File jobFile;
+    private String jobContent;
     private String name;
     private Map<String, String> genericInfo;
     private Map<String, String> variables;
 
-    public Workflow(File job) {
-        this.job = job;
-        this.name = job.getName();
-        lastModification = job.lastModified();
+    public Workflow(File jobFile) {
+        this.jobFile = jobFile;
+        this.jobContent = null;
+        this.name = jobFile.getName();
+        lastModification = jobFile.lastModified();
+        genericInfo = new HashMap<String, String>();
+        variables = new HashMap<String, String>();
+    }
+
+    public Workflow(String jobName, String jobContent) {
+        this.jobFile = null;
+        this.jobContent = jobContent;
+        this.name = jobName;
+        lastModification = 0;
         genericInfo = new HashMap<String, String>();
         variables = new HashMap<String, String>();
     }
@@ -81,15 +93,16 @@ public class Workflow {
             Document doc = getJobDocument();
             extractElementsFromDocument(doc, "genericInformation", genericInfo);
             extractElementsFromDocument(doc, "variables", variables);
-            lastModification = job.lastModified();
-            name = job.getName();
+            if (jobFile != null) {
+                lastModification = jobFile.lastModified();
+            }
         } catch (JobParsingException e) {
             logger.warn("Error updating: " + e.getMessage());
         }
     }
 
     public boolean hasChanged() {
-        return job.lastModified() != lastModification;
+        return (jobFile != null && jobFile.lastModified() != lastModification);
     }
 
     public File configure(Map<String, String> attributes)
@@ -191,7 +204,13 @@ public class Workflow {
         try {
             DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
-            doc = docBuilder.parse(job);
+            if (jobFile != null) {
+                doc = docBuilder.parse(jobFile);
+            } else if (jobContent != null) {
+                doc = docBuilder.parse(new ByteArrayInputStream(jobContent.getBytes("UTF-8")));
+            } else {
+                throw new IllegalStateException("No job provided");
+            }
         } catch (ParserConfigurationException e) {
             throw new RuntimeException(e);
         } catch (SAXException e) {

@@ -35,8 +35,10 @@
 package org.ow2.proactive.workflowcatalog.utils.scheduling;
 
 import java.io.File;
+import java.util.List;
 
 import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobIdData;
+import org.ow2.proactive_grid_cloud_portal.studio.Workflow;
 
 
 public interface ISchedulerProxy {
@@ -44,6 +46,8 @@ public interface ISchedulerProxy {
       throws JobNotFinishedException, JobStatusRetrievalException;
 
     JobIdData submitJob(File jobFile) throws JobSubmissionException;
+
+    List<Workflow> listWorkflows() throws WorkflowsRetrievalException;
 
     void disconnectFromScheduler();
 

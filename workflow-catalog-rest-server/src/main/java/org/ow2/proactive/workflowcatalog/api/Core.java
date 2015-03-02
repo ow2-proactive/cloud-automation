@@ -13,20 +13,14 @@ import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobIdData;
 import static org.ow2.proactive.workflowcatalog.api.utils.ConfigurationHelper.getCatalogPath;
 import static org.ow2.proactive.workflowcatalog.api.utils.ConfigurationHelper.getConfiguration;
 
-public class Core {
-
-    private static Core instance;
-    public static Core getInstance() {
-        if (instance == null)
-            instance = new Core();
-        return instance;
-    }
+public enum Core {
+    INSTANCE();
 
     private Catalog catalog;
 
     private Core() {
         Configuration config = getConfiguration();
-        catalog = new Catalog(getCatalogPath(config), config.catalog.refresh * 1000);
+        catalog = new StudioApiCatalog(getScheduler());
     }
 
     public Collection<Workflow> getWorkflows() {

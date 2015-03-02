@@ -14,12 +14,14 @@ import org.ow2.proactive_grid_cloud_portal.scheduler.client.SchedulerRestClient;
 import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobIdData;
 import org.ow2.proactive_grid_cloud_portal.scheduler.exception.NotConnectedRestException;
 import org.ow2.proactive_grid_cloud_portal.scheduler.exception.SchedulerRestException;
+import org.ow2.proactive_grid_cloud_portal.studio.Workflow;
 
 import javax.security.auth.login.LoginException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.StringReader;
 import java.security.KeyException;
+import java.util.List;
 import java.util.Map;
 
 public class SchedulerProxy implements ISchedulerProxy {
@@ -27,6 +29,7 @@ public class SchedulerProxy implements ISchedulerProxy {
     private static final Logger logger = Logger.getLogger(SchedulerProxy.class.getName());
 
     private final SchedulerRestClient restClient;
+    private final SchedulerStudioProxy restStudioClient;
     private String sessionId;
     private SchedulerLoginData loginData;
 
@@ -45,6 +48,9 @@ public class SchedulerProxy implements ISchedulerProxy {
 
         this.restClient = new SchedulerRestClient(loginData.schedulerUrl,
           new ApacheHttpClient4Engine(httpClient));
+
+        this.restStudioClient = new SchedulerStudioProxy(loginData.schedulerUrl,
+                new ApacheHttpClient4Engine(httpClient));
 
         sessionId = connectToScheduler(loginData);
     }
@@ -70,6 +76,19 @@ public class SchedulerProxy implements ISchedulerProxy {
             throw new JobNotFinishedException("No result for job " + jobId + " is available yet.");
 
         return new TasksResults(results);
+    }
+
+    public List<Workflow> listWorkflows() throws WorkflowsRetrievalException {
+        try {
+            try {
+                 return restStudioClient.getStudio().getWorkflows(sessionId);
+            } catch (Exception e) {
+                sessionId = connectToScheduler(loginData);
+                return restStudioClient.getStudio().getWorkflows(sessionId);
+            }
+        } catch (Exception e) {
+            throw new WorkflowsRetrievalException(e);
+        }
     }
 
     public JobIdData submitJob(File jobFile) throws JobSubmissionException {

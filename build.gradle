@@ -1,5 +1,6 @@
 buildscript {
     repositories {
+        //mavenLocal()
         mavenCentral()
         maven { url 'http://repo.activeeon.com/content/groups/proactive/' }
     }
@@ -62,6 +63,7 @@ project(':workflow-catalog-rest-server') {
     httpPort = 8082
 
     dependencies {
+        compile 'org.ow2.proactive_grid_cloud_portal:rest-api:6.1.0-SNAPSHOT'
         compile project(':workflow-catalog')
         compile project(':workflow-catalog-security')
         compile project(':workflow-catalog-rest-api')
@@ -139,6 +141,7 @@ project(':occi') {
         compile project(':workflow-catalog')
         compile project(':workflow-catalog-security')
         compile project(':monitoring')
+        compile 'org.ow2.proactive_grid_cloud_portal:rest-api:6.1.0-SNAPSHOT'
 
         compile 'com.google.inject:guice:3.0'
         compile 'org.jboss.resteasy:resteasy-guice:3.0.6.Final'

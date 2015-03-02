@@ -48,6 +48,7 @@ import org.ow2.proactive.brokering.occi.client.ActionTriggerHandler;
 import org.ow2.proactive.brokering.occi.database.DatabaseFactory;
 import org.ow2.proactive.brokering.updater.Updater;
 import org.ow2.proactive.workflowcatalog.Catalog;
+import org.ow2.proactive.workflowcatalog.FileCatalog;
 import org.ow2.proactive.workflowcatalog.RestAuthentication;
 import org.ow2.proactive.workflowcatalog.security.SchedulerRestSession;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.ISchedulerProxy;
@@ -101,7 +102,7 @@ public class OcciModule implements Module {
       @Named("catalog.path") String configCatalogPath,
       @Named("catalog.refresh.ms") long configCatalogRefresh) {
         File catalogPath = Utils.getScriptsPath(configCatalogPath, "/config/catalog-test");
-        return new Catalog(catalogPath, configCatalogRefresh, new CatalogToResource(databaseFactory));
+        return new FileCatalog(catalogPath, configCatalogRefresh, new CatalogToResource(databaseFactory));
     }
 
     @Provides

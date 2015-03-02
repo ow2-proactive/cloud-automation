@@ -67,6 +67,11 @@ class MiniScheduler implements ISchedulerProxy {
     }
 
     @Override
+    List<org.ow2.proactive_grid_cloud_portal.studio.Workflow> listWorkflows() throws WorkflowsRetrievalException {
+        return new ArrayList<org.ow2.proactive_grid_cloud_portal.studio.Workflow>();
+    }
+
+    @Override
     void disconnectFromScheduler() {
 
     }

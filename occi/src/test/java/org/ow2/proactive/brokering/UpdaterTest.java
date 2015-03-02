@@ -19,6 +19,7 @@ import org.ow2.proactive.brokering.occi.database.InMemoryDB;
 import org.ow2.proactive.brokering.updater.Updater;
 import org.ow2.proactive.brokering.updater.requests.UpdaterRequest;
 import org.ow2.proactive.workflowcatalog.Catalog;
+import org.ow2.proactive.workflowcatalog.FileCatalog;
 import org.ow2.proactive.workflowcatalog.Reference;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.ISchedulerProxy;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.JobNotFinishedException;
@@ -433,7 +434,7 @@ public class UpdaterTest {
         DatabaseFactory mockedDatabaseFactory = mock(DatabaseFactory.class);
         when(mockedDatabaseFactory.build()).thenReturn(db);
         File catalogPath = Utils.getScriptsPath("config/catalog/", "/config/catalog");
-        Catalog catalog = new Catalog(catalogPath, 10);
+        Catalog catalog = new FileCatalog(catalogPath, 10);
         Rules rules = mock(Rules.class);
         Broker broker = new Broker(catalog, rules, new SchedulerFactory() {
             @Override
