@@ -14,6 +14,7 @@ import org.ow2.proactive.workflowcatalog.Catalog;
 import org.ow2.proactive.workflowcatalog.Reference;
 import org.ow2.proactive.workflowcatalog.References;
 import org.ow2.proactive.workflowcatalog.Workflow;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.WorkflowsRetrievalException;
 import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobIdData;
 import com.google.inject.Inject;
 import groovy.lang.GroovyClassLoader;
@@ -137,11 +138,15 @@ public class Broker {
         Map<String, String> copy = new HashMap<String, String>(attributes);
         // FIXME find out resource state with a better way
         copy.put("action.from-states", copy.get("occi." + categoryToAttributeName(category) + ".state"));
-        for (Workflow workflow : catalog.getWorkflows()) {
-            if (OcciWorkflowUtils.isCompliant(workflow, category, null, null, copy)) {
-                possibleActions.add(new Action(workflow.getGenericInformation("action"), workflow
-                        .getVariables()));
+        try {
+            for (Workflow workflow : catalog.getWorkflows()) {
+                if (OcciWorkflowUtils.isCompliant(workflow, category, null, null, copy)) {
+                    possibleActions.add(new Action(workflow.getGenericInformation("action"), workflow
+                            .getVariables()));
+                }
             }
+        } catch (WorkflowsRetrievalException e) {
+            logger.error("Cannot list workflows", e);
         }
         return possibleActions;
     }

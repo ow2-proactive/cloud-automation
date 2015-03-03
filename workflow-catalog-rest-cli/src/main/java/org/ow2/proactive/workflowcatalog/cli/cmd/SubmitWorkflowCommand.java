@@ -44,6 +44,8 @@ import org.ow2.proactive.workflowcatalog.cli.ApplicationContext;
 import org.ow2.proactive.workflowcatalog.cli.CLIException;
 import org.ow2.proactive.workflowcatalog.cli.rest.WorkflowCatalogClient;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.JobSubmissionException;
+import org.ow2.proactive_grid_cloud_portal.scheduler.exception.NotConnectedRestException;
+
 import java.util.Map;
 
 
@@ -75,8 +77,10 @@ public class SubmitWorkflowCommand extends AbstractCommand implements Command {
         try {
             ReferencesBean references = client.getWorkflowsProxy().submitJob(new WorkflowParametersBean(params));
             writeLine(currentContext, "%s", references.generateReferences().getSummary());
+        } catch (NotConnectedRestException e) {
+            handleError("Not connected", e, currentContext);
         } catch (JobSubmissionException e) {
-            handleError("An error occurred during job submission: ", e, currentContext);
+            handleError("An error occurred during job submission", e, currentContext);
         }
     }
 }

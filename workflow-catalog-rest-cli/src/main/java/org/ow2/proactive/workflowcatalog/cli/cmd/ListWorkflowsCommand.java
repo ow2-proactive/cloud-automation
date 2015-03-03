@@ -43,6 +43,8 @@ import org.ow2.proactive.workflowcatalog.cli.CLIException;
 import org.ow2.proactive.workflowcatalog.cli.console.JLineDevice;
 import org.ow2.proactive.workflowcatalog.cli.rest.WorkflowCatalogClient;
 import org.ow2.proactive.workflowcatalog.cli.utils.StringUtility;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.WorkflowsRetrievalException;
+import org.ow2.proactive_grid_cloud_portal.scheduler.exception.NotConnectedRestException;
 
 import java.util.Collection;
 import java.util.Map;
@@ -55,9 +57,15 @@ public class ListWorkflowsCommand extends AbstractCommand implements Command {
     public void execute(ApplicationContext currentContext) throws CLIException {
         WorkflowCatalogClient client = currentContext.getWorkflowCatalogClient();
 
-        Collection<WorkflowBean> workflows = client.getWorkflowsProxy().getWorkflowList();
-        for (WorkflowBean workflow: workflows)
-            writeLine(currentContext, "%s", StringUtility.string(workflow));
+        try {
+            Collection<WorkflowBean> workflows = client.getWorkflowsProxy().getWorkflowList();
+            for (WorkflowBean workflow : workflows)
+                writeLine(currentContext, "%s", StringUtility.string(workflow));
+        } catch (NotConnectedRestException error) {
+            handleError("Not connected", error, currentContext);
+        } catch (WorkflowsRetrievalException error) {
+            handleError("An error occurred while retrieving workflows", error, currentContext);
+        }
     }
 
 }

@@ -13,6 +13,7 @@ import org.ow2.proactive.workflowcatalog.cli.cmd.GetJobResultCommand
 import org.ow2.proactive.workflowcatalog.cli.cmd.GetJobLogsCommand
 import org.ow2.proactive.workflowcatalog.cli.cmd.ListWorkflowsCommand
 import org.ow2.proactive.workflowcatalog.cli.cmd.LogoutCommand
+import org.ow2.proactive.workflowcatalog.cli.cmd.SetSessionCommand
 import org.ow2.proactive.workflowcatalog.cli.cmd.UploadFileCommand
 import org.ow2.proactive.workflowcatalog.cli.cmd.SubmitWorkflowCommand
 import org.ow2.proactive.workflowcatalog.cli.cmd.LoginCommand
@@ -138,6 +139,12 @@ addAutoComplete(new ArgumentCompletor(new SimpleCompletor("x"), new SimpleComple
 void x(String... cmd) {
     println ">>> Executing command: $cmd"
     println cmd.execute().text
+}
+
+addAutoComplete(new ArgumentCompletor(new SimpleCompletor("setSessionId"),
+        new SimpleCompletor("161540714ba1b948bc5da278077a7764be435d161540714b30b5cbe88000")));
+void setSessionId(String session) {
+    execute(new SetSessionCommand(session))
 }
 
 addAutoComplete(new ArgumentCompletor(new SimpleCompletor("exit")));
