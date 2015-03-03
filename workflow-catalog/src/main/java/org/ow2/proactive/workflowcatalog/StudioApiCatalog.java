@@ -13,24 +13,21 @@ public class StudioApiCatalog implements Catalog {
         this.proxy = proxy;
     }
 
-    public Collection<Workflow> getWorkflows(WorkflowParameters filter) {
+    public Collection<Workflow> getWorkflows(WorkflowParameters filter)
+            throws WorkflowsRetrievalException {
         ArrayList<Workflow> result = new ArrayList<Workflow>();
-        try {
-            for (org.ow2.proactive_grid_cloud_portal.studio.Workflow w :proxy.listWorkflows()) {
-                Workflow workflow = convert(w);
-                workflow.update();
-                if (filter == null || filter.matches(workflow))
-                    result.add(workflow);
-            }
-            logger.info("Matching workflows: " + result.size());
-        } catch (WorkflowsRetrievalException e) {
-            logger.error("Error retrieving workflows", e);
+
+        for (org.ow2.proactive_grid_cloud_portal.studio.Workflow w : proxy.listWorkflows()) {
+            Workflow workflow = convert(w);
+            workflow.update();
+            if (filter == null || filter.matches(workflow))
+                result.add(workflow);
         }
 
         return result;
     }
 
-    public Collection<Workflow> getWorkflows() {
+    public Collection<Workflow> getWorkflows() throws WorkflowsRetrievalException {
         return getWorkflows(null);
     }
 

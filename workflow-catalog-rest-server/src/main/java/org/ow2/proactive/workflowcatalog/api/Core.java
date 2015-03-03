@@ -9,27 +9,30 @@ import org.ow2.proactive.workflowcatalog.*;
 import org.ow2.proactive.workflowcatalog.security.SchedulerRestSession;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.*;
 import org.ow2.proactive_grid_cloud_portal.scheduler.dto.JobIdData;
-
-import static org.ow2.proactive.workflowcatalog.api.utils.ConfigurationHelper.getCatalogPath;
-import static org.ow2.proactive.workflowcatalog.api.utils.ConfigurationHelper.getConfiguration;
+import org.apache.shiro.session.UnknownSessionException;
+import org.ow2.proactive_grid_cloud_portal.scheduler.exception.NotConnectedRestException;
 
 public enum Core {
     INSTANCE();
 
-    private Catalog catalog;
+    private Core() {}
 
-    private Core() {
-        Configuration config = getConfiguration();
-        catalog = new StudioApiCatalog(getScheduler());
+    public Collection<Workflow> getWorkflows()
+            throws NotConnectedRestException, WorkflowsRetrievalException {
+        ISchedulerProxy proxy = getScheduler();
+        return new StudioApiCatalog(proxy).getWorkflows();
     }
 
-    public Collection<Workflow> getWorkflows() {
-        return catalog.getWorkflows();
-    }
-
-    public References executeWorkflow(WorkflowParameters data) throws JobSubmissionException {
+    public References executeWorkflow(WorkflowParameters data)
+            throws NotConnectedRestException, JobSubmissionException {
         References references = new References();
-        Collection<Workflow> workflows = catalog.getWorkflows(data);
+        Collection<Workflow> workflows;
+        try {
+            workflows = new StudioApiCatalog(getScheduler()).getWorkflows(data);
+        } catch (WorkflowsRetrievalException e) {
+            throw new JobSubmissionException("Cannot list workflows", e);
+        }
+
         for (Workflow w: workflows) {
             try {
                 JobIdData jsonResponse = getScheduler().submitJob(w.configure(data.getVariables()));
@@ -48,8 +51,12 @@ public enum Core {
         return references;
     }
 
-    private ISchedulerProxy getScheduler() {
-        return SchedulerRestSession.getScheduler();
+    private ISchedulerProxy getScheduler() throws NotConnectedRestException {
+        try {
+            return SchedulerRestSession.getScheduler();
+        } catch (UnknownSessionException e) {
+            throw new NotConnectedRestException(e);
+        }
     }    
 
 }

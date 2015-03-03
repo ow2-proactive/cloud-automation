@@ -62,12 +62,8 @@ public class SchedulerProxy implements ISchedulerProxy {
 
         Map<String, String> results;
         try {
-            try {
-                results = restClient.getScheduler().jobResultValue(sessionId, jobId);
-             } catch (NotConnectedRestException e) {
-                sessionId = connectToScheduler(loginData);
-                results = restClient.getScheduler().jobResultValue(sessionId, jobId);
-            }
+            reconnectIfNeeded();
+            results = restClient.getScheduler().jobResultValue(sessionId, jobId);
         } catch (Exception e) {
             throw new JobStatusRetrievalException(
                 "Error getting result for job " + jobId +
@@ -80,14 +76,22 @@ public class SchedulerProxy implements ISchedulerProxy {
         return new TasksResults(results);
     }
 
+    private void reconnectIfNeeded() throws LoginException, SchedulerRestException {
+        boolean connected;
+        try {
+            connected = restClient.getScheduler().isConnected(sessionId);
+        } catch (Exception e) {
+            logger.info("Error when isConnected", e);
+            connected = false;
+        }
+        if (!connected)
+            sessionId = connectToScheduler(loginData);
+    }
+
     public List<Workflow> listWorkflows() throws WorkflowsRetrievalException {
         try {
-            try {
-                return getWorkflowsAndTemplates();
-            } catch (NotConnectedRestException e) {
-                sessionId = connectToScheduler(loginData);
-                return getWorkflowsAndTemplates();
-            }
+            reconnectIfNeeded();
+            return getWorkflowsAndTemplates();
         } catch (Exception e) {
             throw new WorkflowsRetrievalException(e);
         }
@@ -102,12 +106,8 @@ public class SchedulerProxy implements ISchedulerProxy {
 
     public JobIdData submitJob(File jobFile) throws JobSubmissionException {
         try {
-            try {
-                return restClient.submitXml(sessionId, new FileInputStream(jobFile));
-            } catch (NotConnectedRestException e) {
-                sessionId = connectToScheduler(loginData);
-                return restClient.submitXml(sessionId, new FileInputStream(jobFile));
-            }
+            reconnectIfNeeded();
+            return restClient.submitXml(sessionId, new FileInputStream(jobFile));
         } catch (Exception e) {
             throw new JobSubmissionException(e);
         }

@@ -43,6 +43,8 @@ import org.ow2.proactive.workflowcatalog.api.utils.formatter.beans.ReferencesBea
 import org.ow2.proactive.workflowcatalog.api.utils.formatter.beans.WorkflowBean;
 import org.ow2.proactive.workflowcatalog.api.utils.formatter.beans.WorkflowParametersBean;
 import org.ow2.proactive.workflowcatalog.utils.scheduling.JobSubmissionException;
+import org.ow2.proactive.workflowcatalog.utils.scheduling.WorkflowsRetrievalException;
+import org.ow2.proactive_grid_cloud_portal.scheduler.exception.NotConnectedRestException;
 
 @Path("/")
 public interface Workflows {
@@ -50,12 +52,14 @@ public interface Workflows {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("/workflow/")
-    Collection<WorkflowBean> getWorkflowList();
+    Collection<WorkflowBean> getWorkflowList()
+            throws NotConnectedRestException, WorkflowsRetrievalException;
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("/job/")
-    ReferencesBean submitJob(WorkflowParametersBean parameters) throws JobSubmissionException;
+    ReferencesBean submitJob(WorkflowParametersBean parameters)
+            throws NotConnectedRestException, JobSubmissionException;
 
 }

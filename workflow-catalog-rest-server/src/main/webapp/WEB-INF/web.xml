@@ -13,6 +13,11 @@
     </context-param>
     -->
 
+    <context-param>
+        <param-name>resteasy.providers</param-name>
+        <param-value>org.ow2.proactive.workflowcatalog.api.exceptions.AllExceptionsMapper</param-value>
+    </context-param>
+
     <!-- this need same with resteasy servlet url-pattern -->
     <context-param>
         <param-name>resteasy.servlet.mapping.prefix</param-name>
