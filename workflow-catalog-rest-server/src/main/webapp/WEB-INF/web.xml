@@ -25,7 +25,15 @@
         </listener-class>
     </listener>
 
-	<listener>
+
+    <context-param>
+        <param-name>resteasy.providers</param-name>
+        <param-value>org.ow2.proactive.workflowcatalog.api.exceptions.AllExceptionsMapper</param-value>
+        <param-value>org.ow2.proactive.workflowcatalog.api.OctetStreamWriter</param-value>
+    </context-param>
+
+
+    <listener>
 		<listener-class>org.apache.shiro.web.env.EnvironmentLoaderListener</listener-class>
 	</listener>
 

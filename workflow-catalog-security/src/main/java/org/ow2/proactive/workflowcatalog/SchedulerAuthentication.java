@@ -1,11 +1,7 @@
 package org.ow2.proactive.workflowcatalog;
 
 import javax.security.auth.login.LoginException;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -36,6 +32,7 @@ public abstract class SchedulerAuthentication implements RestAuthentication {
     @POST
     @Path("/login")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @Produces(MediaType.APPLICATION_JSON)
     public String login(@FormParam("username") String username, @FormParam("password") String password) {
         SchedulerLoginData data = new SchedulerLoginData(null, username, password, null, null);
         return commonLogin(data);

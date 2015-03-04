@@ -37,10 +37,7 @@ package org.ow2.proactive.workflowcatalog;
 import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
 import org.ow2.proactive_grid_cloud_portal.common.dto.LoginForm;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 
 
@@ -49,6 +46,7 @@ public interface RestAuthentication {
     @POST
     @Path("/login")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @Produces(MediaType.APPLICATION_JSON)
     String login(@FormParam("username") String username, @FormParam("password") String password);
 
     @POST
