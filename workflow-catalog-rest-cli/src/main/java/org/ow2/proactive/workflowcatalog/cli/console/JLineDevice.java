@@ -1,12 +1,10 @@
 /*
- * ################################################################
- *
  * ProActive Parallel Suite(TM): The Java(TM) library for
  *    Parallel, Distributed, Multi-Core Computing for
  *    Enterprise Grids & Clouds
  *
- * Copyright (C) 1997-2012 INRIA/University of
- *                 Nice-Sophia Antipolis/ActiveEon
+ * Copyright (C) 2013-2015 ActiveEon
+ * 
  * Contact: proactive@ow2.org or contact@activeeon.com
  *
  * This library is free software; you can redistribute it and/or
@@ -31,9 +29,10 @@
  *                        http://proactive.inria.fr/team_members.htm
  *  Contributor(s):
  *
- * ################################################################
  * $$ACTIVEEON_INITIAL_DEV$$
  */
+
+
 
 package org.ow2.proactive.workflowcatalog.cli.console;
 
