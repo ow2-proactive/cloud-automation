@@ -36,17 +36,18 @@
 package org.ow2.proactive.brokering;
 
 import java.io.File;
+import java.util.Properties;
 
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.nio.SelectChannelConnector;
-import org.eclipse.jetty.server.ssl.SslSocketConnector;
+import org.eclipse.jetty.http.HttpVersion;
+import org.eclipse.jetty.server.*;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.webapp.WebAppContext;
 
 
 public class Main {
 
     public static void main(String[] args) throws Exception {
-        Server server = createHttpsServer(8081, 8443);
+        Server server = createHttpServer(8081);
         WebAppContext webApp = new WebAppContext();
         webApp.setParentLoaderPriority(true);
         webApp.setContextPath("/ca");
@@ -58,19 +59,33 @@ public class Main {
         server.join();
     }
 
-    private static Server createHttpsServer(int httpPort, int httpsPort) {
+    private static Server createHttpServer(int restPort) {
         Server server = new Server();
 
-        SslSocketConnector https = new SslSocketConnector();
-        https.setKeystore(Main.class.getResource("/keystore").toString());
-        https.setKeyPassword("activeeon");
-        https.setPort(httpsPort);
-        server.addConnector(https);
+        HttpConfiguration httpConfig = new HttpConfiguration();
+        httpConfig.setSecureScheme("https");
+        httpConfig.setSecurePort(restPort);
+        httpConfig.setSendServerVersion(false);
+        httpConfig.setSendDateHeader(false);
 
-        SelectChannelConnector redirectHttpToHttps = new SelectChannelConnector();
-        redirectHttpToHttps.setPort(httpPort);
-        redirectHttpToHttps.setConfidentialPort(httpsPort);
-        server.addConnector(redirectHttpToHttps);
+        org.eclipse.jetty.server.ConnectionFactory[] connectionFactories;
+
+            SslContextFactory sslContextFactory = new SslContextFactory();
+            sslContextFactory.setKeyStorePath("./Config/keystore");
+            sslContextFactory.setKeyStorePassword("activeeon");
+
+            HttpConfiguration httpsConfig = new HttpConfiguration(httpConfig);
+            httpsConfig.addCustomizer(new SecureRequestCustomizer());
+
+            connectionFactories = new org.eclipse.jetty.server.ConnectionFactory[]{
+                    new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString()),
+                    new HttpConnectionFactory(httpsConfig)
+            };
+
+
+        ServerConnector http = new ServerConnector(server, connectionFactories);
+        http.setPort(restPort);
+        server.addConnector(http);
 
         return server;
     }

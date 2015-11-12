@@ -67,7 +67,7 @@ public abstract class SchedulerAuthentication implements RestAuthentication {
     @POST
     @Path("/login")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces("text/plain")
     public String login(@FormParam("username") String username, @FormParam("password") String password) {
         SchedulerLoginData data = new SchedulerLoginData(null, username, password, null, null);
         return commonLogin(data);

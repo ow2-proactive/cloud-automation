@@ -47,7 +47,7 @@ public interface RestAuthentication {
     @POST
     @Path("/login")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces("text/plain")
     String login(@FormParam("username") String username, @FormParam("password") String password);
 
     @POST

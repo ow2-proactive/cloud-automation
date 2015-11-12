@@ -19,7 +19,7 @@ The Workflow Catalog (WC) is a tool that provides the user with a list of alread
 # If running with Gradle run (recommended)
 
    cd workflow-catalog-rest-server
-   gradle clean :workflow-catalog-rest-server:run
+
 
 # If running with Gradle jettyRunWar
 

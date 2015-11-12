@@ -72,11 +72,11 @@
         };
 
         this.login = function (credentials) {
-            var formHeaders = {headers: {'Content-Type': 'application/x-www-form-urlencoded'}};
+            var formHeaders = {headers: {'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'text/plain'}};
             $http.post('/ca/api/login', $.param(credentials), formHeaders).then(function (res) {
                 User.login(credentials, res.data)
-                $route.reload()
-                notificationService.success("Connected as " + credentials.username)
+               $route.reload()
+               notificationService.success("Connected as " + credentials.username)
             });
         }
 
